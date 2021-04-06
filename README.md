@@ -13,3 +13,7 @@ $ curl --location --request POST 'localhost:8080/transaction' --header 'Content-
 }'
 ```
 
+# Big Thank List
+- https://github.com/blurbyte/restful-rust
+- https://github.com/zupzup/warp-postgres-example
+- https://blog.logrocket.com/create-an-async-crud-web-service-in-rust-with-warp/
