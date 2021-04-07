@@ -1,31 +1,46 @@
-// Common types used across API
-
-use chrono::{NaiveDate, NaiveDateTime};
+use chrono::NaiveDateTime;
+use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::Mutex;
 
 // use crate::validators;
 
-pub fn ledger() -> Db {
-    // TODO: there was something simpler in one of the other tutorials? <07-04-21, yigit> //
+// In memory data structure
 
-    Arc::new(Mutex::new(vec![
-    Transaction {
-        source: String::from("Myself"),
-        target: String::from("Nobody"),
-        amount: 4,
-        timestamp: NaiveDate::from_ymd(2021, 4, 7).and_hms(00, 17, 00),
-    },
-    ]))
+// Two approaches here
+// 1. Db is a type
+// pub type Db = Arc<RwLock<Vec<Ledger>>>;
+// Ledger is a struct, we wrap the ledger with arc + mutex in ledger()
+// to access transactions we need to unwrap blocks as well, vice versa
+//
+// 2. Db is a struct, attributes are wrapped
+// we can offload ::new() to it's member method
+// blocks and transactions are accessible separately, which is the biggest pro
+
+/// Creates a new database
+pub fn create_database() -> Db {
+    Db::new()
 }
 
+#[derive(Debug, Clone)]
+pub struct Db {
+    // heh. also https://doc.rust-lang.org/std/collections/struct.LinkedList.html says Vec is generally faster
+    pub blockchain: Arc<RwLock<Vec<Block>>>,
+    // every proposer can have _one_ pending transaction, a way to enforce this, String is proposer identifier
+    pub pending_transactions: Arc<RwLock<HashMap<String, Transaction>>>,
+}
 
-// For presentation purposes keep mocked data in in-memory structure
-// In real life scenario connection with regular database would be established
+impl Db {
+    fn new() -> Self {
+        Db {
+            blockchain: Arc::new(RwLock::new(Vec::new())),
+            pending_transactions: Arc::new(RwLock::new(HashMap::new())),
+        }
+    }
+}
 
-pub type Db = Arc<Mutex<Vec<Transaction>>>;
-
+/// A transaction between `source` and `target` that moves `amount`
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Transaction {
     pub source: String,
@@ -34,13 +49,21 @@ pub struct Transaction {
     pub timestamp: NaiveDateTime,
 }
 
+/// A block that was proposed with `transaction_list` and `nonce` that made `hash` valid
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Block {
-    pub transaction_list: Vec<Transaction>, // [Transaction; N]
+    pub transaction_list: Vec<String>, // hashes of the transactions (or just "source" for now)
     pub nonce: i32,
     pub timestamp: NaiveDateTime,
     pub hash: String, // future proof'd baby
 }
+
+// pub struct Ledger {
+//     // heh. also https://doc.rust-lang.org/std/collections/struct.LinkedList.html says Vec is generally faster
+//     blockchain: Vec<Block>,
+//     // every proposer can have _one_ pending transaction, a way to enforce this, String is proposer identifier
+//     pending_transactions: HashMap<String, Transaction>,
+// }
 
 // #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 // #[serde(rename_all = "camelCase")]
@@ -98,6 +121,8 @@ pub struct Block {
 //     ]
 //     ))
 // }
+
+// TODO: these tests are amazing, we should write some when schema is decided upon <07-04-21, yigit> //
 
 // #[cfg(test)]
 // mod tests {
