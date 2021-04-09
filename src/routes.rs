@@ -12,7 +12,7 @@ pub fn consensus_routes(db: Db) -> impl Filter<Extract = impl Reply, Error = Rej
         .or(block_list(db.clone()))
 }
 
-/// GET /transaction
+/// GET /transaction warp route
 pub fn transaction_list(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
     warp::path!("transaction")
         .and(warp::get())
@@ -20,7 +20,7 @@ pub fn transaction_list(db: Db) -> impl Filter<Extract = impl Reply, Error = Rej
         .and_then(handlers::list_transactions)
 }
 
-/// GET /block
+/// GET /block warp route
 pub fn block_list(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
     warp::path!("block")
         .and(warp::get())
@@ -28,7 +28,7 @@ pub fn block_list(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection
         .and_then(handlers::list_blocks)
 }
 
-/// POST /transaction
+/// POST /transaction warp route
 pub fn transaction_propose(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
     warp::path!("transaction")
         .and(warp::post())
@@ -37,7 +37,7 @@ pub fn transaction_propose(db: Db) -> impl Filter<Extract = impl Reply, Error = 
         .and_then(handlers::propose_transaction)
 }
 
-/// POST /block
+/// POST /block warp route
 pub fn block_propose(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
     warp::path!("block")
         .and(warp::post())
@@ -45,61 +45,6 @@ pub fn block_propose(db: Db) -> impl Filter<Extract = impl Reply, Error = Reject
         .and(custom_filters::with_db(db))
         .and_then(handlers::propose_block)
 }
-
-///////////////////////////
-//  below are not mine.  //
-///////////////////////////
-
-// Root, all routes combined
-//pub fn games_routes(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
-//    games_list(db.clone())
-//        .or(games_create(db.clone()))
-//        .or(games_update(db.clone()))
-//        .or(games_delete(db))
-//}
-
-//// `GET /games?offset=3&limit=5`
-//pub fn games_list(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
-//    warp::path!("games")
-//        .and(warp::get())
-//        .and(custom_filters::list_options())
-//        .and(custom_filters::with_db(db))
-//        .and_then(handlers::list_games)
-//}
-
-//// `POST /games`
-//pub fn games_create(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
-//    warp::path!("games")
-//        .and(warp::post())
-//        .and(custom_filters::json_body())
-//        .and(custom_filters::with_db(db))
-//        .and_then(handlers::create_game)
-//}
-
-//// `PUT /games/:id`
-//pub fn games_update(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
-//    warp::path!("games" / u64)
-//        .and(warp::put())
-//        .and(custom_filters::json_body())
-//        .and(custom_filters::with_db(db))
-//        .and_then(handlers::update_game)
-//}
-
-//// `DELETE /games/:id`
-//pub fn games_delete(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
-//    warp::path!("games" / u64)
-//        .and(warp::delete())
-//        .and(custom_filters::with_db(db))
-//        .and_then(handlers::delete_game)
-//}
-
-////////////////////////////////
-////  tests below, it's fine  //
-////////////////////////////////
-
-/////////////////////////////////////
-//  of course I'll write tests...  //
-/////////////////////////////////////
 
 // TODO: write tests <07-04-21, yigit> //
 
