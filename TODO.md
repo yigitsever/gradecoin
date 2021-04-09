@@ -7,8 +7,12 @@
 - [ ] check the nonce for incoming blocks
 
 ## Authentication
-- [ ] pick a user authentication scheme
-    - [ ] implement it
+- [X] pick a user authentication scheme = [JWT](https://tools.ietf.org/html/rfc7519) Seems perfect
+- [ ] implement JWT
+    - https://blog.logrocket.com/jwt-authentication-in-rust/
+    - https://crates.io/crates/jsonwebtoken
+    - https://jwt.io/introduction/
+    - https://jwt.io/#debugger-io
 - [ ] users should be able to _sign_ their transactions
 
 ## Done & Brag

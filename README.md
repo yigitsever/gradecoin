@@ -17,6 +17,8 @@ $ curl --location --request POST 'localhost:8080/transaction' --header 'Content-
 
 ## authentication
 Students generate their own `keypairs` and authenticate with their METU Student IDs.
+Some JWT scheme, coming up.
+
 Authenticated students propose transactions, between them and another node (=public keys) or between the grader (=bank) and themselves.
 
 ## transactions
