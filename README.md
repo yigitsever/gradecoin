@@ -41,3 +41,7 @@ After the new block, stale transactions are cleared?
 - https://github.com/blurbyte/restful-rust
 - https://github.com/zupzup/warp-postgres-example
 - https://blog.logrocket.com/create-an-async-crud-web-service-in-rust-with-warp/
+
+# How to be a good server
+- https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
+- https://tools.ietf.org/html/rfc7231
