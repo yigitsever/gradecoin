@@ -46,3 +46,151 @@ pub fn block_propose(db: Db) -> impl Filter<Extract = impl Reply, Error = Reject
         .and_then(handlers::propose_block)
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use chrono::prelude::*;
+    use parking_lot::RwLock;
+    use std::sync::Arc;
+    use warp::http::StatusCode;
+
+    use crate::schema;
+    use crate::schema::{Block, Transaction};
+
+    /// Create a mock database to be used in tests
+    fn mocked_db() -> Db {
+        let db = schema::create_database();
+
+        db.pending_transactions.write().insert(
+            "hash_value".to_owned(),
+            Transaction {
+                source: "source_account".to_owned(),
+                target: "target_account".to_owned(),
+                amount: 20,
+                timestamp: chrono::NaiveDate::from_ymd(2021, 04, 09).and_hms(1, 30, 30),
+            },
+        );
+
+        db.blockchain.write().push(Block {
+            transaction_list: vec![
+                "old_transaction_hash_1".to_owned(),
+                "old_transaction_hash_2".to_owned(),
+                "old_transaction_hash_3".to_owned(),
+            ],
+            nonce: "not_a_thing_yet".to_owned(),
+            timestamp: chrono::NaiveDate::from_ymd(2021, 04, 08).and_hms(12, 30, 30),
+            hash: "not_a_thing_yet".to_owned(),
+        });
+
+        db
+    }
+
+    /// Create a mock transaction to be used in tests
+    fn mocked_transaction() -> Transaction {
+        Transaction {
+            source: "mock_transaction_source".to_owned(),
+            target: "mock_transaction_target".to_owned(),
+            amount: 25,
+            timestamp: chrono::NaiveDate::from_ymd(2021, 04, 09).and_hms(14, 30, 00),
+        }
+    }
+
+    /// Test simple GET request to /transaction, resource that exists
+    /// https://tools.ietf.org/html/rfc7231#section-6.3.1
+    /// We should get the only pending transaction available in the database as json
+    #[tokio::test]
+    async fn get_pending_transactions() {
+        let db = mocked_db();
+
+        let reply = consensus_routes(db);
+
+        let res = warp::test::request()
+            .method("GET")
+            .path("/transaction")
+            .reply(&reply)
+            .await;
+
+        assert_eq!(res.status(), StatusCode::OK);
+
+        let expected_json_body = r#"[{"source":"source_account","target":"target_account","amount":20,"timestamp":"2021-04-09T01:30:30"}]"#;
+
+        assert_eq!(res.body(), expected_json_body);
+    }
+
+    /// Test simple GET request to /block, resource that exists
+    /// https://tools.ietf.org/html/rfc7231#section-6.3.1
+    /// Should return the single block available in the database as json
+    #[tokio::test]
+    async fn get_blockchain() {
+        let db = mocked_db();
+        let filter = consensus_routes(db);
+
+        let res = warp::test::request()
+            .method("GET")
+            .path("/block")
+            .reply(&filter)
+            .await;
+
+        assert_eq!(res.status(), StatusCode::OK);
+
+        let expected_json_body = r#"[{"transaction_list":["old_transaction_hash_1","old_transaction_hash_2","old_transaction_hash_3"],"nonce":"not_a_thing_yet","timestamp":"2021-04-08T12:30:30","hash":"not_a_thing_yet"}]"#;
+        assert_eq!(res.body(), expected_json_body);
+    }
+
+    /// Test a simple GET request to a nonexisting path
+    /// https://tools.ietf.org/html/rfc7231#section-6.5.4
+    /// Should respond with 404 and stop
+    #[tokio::test]
+    async fn get_nonexisting_path_404() {
+        let db = mocked_db();
+        let filter = consensus_routes(db);
+
+        let res = warp::test::request()
+            .method("GET")
+            .path("/this_path_does_not_exist")
+            .reply(&filter)
+            .await;
+
+        assert_eq!(res.status(), StatusCode::NOT_FOUND);
+    }
+
+    /// Test a POST request to /transaction, a resource that exists
+    /// https://tools.ietf.org/html/rfc7231#section-6.3.2
+    /// Should accept the json request, create
+    /// the transaction and add it to pending transactions in the db
+    #[tokio::test]
+    async fn post_json_201() {
+        let db = mocked_db();
+        let filter = consensus_routes(db.clone());
+
+        let res = warp::test::request()
+            .method("POST")
+            .json(&mocked_transaction())
+            .path("/transaction")
+            .reply(&filter)
+            .await;
+
+        assert_eq!(res.status(), StatusCode::CREATED);
+        assert_eq!(db.pending_transactions.read().len(), 2);
+    }
+
+    /// Test a POST request to /transaction, a resource that exists with a longer than expected
+    /// payload
+    /// https://tools.ietf.org/html/rfc7231#section-6.5.11
+    /// Should return 413 to user
+    #[tokio::test]
+    async fn post_too_long_content_413() {
+        let db = mocked_db();
+        let filter = consensus_routes(db);
+
+        let res = warp::test::request()
+            .method("POST")
+            .header("content-length", 1024 * 36)
+            .path("/transaction")
+            .reply(&filter)
+            .await;
+
+        assert_eq!(res.status(), StatusCode::PAYLOAD_TOO_LARGE);
+    }
+}
