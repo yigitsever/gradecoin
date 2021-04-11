@@ -15,5 +15,15 @@
     - https://jwt.io/#debugger-io
 - [ ] users should be able to _sign_ their transactions
 
+## Verbosity
+- [ ] Verbose error messages (use error.rs?)
+
+## Tests
+- [ ] Schema Tests
+- [ ] Route Tests
+    - [ ] Malformed JSON bodies
+    - [ ] Valid JSON with missing fields
+    - [ ] Valid JSON with extra fields
+
 ## Done & Brag
 - [x] Switch to RwLock (parking_lot) (done at 2021-04-07 03:43, two possible schemes to represent inner Db (ledger) in code)
