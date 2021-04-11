@@ -16,28 +16,36 @@ $ curl --location --request POST 'localhost:8080/transaction' --header 'Content-
 # how?
 
 ## authentication
-Students generate their own `keypairs` and authenticate with their METU Student IDs.
-Some JWT scheme, coming up.
-
-Authenticated students propose transactions, between them and another node (=public keys) or between the grader (=bank) and themselves.
+> Uses /register endpoint
+- Student creates their own 2048 bit RSA `keypair`
+- Downloads Gradecoin's Public Key from Moodle
+- Encrypts their JSON wrapped Public Key and Student ID using Gradecoin's Public Key
+- Their public key is now in our database and can be used to sign their JWT's during requests
 
 ## transactions
-Transactions are `signed` using the proposers private key.
-(This whole public/private key + signing process will require some crypto dependency, **todo**)
+> Uses /transaction endpoint
+- offer **a transaction** - POST request
+    - The request header should have Bearer [JWT.Token signed with Student Public Key]
+    - The request header should be signed by the Public Key of the `by` field in the transaction
+- fetch the list of pending transactions - GET request
+    - All the pending transactions are returned in a JSON body
+    - ❓ Does this need to be authenticated as well?
 
-## blocks
-Blocks are proposed using `N` transactions, this can be an exact number (=20) or if the last block is *some time* old then small blocks can be proposed.
-Block proposal: `Block` + some `nonce` is hashed using a *simple* hash function, resulting hash should have some property that will require some computation time (~1 minute? 10 minutes?) to find (=guessing) Proof-of-work scheme.
+## blocks - [INCOMPLETE]
+> Uses /block endpoint
+- Blocks are proposed using `N` transactions - POST request
+    - ❓ This can be an exact number (=20) or if the last block is *some time* old then small blocks can be proposed.
+
+- Block proposal: `Block` + some `nonce` is hashed using a *simple* hash function, resulting hash should have some property that will require some computation time (~1 minute? 10 minutes?) to find (=guessing) Proof-of-work scheme.
 First proposed valid block is accepted, if assertions hold.
 (No consensus, we are the sole authority, there's no blockchain here, only a glorified database and busywork)
+- Pending transactions get cleared out after a new block is accepted
+    - ❓ All or only the used ones?
 
 ## payment
 First transaction in the block is called *Coinbase*, the block reward is paid to the *output* (Bitcoin notation, different) of this transaction.
 If we do this then the rest of the transactions are just make believe playing.
 So banker + block reward approach seems better.
-
-## then
-After the new block, stale transactions are cleared?
 
 # Big Thank List
 - https://github.com/blurbyte/restful-rust
