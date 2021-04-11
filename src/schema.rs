@@ -1,41 +1,42 @@
-use chrono::NaiveDateTime;
+use chrono::{NaiveDate, NaiveDateTime};
+use lazy_static::lazy_static;
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::fmt;
+use std::fs;
 use std::sync::Arc;
 
 // use crate::validators;
 
-// In memory data structure
-// Two approaches here
-// 1. Db is a type pub type Db = Arc<RwLock<Vec<Ledger>>>; Ledger is a struct, we wrap the ledger
-//    with arc + mutex in ledger() to access transactions we need to unwrap blocks as well, vice
-//    versa
-//
-// 2. Db is a struct attributes are wrapped we can offload ::new() to it's member method blocks and
-//    transactions are accessible separately, which is the biggest pro
-//
-// 3. use an actual database (for blockchain and users this makes the most sense tbh but pending
-//    transactions are perfectly fine in memory)
+/// We need persistence for blocks and users, not so much for transactions
+/// There are around 30 students, a full fledged database would be an overkill (for next year?)
+/// Pending transactions are held in memory, these are cleared with every new block
+/// Only the last block is held in memory, every block is written to a file
+/// Users are held in memory and they're also backed up to text files
 
-/// Creates a new database
+/// Creates a new database connection
 pub fn create_database() -> Db {
+    fs::create_dir_all("blocks").unwrap();
+    fs::create_dir_all("users").unwrap();
     Db::new()
 }
 
 #[derive(Debug, Clone)]
 pub struct Db {
     // heh. also https://doc.rust-lang.org/std/collections/struct.LinkedList.html says Vec is generally faster
-    pub blockchain: Arc<RwLock<Vec<Block>>>,
+    pub blockchain: Arc<RwLock<Block>>,
     // every proposer can have _one_ pending transaction, a way to enforce this, String is proposer identifier
     pub pending_transactions: Arc<RwLock<HashMap<String, Transaction>>>,
+    pub users: Arc<RwLock<HashMap<String, User>>>,
 }
 
 impl Db {
     fn new() -> Self {
         Db {
-            blockchain: Arc::new(RwLock::new(Vec::new())),
+            blockchain: Arc::new(RwLock::new(Block::new())),
             pending_transactions: Arc::new(RwLock::new(HashMap::new())),
+            users: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 }
@@ -43,6 +44,7 @@ impl Db {
 /// A transaction between `source` and `target` that moves `amount`
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Transaction {
+    // TODO: new field by <11-04-21, yigit> //
     pub source: String,
     pub target: String,
     pub amount: i32,
@@ -65,5 +67,66 @@ pub struct Block {
     pub hash: String, // future proof'd baby
 }
 
+impl Block {
+    /// Genesis block
+    pub fn new() -> Block {
+        Block {
+            transaction_list: vec![],
+            nonce: String::from(""),
+            timestamp: NaiveDate::from_ymd(2021, 04, 11).and_hms(20, 45, 00),
+            hash: String::from(""),
+        }
+    }
+}
+
+/// Or simply a Student
+#[derive(Serialize, Deserialize, Debug)]
+pub struct User {
+    pub user_id: MetuId,
+    pub public_key: String,
+    pub balance: i32,
+}
+
+/// The values will be hard coded so MetuId::new() can accept/reject values based on that
+#[derive(Serialize, Deserialize, Debug)]
+pub struct MetuId {
+    id: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct AuthRequest {
+    pub student_id: String,
+    pub public_key: String,
+}
+
+lazy_static! {
+    static ref OUR_STUDENTS: HashSet<&'static str> = {
+        [
+            "e254275", "e223687", "e211024", "e209888", "e223725", "e209362", "e209898", "e230995",
+            "e223743", "e223747", "e223749", "e223751", "e188126", "e209913", "e203608", "e233013",
+            "e216982", "e217185", "e223780", "e194931", "e223783", "e254550", "e217203", "e217477",
+            "e223786", "e231060", "e223795",
+        ]
+        .iter()
+        .cloned()
+        .collect()
+    };
+}
+
+impl fmt::Display for MetuId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.id)
+    }
+}
+
+impl MetuId {
+    pub fn new(id: String) -> Option<Self> {
+        if OUR_STUDENTS.contains(&*id) {
+            Some(MetuId { id: id })
+        } else {
+            None
+        }
+    }
+}
 
 // TODO: write schema tests using the original repo <09-04-21, yigit> //

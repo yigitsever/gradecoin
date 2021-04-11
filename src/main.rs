@@ -1,8 +1,8 @@
 use std::env;
 use warp::Filter;
 
-mod custom_filters;
 mod handlers;
+mod custom_filters;
 mod routes;
 mod schema;
 // mod validators;

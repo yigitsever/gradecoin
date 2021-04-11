@@ -7,9 +7,19 @@ use crate::schema::Db;
 /// Root, all routes combined
 pub fn consensus_routes(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
     transaction_list(db.clone())
+        .or(register_user(db.clone()))
         .or(transaction_propose(db.clone()))
         .or(block_propose(db.clone()))
         .or(block_list(db.clone()))
+}
+
+/// POST /register warp route
+pub fn register_user(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
+    warp::path!("register")
+        .and(warp::post())
+        .and(custom_filters::auth_request_json_body())
+        .and(custom_filters::with_db(db))
+        .and_then(handlers::authenticate_user)
 }
 
 /// GET /transaction warp route
@@ -50,13 +60,13 @@ pub fn block_propose(db: Db) -> impl Filter<Extract = impl Reply, Error = Reject
 mod tests {
     use super::*;
 
-    use chrono::prelude::*;
-    use parking_lot::RwLock;
-    use std::sync::Arc;
+    // use chrono::prelude::*;
+    // use parking_lot::RwLock;
+    // use std::sync::Arc;
     use warp::http::StatusCode;
 
     use crate::schema;
-    use crate::schema::{Block, Transaction};
+    use crate::schema::{AuthRequest, Block, Transaction};
 
     /// Create a mock database to be used in tests
     fn mocked_db() -> Db {
@@ -72,7 +82,7 @@ mod tests {
             },
         );
 
-        db.blockchain.write().push(Block {
+        *db.blockchain.write() = Block {
             transaction_list: vec![
                 "old_transaction_hash_1".to_owned(),
                 "old_transaction_hash_2".to_owned(),
@@ -81,9 +91,25 @@ mod tests {
             nonce: "not_a_thing_yet".to_owned(),
             timestamp: chrono::NaiveDate::from_ymd(2021, 04, 08).and_hms(12, 30, 30),
             hash: "not_a_thing_yet".to_owned(),
-        });
+        };
 
         db
+    }
+
+    /// Create a mock user that is allowed to be in gradecoin to be used in tests
+    fn priviliged_mocked_user() -> AuthRequest {
+        AuthRequest {
+            student_id: String::from("e254275"),
+            public_key: "NOT IMPLEMENTED".to_owned(),
+        }
+    }
+
+    /// Create a mock user that is NOT allowed to be in gradecoin to be used in tests
+    fn unpriviliged_mocked_user() -> AuthRequest {
+        AuthRequest {
+            student_id: String::from("foobarbaz"),
+            public_key: "NOT IMPLEMENTED".to_owned(),
+        }
     }
 
     /// Create a mock transaction to be used in tests
@@ -134,7 +160,7 @@ mod tests {
 
         assert_eq!(res.status(), StatusCode::OK);
 
-        let expected_json_body = r#"[{"transaction_list":["old_transaction_hash_1","old_transaction_hash_2","old_transaction_hash_3"],"nonce":"not_a_thing_yet","timestamp":"2021-04-08T12:30:30","hash":"not_a_thing_yet"}]"#;
+        let expected_json_body = r#"{"transaction_list":["old_transaction_hash_1","old_transaction_hash_2","old_transaction_hash_3"],"nonce":"not_a_thing_yet","timestamp":"2021-04-08T12:30:30","hash":"not_a_thing_yet"}"#;
         assert_eq!(res.body(), expected_json_body);
     }
 
@@ -173,6 +199,46 @@ mod tests {
 
         assert_eq!(res.status(), StatusCode::CREATED);
         assert_eq!(db.pending_transactions.read().len(), 2);
+    }
+
+    /// TEST a POST request to /transaction, an endpoint that exists
+    /// https://tools.ietf.org/html/rfc7231#section-6.3.2
+    /// Should accept the json request, create a new user and
+    /// add it to the user hashmap in the db
+    #[tokio::test]
+    async fn post_register_priviliged_user() {
+        let db = mocked_db();
+        let filter = consensus_routes(db.clone());
+
+        let res = warp::test::request()
+            .method("POST")
+            .json(&priviliged_mocked_user())
+            .path("/register")
+            .reply(&filter)
+            .await;
+
+        println!("{:?}", res.body());
+        assert_eq!(res.status(), StatusCode::CREATED);
+        assert_eq!(db.users.read().len(), 1);
+    }
+    /// TEST a POST request to /transaction, an endpoint that exists
+    /// https://tools.ietf.org/html/rfc7231#section-6.3.2
+    /// Should NOT accept the json request
+    #[tokio::test]
+    async fn post_register_unpriviliged_user() {
+        let db = mocked_db();
+        let filter = consensus_routes(db.clone());
+
+        let res = warp::test::request()
+            .method("POST")
+            .json(&unpriviliged_mocked_user())
+            .path("/register")
+            .reply(&filter)
+            .await;
+
+        println!("{:?}", res.body());
+        assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+        assert_eq!(db.users.read().len(), 0);
     }
 
     /// Test a POST request to /transaction, a resource that exists with a longer than expected

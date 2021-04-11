@@ -1,10 +1,62 @@
 /// API handlers, the ends of each filter chain
-use log::debug; // this is more useful than debug! learn how to use this
+use log::debug;
 use parking_lot::RwLockUpgradableReadGuard;
+use serde_json;
 use std::convert::Infallible;
-use warp::{http::StatusCode, reply};
+use warp::{http::Response, http::StatusCode, reply};
 
-use crate::schema::{Block, Db, Transaction};
+use std::fs;
+
+use crate::schema::{AuthRequest, Block, Db, MetuId, Transaction, User};
+
+/// POST /register
+/// Enables a student to introduce themselves to the system
+/// Can fail
+pub async fn authenticate_user(
+    request: AuthRequest,
+    db: Db,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let given_id = request.student_id.clone();
+
+    if let Some(priv_student_id) = MetuId::new(request.student_id) {
+        let userlist = db.users.upgradable_read();
+
+        if userlist.contains_key(&given_id) {
+
+            let res = Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .body("This user is already authenticated");
+
+            Ok(res)
+        } else {
+            let new_user = User {
+                user_id: priv_student_id,
+                public_key: request.public_key,
+                balance: 0,
+            };
+
+            let user_json = serde_json::to_string(&new_user).unwrap();
+
+            fs::write(format!("users/{}.guy", new_user.user_id), user_json).unwrap();
+
+            let mut userlist = RwLockUpgradableReadGuard::upgrade(userlist);
+            userlist.insert(given_id, new_user);
+            // TODO: signature of the public key, please <11-04-21, yigit> //
+
+            let res = Response::builder()
+                .status(StatusCode::CREATED)
+                .body("Ready to use Gradecoin");
+
+            Ok(res)
+        }
+    } else {
+        let res = Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body("This user cannot have a gradecoin account");
+
+        Ok(res)
+    }
+}
 
 /// GET /transaction
 /// Returns JSON array of transactions
@@ -28,16 +80,11 @@ pub async fn list_transactions(db: Db) -> Result<impl warp::Reply, Infallible> {
 /// Cannot fail
 /// Mostly around for debug purposes
 pub async fn list_blocks(db: Db) -> Result<impl warp::Reply, Infallible> {
-    debug!("list all blocks");
+    debug!("list all block");
 
-    let mut result = Vec::new();
-    let blocks = db.blockchain.read();
+    let block = db.blockchain.read();
 
-    for block in blocks.iter() {
-        result.push(block);
-    }
-
-    Ok(reply::with_status(reply::json(&result), StatusCode::OK))
+    Ok(reply::with_status(reply::json(&*block), StatusCode::OK))
 }
 
 /// POST /transaction
@@ -70,7 +117,7 @@ pub async fn propose_block(new_block: Block, db: Db) -> Result<impl warp::Reply,
     let pending_transactions = db.pending_transactions.upgradable_read();
     let blockchain = db.blockchain.upgradable_read();
 
-    // TODO: check 1, new_block.transaction_list from pending_transactions pool? <07-04-21, yigit> //
+    // check 1, new_block.transaction_list from pending_transactions pool? <07-04-21, yigit> //
     for transaction_hash in new_block.transaction_list.iter() {
         if !pending_transactions.contains_key(transaction_hash) {
             return Ok(StatusCode::BAD_REQUEST);
@@ -81,7 +128,17 @@ pub async fn propose_block(new_block: Block, db: Db) -> Result<impl warp::Reply,
     // assume it is for now
 
     let mut blockchain = RwLockUpgradableReadGuard::upgrade(blockchain);
-    blockchain.push(new_block);
+
+    let block_json = serde_json::to_string(&new_block).unwrap();
+
+    // let mut file = File::create(format!("{}.block", new_block.timestamp.timestamp())).unwrap();
+    fs::write(
+        format!("blocks/{}.block", new_block.timestamp.timestamp()),
+        block_json,
+    )
+    .unwrap();
+
+    *blockchain = new_block;
 
     let mut pending_transactions = RwLockUpgradableReadGuard::upgrade(pending_transactions);
     pending_transactions.clear();
