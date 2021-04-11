@@ -1,6 +1,4 @@
 # TODO
-## Process
-- [ ] we need our own representation of students and their grades, "there is no blockchain"
 
 ## Proof-of-work
 - [ ] pick a block proposal scheme (= pick hash function) [list of hash functions](https://en.bitcoinwiki.org/wiki/List_of_hash_functions)
@@ -27,3 +25,4 @@
 
 ## Done & Brag
 - [x] Switch to RwLock (parking_lot) (done at 2021-04-07 03:43, two possible schemes to represent inner Db (ledger) in code)
+- [x] We need our own representation of students and their grades, "there is no blockchain" (done at 2021-04-12 00:05)
