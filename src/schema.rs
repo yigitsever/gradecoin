@@ -41,18 +41,20 @@ impl Db {
     }
 }
 
+pub type PublicKeySignature = String;
+
 /// A transaction between `source` and `target` that moves `amount`
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Transaction {
-    // TODO: new field by <11-04-21, yigit> //
-    pub source: String,
-    pub target: String,
+    pub by: PublicKeySignature,
+    pub source: PublicKeySignature,
+    pub target: PublicKeySignature,
     pub amount: i32,
     pub timestamp: NaiveDateTime,
 }
 
 /// A block that was proposed with `transaction_list` and `nonce` that made `hash` valid
-/// https://serde.rs/container-attrs.html might be valueable to normalize the serialize/deserialize
+/// https://serde.rs/container-attrs.html might be valuable to normalize the serialize/deserialize
 /// conventions as these will be hashed
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Block {
@@ -61,7 +63,7 @@ pub struct Block {
     // we can leave this as is and whenever we have a new block we _could_ just log it to file
     // somewhere
     // I want to keep this as a String vector because it makes things easier elsewhere
-    pub transaction_list: Vec<String>, // hashes of the transactions (or just "source" for now)
+    pub transaction_list: Vec<PublicKeySignature>, // hashes of the transactions (or just "source" for now)
     pub nonce: u32,
     pub timestamp: NaiveDateTime,
     pub hash: String, // future proof'd baby
@@ -70,7 +72,7 @@ pub struct Block {
 /// For prototyping and letting serde handle everything json
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NakedBlock {
-    pub transaction_list: Vec<String>,
+    pub transaction_list: Vec<PublicKeySignature>,
     pub nonce: u32,
     pub timestamp: NaiveDateTime,
 }

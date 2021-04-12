@@ -20,6 +20,10 @@ pub fn transaction_json_body() -> impl Filter<Extract = (Transaction,), Error = 
     warp::body::content_length_limit(1024 * 32).and(warp::body::json())
 }
 
+pub fn auth_header() -> impl Filter<Extract = (String,), Error = Rejection> + Clone {
+    warp::header::header::<String>("Authorization")
+}
+
 // Accept only json encoded Block body and reject big payloads
 // TODO: find a good limit for this <11-04-21, yigit> //
 pub fn block_json_body() -> impl Filter<Extract = (Block,), Error = Rejection> + Clone {

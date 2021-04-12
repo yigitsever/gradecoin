@@ -3,14 +3,7 @@
 ## Proof-of-work
 So far so good
 
-## Authentication
-- [X] pick a user authentication scheme = [JWT](https://tools.ietf.org/html/rfc7519) Seems perfect
-- [ ] implement JWT
-    - https://blog.logrocket.com/jwt-authentication-in-rust/
-    - https://crates.io/crates/jsonwebtoken
-    - https://jwt.io/introduction/
-    - https://jwt.io/#debugger-io
-- [ ] users should be able to _sign_ their transactions
+## Authentication(DONE/DONE)
 
 ## Verbosity
 - [ ] Verbose error messages (use error.rs?)
@@ -31,3 +24,6 @@ So far so good
 - [x] We need our own representation of students and their grades, "there is no blockchain" (done at 2021-04-12 00:05)
 - [x] pick a block proposal scheme (= pick hash function) [list of hash functions](https://en.bitcoinwiki.org/wiki/List_of_hash_functions) (done at 2021-04-12 05:30)
 - [x] check the nonce for incoming blocks (done at 2021-04-12 05:30)
+- [X] pick a user authentication scheme = [JWT](https://tools.ietf.org/html/rfc7519) Seems perfect
+- [X] implement JWT
+- [X] users should be able to _sign_ their transactions

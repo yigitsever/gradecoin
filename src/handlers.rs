@@ -1,16 +1,29 @@
+use blake2::{Blake2s, Digest};
+use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 /// API handlers, the ends of each filter chain
 use log::debug;
+use md5::Md5;
 use parking_lot::RwLockUpgradableReadGuard;
+use serde::{Deserialize, Serialize};
 use serde_json;
 use serde_json::json;
 use std::convert::Infallible;
-use warp::{http::Response, http::StatusCode, reply};
-
-use blake2::{Blake2s, Digest};
-
 use std::fs;
+use warp::{http::Response, http::StatusCode, reject, reply};
 
-use gradecoin::schema::{AuthRequest, Block, Db, MetuId, NakedBlock, Transaction, User};
+use gradecoin::schema::{
+    AuthRequest, Block, Db, MetuId, NakedBlock, PublicKeySignature, Transaction, User,
+};
+
+const BEARER: &str = "Bearer ";
+
+/// tha: Transaction Hash, String
+/// iat: Issued At, Unix Time, epoch
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Claims {
+    pub tha: String,
+    pub iat: usize,
+}
 
 /// POST /register
 /// Enables a student to introduce themselves to the system
@@ -164,6 +177,45 @@ pub async fn propose_block(new_block: Block, db: Db) -> Result<impl warp::Reply,
         }
     } else {
         // reject
+        Ok(StatusCode::BAD_REQUEST)
+    }
+}
+
+pub async fn auth_propose_transaction(
+    new_transaction: Transaction,
+    token: String,
+    db: Db,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    debug!("new transaction request {:?}", new_transaction);
+    let raw_jwt = token.trim_start_matches(BEARER).to_owned();
+
+    let decoded = jsonwebtoken::decode::<Claims>(
+        &token,
+        &DecodingKey::from_rsa_pem(
+            db.users
+                .read()
+                .get(&new_transaction.by)
+                .unwrap()
+                .public_key
+                .as_bytes(),
+        )
+        .unwrap(),
+        // todo@keles: If user is not found return user not found error
+        &Validation::new(Algorithm::PS256),
+    )
+    .unwrap();
+    // todo: If user is found but header is not validated, return header not valid
+
+    let hashed_transaction = Md5::digest(&serde_json::to_vec(&new_transaction).unwrap());
+
+    // let mut transactions = db.lock().await;
+    if decoded.claims.tha == format!("{:x}", hashed_transaction) {
+        let mut transactions = db.pending_transactions.write();
+
+        transactions.insert(new_transaction.source.to_owned(), new_transaction);
+
+        Ok(StatusCode::CREATED)
+    } else {
         Ok(StatusCode::BAD_REQUEST)
     }
 }

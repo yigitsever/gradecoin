@@ -7,9 +7,7 @@ use blake2::{Blake2s, Digest};
 
 pub fn main() {
     let mut b = NakedBlock {
-        transaction_list: vec![
-            "hash_value".to_owned(),
-        ],
+        transaction_list: vec!["hash_value".to_owned()],
         nonce: 0,
         timestamp: NaiveDate::from_ymd(2021, 04, 08).and_hms(12, 30, 30),
     };

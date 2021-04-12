@@ -1,14 +1,14 @@
+use gradecoin::schema::Db;
 use warp::{Filter, Rejection, Reply};
 
 use crate::custom_filters;
 use crate::handlers;
-use gradecoin::schema::Db;
 
 /// Root, all routes combined
 pub fn consensus_routes(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
     transaction_list(db.clone())
         .or(register_user(db.clone()))
-        .or(transaction_propose(db.clone()))
+        .or(auth_transaction_propose(db.clone()))
         .or(block_propose(db.clone()))
         .or(block_list(db.clone()))
 }
@@ -47,6 +47,18 @@ pub fn transaction_propose(db: Db) -> impl Filter<Extract = impl Reply, Error = 
         .and_then(handlers::propose_transaction)
 }
 
+/// POST /transaction warp route
+pub fn auth_transaction_propose(
+    db: Db,
+) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
+    warp::path!("transaction")
+        .and(warp::post())
+        .and(custom_filters::transaction_json_body())
+        .and(custom_filters::auth_header())
+        .and(custom_filters::with_db(db))
+        .and_then(handlers::auth_propose_transaction)
+}
+
 /// POST /block warp route
 pub fn block_propose(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
     warp::path!("block")
@@ -58,22 +70,69 @@ pub fn block_propose(db: Db) -> impl Filter<Extract = impl Reply, Error = Reject
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
+    use gradecoin::schema::{create_database, AuthRequest, Block, MetuId, Transaction, User};
+    use handlers::Claims;
     // use chrono::prelude::*;
     // use parking_lot::RwLock;
     // use std::sync::Arc;
     use warp::http::StatusCode;
 
-    use gradecoin::schema::{create_database, AuthRequest, Block, Transaction};
+    use super::*;
 
+    use jsonwebtoken::{Header, encode, EncodingKey, Algorithm};
+    const private_key_pem: &str = "-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEA4nU0G4WjkmcQUx0hq6LQuV5Q+ACmUFL/OjoYMDwC/O/6pCd1
+UZgCfgHN2xEffDPznzcTn8OiFRxr4oWyBinyrUpnY4mhy0SQUwoeCw7YkcHAyhCj
+NT74aR/ohX0MCj0qRRdbt5ZQXM/GC3HJuXE1ptSuhFgQxziItamn8maoJ6JUSVEX
+VO1NOrrjoM3r7Q+BK2B+sX4/bLZ+VG5g1q2nEbFdTHS6pHqtZNHQndTmEKwRfh0R
+YtzEzOXuO6e1gQY42Tujkof40dhGCIU7TeIGGHwdFxy1niLkXwtHNjV7lnIOkTbx
+6+sSPamRfQAlZqUWM2Lf5o+7h3qWP3ENB138sQIDAQABAoIBAD23nYTmrganag6M
+wPFrBSGP79c3Lhx0EjUHQjJbGKFgsdltG48qM3ut+DF9ACy0Z+/7bbC7+39vaIOq
+1jLR2d6aiYTaLKseO4s2FawD1sgamvU3BZPsXn0gAhnnU5Gyy8Nas1dccvhoc9wI
+neaZUPrvucQ90AzLfo6r9yacDbYHB1lOyomApUvpJxOgHISGEtc9qGPDrdH19aF0
+8fCv2bbQRh+TChgN3IB0o5w0wXaI7YAyAouAv/AzHCoEMpt7OGjFTkjh/ujlPL9O
++FLuJNsQRHDN0gJo2pcvwGwDCsioMixQ9bZ7ZrUu2BNpEQygyeSbj9ZI1iRvhosO
+JU3rwEECgYEA9MppTYA6A9WQbCCwPH1QMpUAmPNVSWVhUVag4lGOEhdCDRcz9ook
+DohQMKctiEB1luKuvDokxo0uMOfMO9/YwjsRB7qjQip7Th1zMJIjD+A+juLzHK4r
+/RiRtWYGAnF8mptDvE+93JsPb3C/lQLvIhio5GQYWBqPJu6SpeosIskCgYEA7NPi
+Gbffzr2UQhW8BNKmctEEh8yFRVojFo3wwwWxSNUVXGSmSm31CL+Q8h817R+2OkPV
+1ZMUOBU4UJiqFt28kIvTDFqbAJlJQGCpY2mY7OLQiD2A+TVLcFrHmoCaPfCAK1Qd
+hQ0PmFK7Mf8qClpA3E5chop/WfKQfiu46sZv1qkCgYAhGdXPcw1lQ1W6KVlrdI6J
+qHhiNlVMDXdxZkNvFxQdAiQeXQrbxaZGiMw/J/wSNpUwCAsUzM/4QVMDrfSCDCzl
+ZtNQtj4pTlFKKNVQthIjrXEIJUw2jp7IJLBfVSJu5iWxSlmId0f3MsiNizN81N69
+P5Rm/doE3+KHoy8VXGsHcQKBgQCkNh62enqjHWypjex6450qS6f6iWN3PRLLVsw0
+TcQpniZblCaBwVCAKmRUnjOEIdL2/4ZLutnwMTaFG/YEOOfAylMiY8jKV38lNmD9
+X4D78CFr9klxgvS2CRwSE03f2NzmLkLxuKaxldvaxPTfjMkgeO1LFMlNExYBhkuH
+7uQpUQKBgQCKX6qMNh2gSdgG7qyxfTFZ4y5EGOBoKe/dE+IcVF3Vnh6DZVbCAbBL
+5EdFWZSrCnDjA4xiKW55mwp95Ud9EZsZAb13L8V9t82eK+UDBoWlb7VRNYpda/x1
+5/i4qQJ28x2UNJDStpYFpnp4Ba1lvXjKngIbDPkjU+hbBJ+BNGAIeg==
+-----END RSA PRIVATE KEY-----";
     /// Create a mock database to be used in tests
     fn mocked_db() -> Db {
         let db = create_database();
 
+        db.users.write().insert(
+            "mock_transaction_source".to_owned(),
+            User {
+                user_id: MetuId::new("e254275".to_owned()).unwrap(),
+                public_key:
+"-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4nU0G4WjkmcQUx0hq6LQ
+uV5Q+ACmUFL/OjoYMDwC/O/6pCd1UZgCfgHN2xEffDPznzcTn8OiFRxr4oWyBiny
+rUpnY4mhy0SQUwoeCw7YkcHAyhCjNT74aR/ohX0MCj0qRRdbt5ZQXM/GC3HJuXE1
+ptSuhFgQxziItamn8maoJ6JUSVEXVO1NOrrjoM3r7Q+BK2B+sX4/bLZ+VG5g1q2n
+EbFdTHS6pHqtZNHQndTmEKwRfh0RYtzEzOXuO6e1gQY42Tujkof40dhGCIU7TeIG
+GHwdFxy1niLkXwtHNjV7lnIOkTbx6+sSPamRfQAlZqUWM2Lf5o+7h3qWP3ENB138
+sQIDAQAB
+-----END PUBLIC KEY-----"
+                    .to_owned(),
+                balance: 0,
+            },
+        );
         db.pending_transactions.write().insert(
             "hash_value".to_owned(),
             Transaction {
+                by: "source_account".to_owned(),
                 source: "source_account".to_owned(),
                 target: "target_account".to_owned(),
                 amount: 20,
@@ -95,6 +154,15 @@ mod tests {
         db
     }
 
+    fn mocked_jwt() -> String {
+
+        let claims = Claims {
+            tha: "6692e774eba7fb92dc0fe6cf7347591e".to_owned(),
+            iat: 1516239022,
+        };
+        let header = Header::new(Algorithm::RS256);
+        encode(&header, &claims, &EncodingKey::from_rsa_pem(private_key_pem.as_bytes()).unwrap()).unwrap()
+    }
     /// Create a mock user that is allowed to be in gradecoin to be used in tests
     fn priviliged_mocked_user() -> AuthRequest {
         AuthRequest {
@@ -114,6 +182,7 @@ mod tests {
     /// Create a mock transaction to be used in tests
     fn mocked_transaction() -> Transaction {
         Transaction {
+            by: "mock_transaction_source".to_owned(),
             source: "mock_transaction_source".to_owned(),
             target: "mock_transaction_target".to_owned(),
             amount: 25,
@@ -125,9 +194,9 @@ mod tests {
     fn mocked_block() -> Block {
         Block {
             transaction_list: vec!["hash_value".to_owned()],
-            nonce: 560108,
+            nonce: 3831993,
             timestamp: chrono::NaiveDate::from_ymd(2021, 04, 08).and_hms(12, 30, 30),
-            hash: "c7d053f3e5b056ba948db3f5c0d30408fb0c29a328a0c3c1cf435fb68d700000".to_owned(),
+            hash: "2b648ffab5d9af1d5d5fc052fc9e51b882fc4fb0c998608c99232f9282000000".to_owned(),
         }
     }
 
@@ -158,7 +227,7 @@ mod tests {
 
         assert_eq!(res.status(), StatusCode::OK);
 
-        let expected_json_body = r#"[{"source":"source_account","target":"target_account","amount":20,"timestamp":"2021-04-09T01:30:30"}]"#;
+        let expected_json_body = r#"[{"by":"source_account","source":"source_account","target":"target_account","amount":20,"timestamp":"2021-04-09T01:30:30"}]"#;
 
         assert_eq!(res.body(), expected_json_body);
     }
@@ -208,7 +277,6 @@ mod tests {
     async fn post_json_201() {
         let db = mocked_db();
         let filter = consensus_routes(db.clone());
-
         let res = warp::test::request()
             .method("POST")
             .json(&mocked_transaction())
@@ -218,6 +286,48 @@ mod tests {
 
         assert_eq!(res.status(), StatusCode::CREATED);
         assert_eq!(db.pending_transactions.read().len(), 2);
+    }
+
+    /// Test a POST request to /transaction, a resource that exists
+    /// https://tools.ietf.org/html/rfc7231#section-6.3.2
+    /// Should accept the json request, create
+    /// the transaction and add it to pending transactions in the db
+    #[tokio::test]
+    async fn post_auth_json_201() {
+        let db = mocked_db();
+        let filter = consensus_routes(db.clone());
+
+        let res = warp::test::request()
+            .method("POST")
+            .json(&mocked_transaction())
+            .header("Authorization", format!("Bearer {}", &mocked_jwt()))
+            .path("/transaction")
+            .reply(&filter)
+            .await;
+
+        assert_eq!(res.status(), StatusCode::CREATED);
+        assert_eq!(db.pending_transactions.read().len(), 2);
+    }
+
+    /// Test a POST request to /transaction, a resource that exists
+    /// https://tools.ietf.org/html/rfc7231#section-6.3.2
+    /// Should accept the json request, create
+    /// the transaction and add it to pending transactions in the db
+    #[tokio::test]
+    async fn post_auth_json_400() {
+        let db = mocked_db();
+        let filter = consensus_routes(db.clone());
+
+        let res = warp::test::request()
+            .method("POST")
+            .json(&mocked_transaction())
+            .header("Authorization", "Bearer aaaaaaaasdlkjaldkasljdaskjlaaaaaaaaaaaaaa")
+            .path("/transaction")
+            .reply(&filter)
+            .await;
+
+        assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+        assert_eq!(db.pending_transactions.read().len(), 1);
     }
 
     /// Test a POST request to /block, a resource that exists
@@ -239,7 +349,7 @@ mod tests {
         assert_eq!(res.status(), StatusCode::CREATED);
         assert_eq!(
             *db.blockchain.read().hash,
-            "c7d053f3e5b056ba948db3f5c0d30408fb0c29a328a0c3c1cf435fb68d700000".to_owned()
+            "2b648ffab5d9af1d5d5fc052fc9e51b882fc4fb0c998608c99232f9282000000".to_owned()
         );
     }
 
@@ -279,7 +389,7 @@ mod tests {
 
         println!("{:?}", res.body());
         assert_eq!(res.status(), StatusCode::CREATED);
-        assert_eq!(db.users.read().len(), 1);
+        assert_eq!(db.users.read().len(), 2);
     }
 
     /// Test a POST request to /transaction, an endpoint that exists
@@ -299,7 +409,7 @@ mod tests {
 
         println!("{:?}", res.body());
         assert_eq!(res.status(), StatusCode::BAD_REQUEST);
-        assert_eq!(db.users.read().len(), 0);
+        assert_eq!(db.users.read().len(), 1);
     }
 
     /// Test a POST request to /transaction, a resource that exists with a longer than expected
