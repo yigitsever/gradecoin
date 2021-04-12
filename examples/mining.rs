@@ -23,9 +23,9 @@ pub fn main() {
 
         let result = Blake2s::digest(&j);
 
-        let first_five = result[31] as i32 + result[30] as i32 + (result[29] << 4) as i32;
+        let first_six = result[31] as i32 + result[30] as i32 + result[29] as i32;
 
-        if first_five == 0 {
+        if first_six == 0 {
             println!("{} - {:x}\n{:?}", nonce, result, b);
             break;
         }

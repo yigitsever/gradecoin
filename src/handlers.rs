@@ -137,8 +137,8 @@ pub async fn propose_block(new_block: Block, db: Db) -> Result<impl warp::Reply,
     let hashvalue = Blake2s::digest(&naked_block_flat);
     let hash_string = format!("{:x}", hashvalue);
 
-    // 5 rightmost bits are zero
-    let should_zero = hashvalue[31] as i32 + hashvalue[30] as i32 + (hashvalue[29] << 4) as i32;
+    // 6 rightmost bits are zero
+    let should_zero = hashvalue[31] as i32 + hashvalue[30] as i32 + hashvalue[29] as i32;
 
     if should_zero == 0 {
         // one last check to see if block is telling the truth
