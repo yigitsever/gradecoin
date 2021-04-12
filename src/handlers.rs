@@ -2,12 +2,15 @@
 use log::debug;
 use parking_lot::RwLockUpgradableReadGuard;
 use serde_json;
+use serde_json::json;
 use std::convert::Infallible;
 use warp::{http::Response, http::StatusCode, reply};
 
+use blake2::{Blake2s, Digest};
+
 use std::fs;
 
-use crate::schema::{AuthRequest, Block, Db, MetuId, Transaction, User};
+use gradecoin::schema::{AuthRequest, Block, Db, MetuId, NakedBlock, Transaction, User};
 
 /// POST /register
 /// Enables a student to introduce themselves to the system
@@ -22,7 +25,6 @@ pub async fn authenticate_user(
         let userlist = db.users.upgradable_read();
 
         if userlist.contains_key(&given_id) {
-
             let res = Response::builder()
                 .status(StatusCode::BAD_REQUEST)
                 .body("This user is already authenticated");
@@ -124,24 +126,44 @@ pub async fn propose_block(new_block: Block, db: Db) -> Result<impl warp::Reply,
         }
     }
 
-    // TODO: check 2, block hash (\w nonce) asserts $hash_condition? <07-04-21, yigit> //
-    // assume it is for now
+    let naked_block = NakedBlock {
+        transaction_list: new_block.transaction_list.clone(),
+        nonce: new_block.nonce.clone(),
+        timestamp: new_block.timestamp.clone(),
+    };
 
-    let mut blockchain = RwLockUpgradableReadGuard::upgrade(blockchain);
+    let naked_block_flat = serde_json::to_vec(&naked_block).unwrap();
 
-    let block_json = serde_json::to_string(&new_block).unwrap();
+    let hashvalue = Blake2s::digest(&naked_block_flat);
+    let hash_string = format!("{:x}", hashvalue);
 
-    // let mut file = File::create(format!("{}.block", new_block.timestamp.timestamp())).unwrap();
-    fs::write(
-        format!("blocks/{}.block", new_block.timestamp.timestamp()),
-        block_json,
-    )
-    .unwrap();
+    // 5 rightmost bits are zero
+    let should_zero = hashvalue[31] as i32 + hashvalue[30] as i32 + (hashvalue[29] << 4) as i32;
 
-    *blockchain = new_block;
+    if should_zero == 0 {
+        // one last check to see if block is telling the truth
+        if hash_string == new_block.hash {
+            let mut blockchain = RwLockUpgradableReadGuard::upgrade(blockchain);
 
-    let mut pending_transactions = RwLockUpgradableReadGuard::upgrade(pending_transactions);
-    pending_transactions.clear();
+            let block_json = serde_json::to_string(&new_block).unwrap();
 
-    Ok(StatusCode::CREATED)
+            fs::write(
+                format!("blocks/{}.block", new_block.timestamp.timestamp()),
+                block_json,
+            )
+            .unwrap();
+
+            *blockchain = new_block;
+
+            let mut pending_transactions = RwLockUpgradableReadGuard::upgrade(pending_transactions);
+            pending_transactions.clear();
+
+            Ok(StatusCode::CREATED)
+        } else {
+            Ok(StatusCode::BAD_REQUEST)
+        }
+    } else {
+        // reject
+        Ok(StatusCode::BAD_REQUEST)
+    }
 }

@@ -62,9 +62,17 @@ pub struct Block {
     // somewhere
     // I want to keep this as a String vector because it makes things easier elsewhere
     pub transaction_list: Vec<String>, // hashes of the transactions (or just "source" for now)
-    pub nonce: String,
+    pub nonce: u32,
     pub timestamp: NaiveDateTime,
     pub hash: String, // future proof'd baby
+}
+
+/// For prototyping and letting serde handle everything json
+#[derive(Serialize, Deserialize, Debug)]
+pub struct NakedBlock {
+    pub transaction_list: Vec<String>,
+    pub nonce: u32,
+    pub timestamp: NaiveDateTime,
 }
 
 impl Block {
@@ -72,7 +80,7 @@ impl Block {
     pub fn new() -> Block {
         Block {
             transaction_list: vec![],
-            nonce: String::from(""),
+            nonce: 0,
             timestamp: NaiveDate::from_ymd(2021, 04, 11).and_hms(20, 45, 00),
             hash: String::from(""),
         }

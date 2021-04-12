@@ -2,7 +2,7 @@ use warp::{Filter, Rejection, Reply};
 
 use crate::custom_filters;
 use crate::handlers;
-use crate::schema::Db;
+use gradecoin::schema::Db;
 
 /// Root, all routes combined
 pub fn consensus_routes(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
@@ -65,12 +65,11 @@ mod tests {
     // use std::sync::Arc;
     use warp::http::StatusCode;
 
-    use crate::schema;
-    use crate::schema::{AuthRequest, Block, Transaction};
+    use gradecoin::schema::{create_database, AuthRequest, Block, Transaction};
 
     /// Create a mock database to be used in tests
     fn mocked_db() -> Db {
-        let db = schema::create_database();
+        let db = create_database();
 
         db.pending_transactions.write().insert(
             "hash_value".to_owned(),
@@ -88,7 +87,7 @@ mod tests {
                 "old_transaction_hash_2".to_owned(),
                 "old_transaction_hash_3".to_owned(),
             ],
-            nonce: "not_a_thing_yet".to_owned(),
+            nonce: 0,
             timestamp: chrono::NaiveDate::from_ymd(2021, 04, 08).and_hms(12, 30, 30),
             hash: "not_a_thing_yet".to_owned(),
         };
@@ -119,6 +118,26 @@ mod tests {
             target: "mock_transaction_target".to_owned(),
             amount: 25,
             timestamp: chrono::NaiveDate::from_ymd(2021, 04, 09).and_hms(14, 30, 00),
+        }
+    }
+
+    /// Create a mock block with a correct mined hash to be used in tests
+    fn mocked_block() -> Block {
+        Block {
+            transaction_list: vec!["hash_value".to_owned()],
+            nonce: 560108,
+            timestamp: chrono::NaiveDate::from_ymd(2021, 04, 08).and_hms(12, 30, 30),
+            hash: "c7d053f3e5b056ba948db3f5c0d30408fb0c29a328a0c3c1cf435fb68d700000".to_owned(),
+        }
+    }
+
+    /// Create a mock block with a wrong hash and nonce
+    fn mocked_wrong_block() -> Block {
+        Block {
+            transaction_list: vec!["foobarbaz".to_owned(), "dazsaz".to_owned()],
+            nonce: 1000, // can you imagine
+            timestamp: chrono::NaiveDate::from_ymd(2021, 04, 12).and_hms(05, 29, 30),
+            hash: "tnarstnarsuthnarsthlarjstk".to_owned(),
         }
     }
 
@@ -160,7 +179,7 @@ mod tests {
 
         assert_eq!(res.status(), StatusCode::OK);
 
-        let expected_json_body = r#"{"transaction_list":["old_transaction_hash_1","old_transaction_hash_2","old_transaction_hash_3"],"nonce":"not_a_thing_yet","timestamp":"2021-04-08T12:30:30","hash":"not_a_thing_yet"}"#;
+        let expected_json_body = r#"{"transaction_list":["old_transaction_hash_1","old_transaction_hash_2","old_transaction_hash_3"],"nonce":0,"timestamp":"2021-04-08T12:30:30","hash":"not_a_thing_yet"}"#;
         assert_eq!(res.body(), expected_json_body);
     }
 
@@ -201,7 +220,48 @@ mod tests {
         assert_eq!(db.pending_transactions.read().len(), 2);
     }
 
-    /// TEST a POST request to /transaction, an endpoint that exists
+    /// Test a POST request to /block, a resource that exists
+    /// https://tools.ietf.org/html/rfc7231#section-6.3.2
+    /// Should accept the json request, create
+    /// the block
+    #[tokio::test]
+    async fn post_block_201() {
+        let db = mocked_db();
+        let filter = consensus_routes(db.clone());
+
+        let res = warp::test::request()
+            .method("POST")
+            .json(&mocked_block())
+            .path("/block")
+            .reply(&filter)
+            .await;
+
+        assert_eq!(res.status(), StatusCode::CREATED);
+        assert_eq!(
+            *db.blockchain.read().hash,
+            "c7d053f3e5b056ba948db3f5c0d30408fb0c29a328a0c3c1cf435fb68d700000".to_owned()
+        );
+    }
+
+    /// Test a POST request to /block, a resource that exists
+    /// https://tools.ietf.org/html/rfc7231#section-6.3.2
+    /// Should reject the block because of the wrong hash
+    #[tokio::test]
+    async fn post_block_wrong_hash() {
+        let db = mocked_db();
+        let filter = consensus_routes(db.clone());
+
+        let res = warp::test::request()
+            .method("POST")
+            .json(&mocked_wrong_block())
+            .path("/block")
+            .reply(&filter)
+            .await;
+
+        assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+    }
+
+    /// Test a POST request to /register, an endpoint that exists
     /// https://tools.ietf.org/html/rfc7231#section-6.3.2
     /// Should accept the json request, create a new user and
     /// add it to the user hashmap in the db
@@ -221,9 +281,10 @@ mod tests {
         assert_eq!(res.status(), StatusCode::CREATED);
         assert_eq!(db.users.read().len(), 1);
     }
-    /// TEST a POST request to /transaction, an endpoint that exists
+
+    /// Test a POST request to /transaction, an endpoint that exists
     /// https://tools.ietf.org/html/rfc7231#section-6.3.2
-    /// Should NOT accept the json request
+    /// Should NOT accept the json request as the user is unpriviliged
     #[tokio::test]
     async fn post_register_unpriviliged_user() {
         let db = mocked_db();
@@ -261,6 +322,5 @@ mod tests {
     }
 }
 
-// TODO: POST block test <09-04-21, yigit> //
 // TODO: POST block without correct transactions test <09-04-21, yigit> //
 // TODO: POST transaction while that source has pending transaction test <09-04-21, yigit> //

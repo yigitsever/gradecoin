@@ -1,10 +1,10 @@
+use gradecoin::schema::create_database;
 use std::env;
 use warp::Filter;
 
-mod handlers;
 mod custom_filters;
+mod handlers;
 mod routes;
-mod schema;
 // mod validators;
 
 #[tokio::main]
@@ -15,7 +15,7 @@ async fn main() {
     }
     pretty_env_logger::init();
 
-    let db = schema::create_database();
+    let db = create_database();
 
     let api = routes::consensus_routes(db);
 

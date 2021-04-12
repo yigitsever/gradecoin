@@ -1,9 +1,6 @@
-// Common filters ment to be shared between many endpoints
-
+use gradecoin::schema::{AuthRequest, Block, Db, Transaction};
 use std::convert::Infallible;
 use warp::{Filter, Rejection};
-
-use crate::schema::{Block, Db, Transaction, AuthRequest};
 
 // Database context for routes
 pub fn with_db(db: Db) -> impl Filter<Extract = (Db,), Error = Infallible> + Clone {
@@ -12,7 +9,8 @@ pub fn with_db(db: Db) -> impl Filter<Extract = (Db,), Error = Infallible> + Clo
 
 // Accept only json encoded User body and reject big payloads
 // TODO: find a good limit for this, (=e2482057; 8 char String + rsa pem) <11-04-21, yigit> //
-pub fn auth_request_json_body() -> impl Filter<Extract = (AuthRequest,), Error = Rejection> + Clone {
+pub fn auth_request_json_body() -> impl Filter<Extract = (AuthRequest,), Error = Rejection> + Clone
+{
     warp::body::content_length_limit(1024 * 32).and(warp::body::json())
 }
 
