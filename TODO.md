@@ -1,6 +1,7 @@
 # TODO
 
 ## Proof-of-work
+So far so good
 
 ## Authentication
 - [X] pick a user authentication scheme = [JWT](https://tools.ietf.org/html/rfc7519) Seems perfect
@@ -20,6 +21,10 @@
     - [ ] Malformed JSON bodies
     - [ ] Valid JSON with missing fields
     - [ ] Valid JSON with extra fields
+
+## Fun (if we have time)
+- [ ] use [juice](https://www.getzola.org/themes/juice/) theme with [template rendering](https://blog.logrocket.com/template-rendering-in-rust/) to create a landing page. I want it to look handmade & _scammy_, I'm talking [verylegit](https://verylegit.link) shortened urls, botched [this person does not exist](https://www.thispersondoesnotexist.com/) user stories etc.
+- [ ] CHAOS MODE, 3 different coins, combine them to make 1 gradecoin
 
 ## Done & Brag
 - [x] Switch to RwLock (parking_lot) (done at 2021-04-07 03:43, two possible schemes to represent inner Db (ledger) in code)
