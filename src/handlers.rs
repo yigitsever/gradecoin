@@ -303,18 +303,7 @@ pub async fn authorized_propose_transaction(
                 StatusCode::BAD_REQUEST,
             ));
         }
-    } else if new_transaction.by == new_transaction.target {
-        if internal_user.balance < new_transaction.amount {
-            return Ok(warp::reply::with_status(
-                warp::reply::json(&GradeCoinResponse {
-                    res: ResponseType::Error,
-                    message: "Bank does not have enough balance"
-                        .to_owned(),
-                }),
-                StatusCode::BAD_REQUEST,
-            ));
-        }
-    } else {
+    } else {  // todo: add bank mechanism
         return Ok(warp::reply::with_status(
             warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
