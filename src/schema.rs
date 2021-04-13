@@ -90,7 +90,7 @@ pub struct Transaction {
 /// https://serde.rs/container-attrs.html might be valuable to normalize the serialize/deserialize
 /// conventions as these will be hashed
 ///
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Block {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub transaction_list: Vec<PublicKeySignature>,

@@ -85,17 +85,51 @@ mod tests {
 
     #[test]
     fn block_serialize_correctly() {
+        let block = Block {
+            transaction_list: vec!["transaction1".to_owned()],
+            nonce: 0,
+            timestamp: NaiveDate::from_ymd(2021, 4, 2).and_hms(4, 2, 42),
+            hash: "hash".to_owned()
+        };
 
+        assert_tokens(
+            &block,
+            &[
+                Token::Struct{name: "Block", len: 4},
+                Token::String("transaction_list"),
+                Token::String("transaction1"),
+                Token::String("nonce"),
+                Token::I32(0),
+                Token::String("timestamp"),
+                Token::String("2021-04-02T04:02:42"),
+                Token::String("hash"),
+                Token::String("hash"),
+                Token::StructEnd,
+            ]
+        )
     }
 
     #[test]
     fn block_deserialize_correctly() {
+        let expected_block = Block {
+            transaction_list: vec!["transaction1".to_owned()],
+            nonce: 0,
+            timestamp: NaiveDate::from_ymd(2021, 4, 2).and_hms(4, 2, 42),
+            hash: "hash".to_owned()
+        };
+        let data = r#"{"transaction_list":["transaction1"],"nonce":0,"timestamp":"2021-04-02T04:02:42","hash":"hash"}"#;
+        let block: Block = serde_json::from_str(data).unwrap();
+
+        assert_eq!(block, expected_block);
 
     }
 
     #[test]
     fn block_deserialize_when_vec_emptpy() {
+        let data = r#"{"transaction_list":[],"nonce":0,"timestamp":"2021-04-02T04:02:42","hash":"hash"}"#;
+        let err: Error = serde_json::from_str::<Block>(data).unwrap_err();
 
+        assert_eq!(err.is_data(), true);
     }
 
     #[test]
