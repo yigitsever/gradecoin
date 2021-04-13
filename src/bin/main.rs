@@ -1,6 +1,7 @@
 use std::env;
 use warp::Filter;
 
+// use gradecoin::error;
 use gradecoin::routes::consensus_routes;
 use gradecoin::schema::create_database;
 
@@ -9,6 +10,7 @@ use gradecoin::schema::create_database;
 #[tokio::main]
 async fn main() {
     // Show debug logs by default by setting `RUST_LOG=gradecoin=debug`
+    // TODO: write logs to file? <13-04-21, yigit> //
     if env::var_os("RUST_LOG").is_none() {
         env::set_var("RUST_LOG", "gradecoin=debug");
     }
@@ -21,5 +23,6 @@ async fn main() {
     let routes = api.with(warp::log("gradecoin"));
 
     // Start the server
-    warp::serve(routes).run(([127, 0, 0, 1], 8080)).await;
+    let point = ([127, 0, 0, 1], 8080);
+    warp::serve(routes).run(point).await;
 }

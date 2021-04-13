@@ -5,10 +5,23 @@ use jsonwebtoken::{decode, Algorithm, DecodingKey, TokenData, Validation};
 use log::{debug, warn};
 use md5::Md5;
 use parking_lot::RwLockUpgradableReadGuard;
+use serde::Serialize;
 use serde_json;
 use std::convert::Infallible;
 use std::fs;
-use warp::{http::Response, http::StatusCode, reply};
+use warp::{http::StatusCode, reply};
+
+#[derive(Serialize, Debug)]
+struct GradeCoinResponse {
+    res: ResponseType,
+    message: String,
+}
+
+#[derive(Debug, Serialize)]
+enum ResponseType {
+    Success,
+    Error,
+}
 
 use crate::schema::{AuthRequest, Block, Claims, Db, MetuId, NakedBlock, Transaction, User};
 
@@ -24,45 +37,52 @@ pub async fn authenticate_user(
     db: Db,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     debug!("POST request to /register, authenticate_user");
-    let given_id = request.student_id.clone();
+    let provided_id = request.student_id.clone();
 
-    if let Some(priv_student_id) = MetuId::new(request.student_id) {
-        let userlist = db.users.upgradable_read();
+    let priv_student_id = match MetuId::new(request.student_id) {
+        Some(id) => id,
+        None => {
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "This user cannot have a gradecoin account".to_owned(),
+            });
 
-        if userlist.contains_key(&given_id) {
-            let res = Response::builder()
-                .status(StatusCode::BAD_REQUEST)
-                .body("This user is already authenticated");
-
-            Ok(res)
-        } else {
-            let new_user = User {
-                user_id: priv_student_id,
-                public_key: request.public_key,
-                balance: 0,
-            };
-
-            let user_json = serde_json::to_string(&new_user).unwrap();
-
-            fs::write(format!("users/{}.guy", new_user.user_id), user_json).unwrap();
-
-            let mut userlist = RwLockUpgradableReadGuard::upgrade(userlist);
-            userlist.insert(given_id, new_user);
-            // TODO: signature of the public key, please <11-04-21, yigit> //
-
-            let res = Response::builder()
-                .status(StatusCode::CREATED)
-                .body("Ready to use Gradecoin");
-
-            Ok(res)
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
         }
-    } else {
-        let res = Response::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .body("This user cannot have a gradecoin account");
+    };
 
-        Ok(res)
+    let userlist = db.users.upgradable_read();
+
+    if userlist.contains_key(&provided_id) {
+        let res_json = warp::reply::json(&GradeCoinResponse {
+            res: ResponseType::Error,
+            message: "This user is already authenticated".to_owned(),
+        });
+
+        return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
     }
+
+    // TODO: audit public key, is it valid? <13-04-21, yigit> //
+    let new_user = User {
+        user_id: priv_student_id,
+        public_key: request.public_key,
+        balance: 0,
+    };
+
+    let user_json = serde_json::to_string(&new_user).unwrap();
+
+    fs::write(format!("users/{}.guy", new_user.user_id), user_json).unwrap();
+
+    let mut userlist = RwLockUpgradableReadGuard::upgrade(userlist);
+    userlist.insert(provided_id, new_user);
+    // TODO: signature of the public key, please <11-04-21, yigit> //
+
+    let res_json = warp::reply::json(&GradeCoinResponse {
+        res: ResponseType::Success,
+        message: "User authenticated to use Gradecoin".to_owned(),
+    });
+
+    Ok(warp::reply::with_status(res_json, StatusCode::CREATED))
 }
 
 /// GET /transaction
@@ -106,11 +126,17 @@ pub async fn authorized_propose_block(
         Some(existing_user) => existing_user,
         None => {
             debug!(
-                "A user with public key signature {:?} is not found in the database",
+                "User with public key signature {:?} is not found in the database",
                 new_block.transaction_list[0]
             );
-            // TODO: verbose error here <13-04-21, yigit> //
-            return Ok(StatusCode::BAD_REQUEST);
+
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "User with the given public key signature is not found in the database"
+                    .to_owned(),
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
         }
     };
 
@@ -120,7 +146,13 @@ pub async fn authorized_propose_block(
         Ok(data) => data,
         Err(below) => {
             debug!("Something went wrong below {:?}", below);
-            return Ok(StatusCode::BAD_REQUEST);
+
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: below,
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
         }
     };
 
@@ -131,7 +163,12 @@ pub async fn authorized_propose_block(
             "The Hash of the block {:?} did not match the hash given in jwt {:?}",
             new_block.hash, token_payload.claims.tha
         );
-        return Ok(StatusCode::BAD_REQUEST);
+        let res_json = warp::reply::json(&GradeCoinResponse {
+            res: ResponseType::Error,
+            message: "The hash of the block did not match the hash given in JWT".to_owned(),
+        });
+
+        return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
     }
 
     debug!("clear for block proposal");
@@ -140,7 +177,12 @@ pub async fn authorized_propose_block(
 
     for transaction_hash in new_block.transaction_list.iter() {
         if !pending_transactions.contains_key(transaction_hash) {
-            return Ok(StatusCode::BAD_REQUEST);
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "Block contains unknown transaction".to_owned(),
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
         }
     }
 
@@ -157,17 +199,28 @@ pub async fn authorized_propose_block(
 
     // 6 rightmost bits are zero?
     let should_zero = hashvalue[31] as i32 + hashvalue[30] as i32 + hashvalue[29] as i32;
+    // TODO: this can be offloaded to validator <13-04-21, yigit> //
 
     if should_zero != 0 {
         debug!("the hash does not have 6 rightmost zero bits");
-        return Ok(StatusCode::BAD_REQUEST);
+        let res_json = warp::reply::json(&GradeCoinResponse {
+            res: ResponseType::Error,
+            message: "Given block hash is larger than target value".to_owned(),
+        });
+
+        return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
     }
 
     // one last check to see if block is telling the truth
     if hash_string != new_block.hash {
         debug!("request was not telling the truth, hash values do not match");
         // TODO: does this condition make more sense _before_ the hash 0s check? <13-04-21, yigit> //
-        return Ok(StatusCode::BAD_REQUEST);
+        let res_json = warp::reply::json(&GradeCoinResponse {
+            res: ResponseType::Error,
+            message: "Given hash value does not match the actual block hash".to_owned(),
+        });
+
+        return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
     }
 
     let mut blockchain = RwLockUpgradableReadGuard::upgrade(blockchain);
@@ -185,7 +238,13 @@ pub async fn authorized_propose_block(
     let mut pending_transactions = RwLockUpgradableReadGuard::upgrade(pending_transactions);
     pending_transactions.clear();
 
-    Ok(StatusCode::CREATED)
+    Ok(warp::reply::with_status(
+        warp::reply::json(&GradeCoinResponse {
+            res: ResponseType::Success,
+            message: "Block accepted".to_owned(),
+        }),
+        StatusCode::CREATED,
+    ))
 }
 
 /// POST /transaction
@@ -213,11 +272,18 @@ pub async fn authorized_propose_transaction(
         Some(existing_user) => existing_user,
         None => {
             debug!(
-                "A user with public key signature {:?} is not found in the database",
+                "User with public key signature {:?} is not found in the database",
                 new_transaction.by
             );
-            // TODO: verbose error here <13-04-21, yigit> //
-            return Ok(StatusCode::BAD_REQUEST);
+
+            return Ok(warp::reply::with_status(
+                warp::reply::json(&GradeCoinResponse {
+                    res: ResponseType::Error,
+                    message: "User with the given public key signature is not authorized"
+                        .to_owned(),
+                }),
+                StatusCode::BAD_REQUEST,
+            ));
         }
     };
 
@@ -231,7 +297,13 @@ pub async fn authorized_propose_transaction(
         Ok(data) => data,
         Err(below) => {
             debug!("Something went wrong below {:?}", below);
-            return Ok(StatusCode::BAD_REQUEST);
+            return Ok(warp::reply::with_status(
+                warp::reply::json(&GradeCoinResponse {
+                    res: ResponseType::Error,
+                    message: below,
+                }),
+                StatusCode::BAD_REQUEST,
+            ));
         }
     };
 
@@ -246,14 +318,26 @@ pub async fn authorized_propose_transaction(
             "the hash of the request {:x} did not match the hash given in jwt {:?}",
             hashed_transaction, token_payload.claims.tha
         );
-        return Ok(StatusCode::BAD_REQUEST);
+        return Ok(warp::reply::with_status(
+            warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "The hash of the block did not match the hash given in JWT".to_owned(),
+            }),
+            StatusCode::BAD_REQUEST,
+        ));
     }
 
     debug!("clear for transaction proposal");
 
     let mut transactions = db.pending_transactions.write();
     transactions.insert(new_transaction.source.to_owned(), new_transaction);
-    Ok(StatusCode::CREATED)
+    Ok(warp::reply::with_status(
+        warp::reply::json(&GradeCoinResponse {
+            res: ResponseType::Success,
+            message: "Transaction accepted".to_owned(),
+        }),
+        StatusCode::CREATED,
+    ))
 }
 
 /// GET /block
@@ -273,15 +357,13 @@ pub async fn list_blocks(db: Db) -> Result<impl warp::Reply, Infallible> {
 /// *[`jwt_token`]: The raw JWT token, "Bearer aaa.bbb.ccc"
 /// *[`user_pem`]: User Public Key, "BEGIN RSA"
 /// NOT async, might look into it if this becomes a bottleneck
-fn authorize_proposer(
-    jwt_token: String,
-    user_pem: &String,
-) -> Result<TokenData<Claims>, jsonwebtoken::errors::Error> {
+fn authorize_proposer(jwt_token: String, user_pem: &String) -> Result<TokenData<Claims>, String> {
     // Throw away the "Bearer " part
     let raw_jwt = jwt_token.trim_start_matches(BEARER).to_owned();
     debug!("raw_jwt: {:?}", raw_jwt);
 
     // Extract a jsonwebtoken compatible decoding_key from user's public key
+    // TODO: just use this for reading users pem key <13-04-21, yigit> //
     let decoding_key = match DecodingKey::from_rsa_pem(user_pem.as_bytes()) {
         Ok(key) => key,
         Err(j) => {
@@ -289,7 +371,7 @@ fn authorize_proposer(
                 "user has invalid RSA key we should crash and burn here {:?}",
                 j
             );
-            return Err(j);
+            return Err(String::from("This User's RSA key is invalid"));
         }
     };
 
@@ -299,23 +381,20 @@ fn authorize_proposer(
             Ok(decoded) => decoded,
             Err(err) => match *err.kind() {
                 ErrorKind::InvalidToken => {
-                    // TODO: verbose error here <13-04-21, yigit> //
                     debug!("raw_jwt={:?} was malformed err={:?}", raw_jwt, err);
-                    return Err(err);
+                    return Err(String::from("Invalid Token"));
                 }
                 ErrorKind::InvalidRsaKey => {
-                    // TODO: verbose error here <13-04-21, yigit> //
-                    debug!("the RSA key does not have a valid format, {:?}", err);
-                    return Err(err);
+                    debug!("The RSA key does not have a valid format, {:?}", err);
+                    return Err(String::from("The RSA key does not have a valid format"));
                 }
                 ErrorKind::ExpiredSignature => {
-                    // TODO: verbose error here <13-04-21, yigit> //
                     debug!("this token has expired {:?}", err);
-                    return Err(err);
+                    return Err(String::from("This token has expired"));
                 }
                 _ => {
                     warn!("AN UNSPECIFIED ERROR: {:?}", err);
-                    return Err(err);
+                    return Err(String::from("Unspecified error"));
                 }
             },
         };

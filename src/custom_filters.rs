@@ -28,7 +28,7 @@ pub fn transaction_json_body() -> impl Filter<Extract = (Transaction,), Error = 
 /// Used in Authorization for `Block` and `Transaction` proposals
 /// Rejects the request if the Authorization header does not exist
 pub fn auth_header() -> impl Filter<Extract = (String,), Error = Rejection> + Clone {
-    warp::header::header::<String>("Authorization")
+    warp::header::<String>("Authorization")
 }
 
 /// Extracts an `Block` JSON body from the request
