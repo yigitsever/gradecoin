@@ -1,40 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use gradecoin::schema::{
-        create_database, AuthRequest, Block, Claims, Db, MetuId, Transaction, User,
-    };
+    use gradecoin::schema::{create_database, AuthRequest, Block, Db, MetuId, Transaction, User};
 
     use gradecoin::routes::consensus_routes;
     use warp::http::StatusCode;
-
-    use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
-    const PRIVATE_KEY_PEM: &str = "-----BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEA4nU0G4WjkmcQUx0hq6LQuV5Q+ACmUFL/OjoYMDwC/O/6pCd1
-UZgCfgHN2xEffDPznzcTn8OiFRxr4oWyBinyrUpnY4mhy0SQUwoeCw7YkcHAyhCj
-NT74aR/ohX0MCj0qRRdbt5ZQXM/GC3HJuXE1ptSuhFgQxziItamn8maoJ6JUSVEX
-VO1NOrrjoM3r7Q+BK2B+sX4/bLZ+VG5g1q2nEbFdTHS6pHqtZNHQndTmEKwRfh0R
-YtzEzOXuO6e1gQY42Tujkof40dhGCIU7TeIGGHwdFxy1niLkXwtHNjV7lnIOkTbx
-6+sSPamRfQAlZqUWM2Lf5o+7h3qWP3ENB138sQIDAQABAoIBAD23nYTmrganag6M
-wPFrBSGP79c3Lhx0EjUHQjJbGKFgsdltG48qM3ut+DF9ACy0Z+/7bbC7+39vaIOq
-1jLR2d6aiYTaLKseO4s2FawD1sgamvU3BZPsXn0gAhnnU5Gyy8Nas1dccvhoc9wI
-neaZUPrvucQ90AzLfo6r9yacDbYHB1lOyomApUvpJxOgHISGEtc9qGPDrdH19aF0
-8fCv2bbQRh+TChgN3IB0o5w0wXaI7YAyAouAv/AzHCoEMpt7OGjFTkjh/ujlPL9O
-+FLuJNsQRHDN0gJo2pcvwGwDCsioMixQ9bZ7ZrUu2BNpEQygyeSbj9ZI1iRvhosO
-JU3rwEECgYEA9MppTYA6A9WQbCCwPH1QMpUAmPNVSWVhUVag4lGOEhdCDRcz9ook
-DohQMKctiEB1luKuvDokxo0uMOfMO9/YwjsRB7qjQip7Th1zMJIjD+A+juLzHK4r
-/RiRtWYGAnF8mptDvE+93JsPb3C/lQLvIhio5GQYWBqPJu6SpeosIskCgYEA7NPi
-Gbffzr2UQhW8BNKmctEEh8yFRVojFo3wwwWxSNUVXGSmSm31CL+Q8h817R+2OkPV
-1ZMUOBU4UJiqFt28kIvTDFqbAJlJQGCpY2mY7OLQiD2A+TVLcFrHmoCaPfCAK1Qd
-hQ0PmFK7Mf8qClpA3E5chop/WfKQfiu46sZv1qkCgYAhGdXPcw1lQ1W6KVlrdI6J
-qHhiNlVMDXdxZkNvFxQdAiQeXQrbxaZGiMw/J/wSNpUwCAsUzM/4QVMDrfSCDCzl
-ZtNQtj4pTlFKKNVQthIjrXEIJUw2jp7IJLBfVSJu5iWxSlmId0f3MsiNizN81N69
-P5Rm/doE3+KHoy8VXGsHcQKBgQCkNh62enqjHWypjex6450qS6f6iWN3PRLLVsw0
-TcQpniZblCaBwVCAKmRUnjOEIdL2/4ZLutnwMTaFG/YEOOfAylMiY8jKV38lNmD9
-X4D78CFr9klxgvS2CRwSE03f2NzmLkLxuKaxldvaxPTfjMkgeO1LFMlNExYBhkuH
-7uQpUQKBgQCKX6qMNh2gSdgG7qyxfTFZ4y5EGOBoKe/dE+IcVF3Vnh6DZVbCAbBL
-5EdFWZSrCnDjA4xiKW55mwp95Ud9EZsZAb13L8V9t82eK+UDBoWlb7VRNYpda/x1
-5/i4qQJ28x2UNJDStpYFpnp4Ba1lvXjKngIbDPkjU+hbBJ+BNGAIeg==
------END RSA PRIVATE KEY-----";
 
     /// Create a mock database to be used in tests
     fn mocked_db() -> Db {
@@ -59,43 +28,28 @@ sQIDAQAB
         );
 
         db.pending_transactions.write().insert(
-            "hash_value".to_owned(),
+            "source_public_key_signature".to_owned(),
             Transaction {
-                by: "source_account".to_owned(),
-                source: "source_account".to_owned(),
-                target: "target_account".to_owned(),
-                amount: 20,
-                timestamp: chrono::NaiveDate::from_ymd(2021, 04, 09).and_hms(1, 30, 30),
+                by: "source_public_key_signature".to_owned(),
+                source: "source_public_key_signature".to_owned(),
+                target: "target_public_key_signature".to_owned(),
+                amount: 3,
+                timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(20, 55, 30),
             },
         );
 
         *db.blockchain.write() = Block {
             transaction_list: vec![
-                "old_transaction_hash_1".to_owned(),
-                "old_transaction_hash_2".to_owned(),
-                "old_transaction_hash_3".to_owned(),
+                "foo_public_key_signature".to_owned(),
+                "bar_public_key_signature".to_owned(),
+                "baz_public_key_signature".to_owned(),
             ],
-            nonce: 0,
-            timestamp: chrono::NaiveDate::from_ymd(2021, 04, 08).and_hms(12, 30, 30),
-            hash: "not_a_thing_yet".to_owned(),
+            nonce: 6920405,
+            timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(20, 55, 00),
+            hash: "0000009745f2f09c968c095af75e8ab87eba9be90a93e5df464f83ea7ec08537".to_owned(),
         };
 
         db
-    }
-
-    fn mocked_jwt() -> String {
-        let claims = Claims {
-            tha: "6692e774eba7fb92dc0fe6cf7347591e".to_owned(),
-            iat: 1618275851,
-            exp: 1648275851,
-        };
-        let header = Header::new(Algorithm::RS256);
-        encode(
-            &header,
-            &claims,
-            &EncodingKey::from_rsa_pem(PRIVATE_KEY_PEM.as_bytes()).unwrap(),
-        )
-        .unwrap()
     }
 
     /// Create a mock user that is allowed to be in gradecoin to be used in tests
@@ -125,26 +79,6 @@ sQIDAQAB
         }
     }
 
-    /// Create a mock block with a correct mined hash to be used in tests
-    fn mocked_block() -> Block {
-        Block {
-            transaction_list: vec!["hash_value".to_owned()],
-            nonce: 3831993,
-            timestamp: chrono::NaiveDate::from_ymd(2021, 04, 08).and_hms(12, 30, 30),
-            hash: "2b648ffab5d9af1d5d5fc052fc9e51b882fc4fb0c998608c99232f9282000000".to_owned(),
-        }
-    }
-
-    /// Create a mock block with a wrong hash and nonce
-    fn mocked_wrong_block() -> Block {
-        Block {
-            transaction_list: vec!["foobarbaz".to_owned(), "dazsaz".to_owned()],
-            nonce: 1000, // can you imagine
-            timestamp: chrono::NaiveDate::from_ymd(2021, 04, 12).and_hms(05, 29, 30),
-            hash: "tnarstnarsuthnarsthlarjstk".to_owned(),
-        }
-    }
-
     /// Test simple GET request to /transaction, an endpoint that exists
     /// https://tools.ietf.org/html/rfc7231#section-6.3.1
     /// We should get the only pending transaction available in the database as json
@@ -162,7 +96,7 @@ sQIDAQAB
 
         assert_eq!(res.status(), StatusCode::OK);
 
-        let expected_json_body = r#"[{"by":"source_account","source":"source_account","target":"target_account","amount":20,"timestamp":"2021-04-09T01:30:30"}]"#;
+        let expected_json_body = r#"[{"by":"source_public_key_signature","source":"source_public_key_signature","target":"target_public_key_signature","amount":3,"timestamp":"2021-04-13T20:55:30"}]"#;
 
         assert_eq!(res.body(), expected_json_body);
     }
@@ -185,7 +119,7 @@ sQIDAQAB
 
         assert_eq!(res.status(), StatusCode::OK);
 
-        let expected_json_body = r#"{"transaction_list":["old_transaction_hash_1","old_transaction_hash_2","old_transaction_hash_3"],"nonce":0,"timestamp":"2021-04-08T12:30:30","hash":"not_a_thing_yet"}"#;
+        let expected_json_body = r#"{"transaction_list":["foo_public_key_signature","bar_public_key_signature","baz_public_key_signature"],"nonce":6920405,"timestamp":"2021-04-13T20:55:00","hash":"0000009745f2f09c968c095af75e8ab87eba9be90a93e5df464f83ea7ec08537"}"#;
         assert_eq!(res.body(), expected_json_body);
     }
 
@@ -269,25 +203,30 @@ sQIDAQAB
 
         let res = warp::test::request()
             .method("POST")
-            .json(&mocked_block())
+            .json(&Block {
+            transaction_list: vec!["mock_transaction_source".to_owned()],
+            nonce: 2686215,
+            timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(23, 38, 00),
+            hash: "0000007c52e4486359f62b2d19781fafaf059bd691bc6d835b666f6eac1d01d9".to_owned(),
+        } )
             .header("Authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aGEiOiIyYjY0OGZmYWI1ZDlhZjFkNWQ1ZmMwNTJmYzllNTFiODgyZmM0ZmIwYzk5ODYwOGM5OTIzMmY5MjgyMDAwMDAwIiwiaWF0IjoxNjE4MzYwNjQxLCJleHAiOjE3MTgyNjA2NDF9.P5L_uZ9lOhRZCbsG9GDXn_rmZat3dP9Y2lbk8GY4Kg4pOxJIklBUxot-TtJzB0vEJFcjnxVnT2lFLCgfdQLHTJvURiW0KRHi94e1Kj8aDXxJ0qjlq4-c1JCZnAIbDpvkFtHNKz04yfyeSR2htJ6kOjlqVpeUhLVokHhi1x-ZUZZSpeGnlIXgi-AcmkEoyOypZGSZgQ1hjID2f18zgfbshgPK4Dr0hiN36wYMB0y0YiikRbvDuGgDzRLN2nitih46-CXTGZMqIRz3eAfM2wuUSH1yhdKi5_vavz8L3EPVCGMO-CKlPUDkYA-duQZf_q3tG2fkdaFlTAcCik_kVMprdw")
             .path("/block")
             .reply(&filter)
             .await;
 
-        assert_eq!(res.status(), StatusCode::CREATED);
+        // should be reflectled on the db as well
         assert_eq!(
             *db.blockchain.read().hash,
-            "2b648ffab5d9af1d5d5fc052fc9e51b882fc4fb0c998608c99232f9282000000".to_owned()
+            "0000007c52e4486359f62b2d19781fafaf059bd691bc6d835b666f6eac1d01d9".to_owned()
         );
+        assert_eq!(res.status(), StatusCode::CREATED);
     }
 
     /// Test a POST request to /block, an endpoint that exists
     ///
     /// https://tools.ietf.org/html/rfc7231#section-6.3.2
     ///
-    /// Should reject the block because of the wrong hash/nonce
-    /// // TODO: split this into two tests
+    /// Should reject the block because there aren't enough zeroes in the hash
     #[tokio::test]
     async fn post_block_wrong_hash() {
         let db = mocked_db();
@@ -295,12 +234,48 @@ sQIDAQAB
 
         let res = warp::test::request()
             .method("POST")
-            .json(&mocked_wrong_block())
+            .json(&Block {
+                transaction_list: vec!["foobarbaz".to_owned(), "dazsaz".to_owned()],
+                nonce: 1000, // not valid
+                timestamp: chrono::NaiveDate::from_ymd(2021, 04, 12).and_hms(05, 29, 30),
+                hash: "tnarstnarsuthnarsthlarjstk".to_owned(),
+            })
             .path("/block")
             .reply(&filter)
             .await;
 
         assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+    }
+
+    /// Test a POST request to /block, an endpoint that exists
+    ///
+    /// https://tools.ietf.org/html/rfc7231#section-6.3.2
+    ///
+    /// Should reject the block because hash has enough zeroes but is not the actual hash of the
+    /// block
+    #[tokio::test]
+    async fn post_block_incorrect_hash() {
+        let db = mocked_db();
+        let filter = consensus_routes(db.clone());
+
+        let res = warp::test::request()
+            .method("POST")
+            .json(&Block {
+                transaction_list: vec![],
+                nonce: 12314,
+                timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(20, 55, 00),
+                hash: "0000001111111111111111111111111111111111111111111111111111111111".to_owned(),
+            })
+            .path("/block")
+            .reply(&filter)
+            .await;
+
+        println!("{:?}", res.body());
+        assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+        assert_eq!(
+            db.blockchain.read().hash,
+            "0000009745f2f09c968c095af75e8ab87eba9be90a93e5df464f83ea7ec08537"
+        );
     }
 
     /// Test a POST request to /register, an endpoint that exists
