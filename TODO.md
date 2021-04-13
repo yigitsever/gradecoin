@@ -4,7 +4,7 @@
 - [ ] Blocks should "play out" the transactions and execute transactions
 - [ ] "Coinbase" ("by" of the first transaction of the block) should get rewarded for their efforts
 - [ ] Bank mechanism should be added.
- 
+- [ ] Recover database from files
 
 ## Authentication
 - [ ] /register is currently accepting non-encrypted (regular JSON) payloads
