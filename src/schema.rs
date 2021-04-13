@@ -121,7 +121,7 @@ impl Block {
 }
 
 /// Simply a Student
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct User {
     pub user_id: MetuId,
     pub public_key: String,
@@ -129,13 +129,13 @@ pub struct User {
 }
 
 /// The values will be hard coded so MetuId::new() can accept/reject values based on that
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct MetuId {
     id: String,
 }
 
 // TODO: this will arrive encrypted <13-04-21, yigit> //
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct AuthRequest {
     pub student_id: String,
     pub public_key: String,

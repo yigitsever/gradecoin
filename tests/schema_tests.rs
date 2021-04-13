@@ -180,11 +180,41 @@ mod tests {
 
     #[test]
     fn user_serialize_correctly() {
+        let user = User {
+            user_id: MetuId::new("e254275".to_owned()).unwrap(),
+            public_key: "public_key".to_owned(),
+            balance: 0
+        };
 
+        assert_tokens(
+            &user,
+            &[
+                Token::Struct{name: "User", len: 3},
+                Token::String("user_id"),
+                Token::Struct {name: "MetuId", len: 1},
+                Token::String("id"),
+                Token::String("e254275"),
+                Token::StructEnd,
+                Token::String("public_key"),
+                Token::String("public_key"),
+                Token::String("balance"),
+                Token::I32(0),
+                Token::StructEnd,
+            ]
+        )
     }
 
     #[test]
     fn user_deserialize_correctly() {
+        let expected_user = User {
+            user_id: MetuId::new("e254275".to_owned()).unwrap(),
+            public_key: "public_key".to_owned(),
+            balance: 0
+        };
+        let data = r#"{"user_id":{"id":"e254275"},"public_key":"public_key","balance":0}"#;
+        let user: User = serde_json::from_str(data).unwrap();
+
+        assert_eq!(user, expected_user);
 
     }
 
