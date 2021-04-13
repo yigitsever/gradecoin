@@ -234,11 +234,38 @@ sQIDAQAB
 
         let res = warp::test::request()
             .method("POST")
+            .header("Authorization", "Bearer foo.bar.baz")
             .json(&Block {
                 transaction_list: vec!["foobarbaz".to_owned(), "dazsaz".to_owned()],
                 nonce: 1000, // not valid
                 timestamp: chrono::NaiveDate::from_ymd(2021, 04, 12).and_hms(05, 29, 30),
                 hash: "tnarstnarsuthnarsthlarjstk".to_owned(),
+            })
+            .path("/block")
+            .reply(&filter)
+            .await;
+
+        assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+    }
+
+    /// Test a POST request to /block, an endpoint that exists
+    ///
+    /// https://tools.ietf.org/html/rfc7231#section-6.3.2
+    ///
+    /// Should reject the block because transaction list is empty
+    #[tokio::test]
+    async fn post_block_with_empty_transaction_list() {
+        let db = mocked_db();
+        let filter = consensus_routes(db.clone());
+
+        let res = warp::test::request()
+            .method("POST")
+            .header("Authorization", "Bearer foo.bar.baz")
+            .json(&Block {
+                transaction_list: vec![],
+                nonce: 1000, // not valid
+                timestamp: chrono::NaiveDate::from_ymd(2021, 04, 12).and_hms(05, 29, 30),
+                hash: "thisisnotavalidhash".to_owned(),
             })
             .path("/block")
             .reply(&filter)
