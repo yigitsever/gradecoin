@@ -1,37 +1,28 @@
+/// API handlers, the ends of each filter chain
 use blake2::{Blake2s, Digest};
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
-/// API handlers, the ends of each filter chain
 use log::debug;
 use md5::Md5;
 use parking_lot::RwLockUpgradableReadGuard;
-use serde::{Deserialize, Serialize};
 use serde_json;
-use serde_json::json;
 use std::convert::Infallible;
 use std::fs;
-use warp::{http::Response, http::StatusCode, reject, reply};
+use warp::{http::Response, http::StatusCode, reply};
 
-use gradecoin::schema::{
-    AuthRequest, Block, Db, MetuId, NakedBlock, PublicKeySignature, Transaction, User,
-};
+use crate::schema::{AuthRequest, Block, Claims, Db, MetuId, NakedBlock, Transaction, User};
 
 const BEARER: &str = "Bearer ";
 
-/// tha: Transaction Hash, String
-/// iat: Issued At, Unix Time, epoch
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Claims {
-    pub tha: String,
-    pub iat: usize,
-}
-
-/// POST /register
-/// Enables a student to introduce themselves to the system
-/// Can fail
+/// POST request to /register endpoint
+///
+/// Lets a [`User`] (=student) to authenticate themselves to the system
+/// This `request` can be rejected if the payload is malformed (= not authenticated properly) or if
+/// the [`AuthRequest.user_id`] of the `request` is not in the list of users that can hold a Gradecoin account
 pub async fn authenticate_user(
     request: AuthRequest,
     db: Db,
 ) -> Result<impl warp::Reply, warp::Rejection> {
+    debug!("POST request to /register, authenticate_user");
     let given_id = request.student_id.clone();
 
     if let Some(priv_student_id) = MetuId::new(request.student_id) {
@@ -77,7 +68,7 @@ pub async fn authenticate_user(
 /// Returns JSON array of transactions
 /// Cannot fail
 pub async fn list_transactions(db: Db) -> Result<impl warp::Reply, Infallible> {
-    debug!("list all transactions");
+    debug!("GET request to /transaction, list_transactions");
     let mut result = Vec::new();
 
     let transactions = db.pending_transactions.read();
@@ -95,29 +86,11 @@ pub async fn list_transactions(db: Db) -> Result<impl warp::Reply, Infallible> {
 /// Cannot fail
 /// Mostly around for debug purposes
 pub async fn list_blocks(db: Db) -> Result<impl warp::Reply, Infallible> {
-    debug!("list all block");
+    debug!("GET request to /block, list_blocks");
 
     let block = db.blockchain.read();
 
     Ok(reply::with_status(reply::json(&*block), StatusCode::OK))
-}
-
-/// POST /transaction
-/// Pushes a new transaction for pending transaction pool
-/// Can reject the transaction proposal
-/// TODO: when is a new transaction rejected <07-04-21, yigit> //
-pub async fn propose_transaction(
-    new_transaction: Transaction,
-    db: Db,
-) -> Result<impl warp::Reply, warp::Rejection> {
-    debug!("new transaction request {:?}", new_transaction);
-
-    // let mut transactions = db.lock().await;
-    let mut transactions = db.pending_transactions.write();
-
-    transactions.insert(new_transaction.source.to_owned(), new_transaction);
-
-    Ok(StatusCode::CREATED)
 }
 
 /// POST /block
@@ -181,41 +154,64 @@ pub async fn propose_block(new_block: Block, db: Db) -> Result<impl warp::Reply,
     }
 }
 
+/// POST /transaction
+///
+/// Handles the new transaction requests
+/// Can reject the block if;
+/// # Arguments
+/// * `new_transaction` - Valid JSON of a [`Transaction`]
+/// * `token` - An Authorization header value such as `Bearer aaa.bbb.ccc`
+/// * `db` - Global [`Db`] instance
+///
+/// TODO This method should check if the user has enough balance for the transaction
 pub async fn auth_propose_transaction(
     new_transaction: Transaction,
     token: String,
     db: Db,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    debug!("new transaction request {:?}", new_transaction);
+    debug!("POST request to /transaction, propose_transaction");
+    debug!("The transaction request: {:?}", new_transaction);
+
     let raw_jwt = token.trim_start_matches(BEARER).to_owned();
+    debug!("raw_jwt: {:?}", raw_jwt);
 
-    let decoded = jsonwebtoken::decode::<Claims>(
-        &token,
-        &DecodingKey::from_rsa_pem(
-            db.users
-                .read()
-                .get(&new_transaction.by)
-                .unwrap()
-                .public_key
-                .as_bytes(),
-        )
-        .unwrap(),
-        // todo@keles: If user is not found return user not found error
-        &Validation::new(Algorithm::PS256),
-    )
-    .unwrap();
-    // todo: If user is found but header is not validated, return header not valid
+    if let Some(user) = db.users.read().get(&new_transaction.by) {
+        // This public key was already written to the database, we can panic if it's not valid at
+        // *this* point
+        let by_public_key = &user.public_key;
 
-    let hashed_transaction = Md5::digest(&serde_json::to_vec(&new_transaction).unwrap());
+        if let Ok(decoded) = decode::<Claims>(
+            &raw_jwt,
+            &DecodingKey::from_rsa_pem(by_public_key.as_bytes()).unwrap(),
+            &Validation::new(Algorithm::RS256),
+        ) {
+            // this transaction was already checked for correctness at custom_filters, we can panic
+            // here if it has been changed since
 
-    // let mut transactions = db.lock().await;
-    if decoded.claims.tha == format!("{:x}", hashed_transaction) {
-        let mut transactions = db.pending_transactions.write();
+            let hashed_transaction = Md5::digest(&serde_json::to_vec(&new_transaction).unwrap());
 
-        transactions.insert(new_transaction.source.to_owned(), new_transaction);
+            if decoded.claims.tha == format!("{:x}", hashed_transaction) {
+                let mut transactions = db.pending_transactions.write();
 
-        Ok(StatusCode::CREATED)
+                transactions.insert(new_transaction.source.to_owned(), new_transaction);
+
+                Ok(StatusCode::CREATED)
+            } else {
+                debug!(
+                    "the hash of the request {:x} did not match with the hash given in jwt {:?}",
+                    hashed_transaction, decoded.claims.tha
+                );
+                Ok(StatusCode::BAD_REQUEST)
+            }
+        } else {
+            debug!("raw_jwt was malformed {:?}", raw_jwt);
+            Ok(StatusCode::BAD_REQUEST)
+        }
     } else {
+        debug!(
+            "A user with public key signature {:?} is not found in the database",
+            new_transaction.by
+        );
         Ok(StatusCode::BAD_REQUEST)
     }
 }

@@ -1,3 +1,12 @@
+//! # Data Representations
+//!
+//! We need persistence for [`Block`]s and [`User`]s, not so much for [`Transaction`]s
+//!
+//! There are around 30 students, a full fledged database would be an overkill (for next year?)
+//!
+//! Pending transactions are held in memory, these are cleared with every new block
+//! Only the last block is held in memory, every block is written to a file
+//! Users are held in memory and they're also backed up to text files
 use chrono::{NaiveDate, NaiveDateTime};
 use lazy_static::lazy_static;
 use parking_lot::RwLock;
@@ -9,24 +18,45 @@ use std::sync::Arc;
 
 // use crate::validators;
 
-/// We need persistence for blocks and users, not so much for transactions
-/// There are around 30 students, a full fledged database would be an overkill (for next year?)
-/// Pending transactions are held in memory, these are cleared with every new block
-/// Only the last block is held in memory, every block is written to a file
-/// Users are held in memory and they're also backed up to text files
+pub type PublicKeySignature = String;
 
-/// Creates a new database connection
+/// Creates a new database
 pub fn create_database() -> Db {
     fs::create_dir_all("blocks").unwrap();
     fs::create_dir_all("users").unwrap();
     Db::new()
 }
 
+/// A JWT Payload/Claims representation
+///
+/// https://tools.ietf.org/html/rfc7519#section-4.1
+///
+/// - `tha`: Transaction Hash, String (custom field)
+/// - `iat`: Issued At, Unix Time, epoch
+/// - `exp`: Expiration Time, epoch
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Claims {
+    pub tha: String,
+    pub iat: usize,
+    pub exp: usize,
+}
+
+/// Global Database representation
+///
+/// [`blockchain`] is just the last block that was mined. All the blocks are written to disk as text
+/// files whenever they are accepted.
+///
+/// [`pending_transactions`] is the in memory representation of the waiting transactions. Every
+/// user can have only one outstanding transaction at any given time.
+///
+/// [`users`] is the in memory representation of the users, with their public keys, metu_ids and
+/// gradecoin balances.
+///
+/// TODO: Replace the pending_transactions HashMap<String, Transaction> with
+/// HashMap<PublicKeySignature, Transaction>
 #[derive(Debug, Clone)]
 pub struct Db {
-    // heh. also https://doc.rust-lang.org/std/collections/struct.LinkedList.html says Vec is generally faster
     pub blockchain: Arc<RwLock<Block>>,
-    // every proposer can have _one_ pending transaction, a way to enforce this, String is proposer identifier
     pub pending_transactions: Arc<RwLock<HashMap<String, Transaction>>>,
     pub users: Arc<RwLock<HashMap<String, User>>>,
 }
@@ -41,8 +71,6 @@ impl Db {
     }
 }
 
-pub type PublicKeySignature = String;
-
 /// A transaction between `source` and `target` that moves `amount`
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Transaction {
@@ -53,20 +81,21 @@ pub struct Transaction {
     pub timestamp: NaiveDateTime,
 }
 
-/// A block that was proposed with `transaction_list` and `nonce` that made `hash` valid
+/// A block that was proposed with `transaction_list` and `nonce` that made `hash` valid, 6 zeroes
+/// at the right hand side of the hash (24 bytes)
+///
+/// We are mining using blake2s algorithm, which produces 256 bit hashes. Hash/second is roughly
+/// 20x10^3.
+///
 /// https://serde.rs/container-attrs.html might be valuable to normalize the serialize/deserialize
 /// conventions as these will be hashed
+///
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Block {
-    // TODO: transaction list should hold transaction hash values <09-04-21, yigit> //
-    // but do we link them somehow? (like a log of old transactions?)
-    // we can leave this as is and whenever we have a new block we _could_ just log it to file
-    // somewhere
-    // I want to keep this as a String vector because it makes things easier elsewhere
-    pub transaction_list: Vec<PublicKeySignature>, // hashes of the transactions (or just "source" for now)
+    pub transaction_list: Vec<PublicKeySignature>,
     pub nonce: u32,
     pub timestamp: NaiveDateTime,
-    pub hash: String, // future proof'd baby
+    pub hash: String,
 }
 
 /// For prototyping and letting serde handle everything json
@@ -89,7 +118,7 @@ impl Block {
     }
 }
 
-/// Or simply a Student
+/// Simply a Student
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
     pub user_id: MetuId,
@@ -103,6 +132,7 @@ pub struct MetuId {
     id: String,
 }
 
+// TODO: this will arrive encrypted <13-04-21, yigit> //
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AuthRequest {
     pub student_id: String,

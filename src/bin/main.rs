@@ -1,10 +1,9 @@
-use gradecoin::schema::create_database;
 use std::env;
 use warp::Filter;
 
-mod custom_filters;
-mod handlers;
-mod routes;
+use gradecoin::routes::consensus_routes;
+use gradecoin::schema::create_database;
+
 // mod validators;
 
 #[tokio::main]
@@ -17,7 +16,7 @@ async fn main() {
 
     let db = create_database();
 
-    let api = routes::consensus_routes(db);
+    let api = consensus_routes(db);
 
     let routes = api.with(warp::log("gradecoin"));
 
