@@ -291,6 +291,40 @@ pub async fn authorized_propose_transaction(
 
     // `user` is an authenticated student, can propose
 
+    // check if user can afford the transaction
+    if new_transaction.by == new_transaction.source {  // Propose to transact with another user
+        if internal_user.balance < new_transaction.amount {
+            return Ok(warp::reply::with_status(
+                warp::reply::json(&GradeCoinResponse {
+                    res: ResponseType::Error,
+                    message: "User does not have enough balance in their account"
+                        .to_owned(),
+                }),
+                StatusCode::BAD_REQUEST,
+            ));
+        }
+    } else if new_transaction.by == new_transaction.target {
+        if internal_user.balance < new_transaction.amount {
+            return Ok(warp::reply::with_status(
+                warp::reply::json(&GradeCoinResponse {
+                    res: ResponseType::Error,
+                    message: "Bank does not have enough balance"
+                        .to_owned(),
+                }),
+                StatusCode::BAD_REQUEST,
+            ));
+        }
+    } else {
+        return Ok(warp::reply::with_status(
+            warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "Invalid by field for the proposed transaction"
+                    .to_owned(),
+            }),
+            StatusCode::BAD_REQUEST,
+        ));
+    }
+
     // This public key was already written to the database, we can panic if it's not valid at
     // *this* point
     let proposer_public_key = &internal_user.public_key;
@@ -330,6 +364,7 @@ pub async fn authorized_propose_transaction(
     }
 
     debug!("clear for transaction proposal");
+
 
     let mut transactions = db.pending_transactions.write();
     transactions.insert(new_transaction.source.to_owned(), new_transaction);
