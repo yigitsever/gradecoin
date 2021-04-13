@@ -28,7 +28,14 @@ mod tests {
 
     #[test]
     fn claims_deserialize_correctly() {
-
+        let data = r#"{"tha":"hashed_string","iat":0,"exp":100}"#;
+        let claims: Claims = serde_json::from_str(data).unwrap();
+        let expected_claims = Claims {
+            tha: "hashed_string".to_owned(),
+            iat: 0,
+            exp: 100,
+        };
+        assert_eq!(claims, expected_claims);
     }
 
     #[test]
