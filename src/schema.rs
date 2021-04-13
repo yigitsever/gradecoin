@@ -92,6 +92,7 @@ pub struct Transaction {
 ///
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Block {
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub transaction_list: Vec<PublicKeySignature>,
     pub nonce: u32,
     pub timestamp: NaiveDateTime,
@@ -101,6 +102,7 @@ pub struct Block {
 /// For prototyping and letting serde handle everything json
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NakedBlock {
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub transaction_list: Vec<PublicKeySignature>,
     pub nonce: u32,
     pub timestamp: NaiveDateTime,
@@ -110,10 +112,10 @@ impl Block {
     /// Genesis block
     pub fn new() -> Block {
         Block {
-            transaction_list: vec![],
+            transaction_list: vec!["gradecoin_bank".to_owned()],
             nonce: 0,
             timestamp: NaiveDate::from_ymd(2021, 04, 11).and_hms(20, 45, 00),
-            hash: String::from(""),
+            hash: String::from("not_actually_mined"),
         }
     }
 }

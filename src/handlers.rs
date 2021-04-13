@@ -122,6 +122,8 @@ pub async fn authorized_propose_block(
 
     let users_store = db.users.read();
 
+    println!("{:?}", &new_block);
+
     let internal_user = match users_store.get(&new_block.transaction_list[0]) {
         Some(existing_user) => existing_user,
         None => {

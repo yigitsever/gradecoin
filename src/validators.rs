@@ -1,14 +1,14 @@
-// Custom validators incoming data
+/// Custom validators incoming data
 
 use log::error;
 use serde::de::{Deserializer, Error as DeserializerError, Unexpected};
 use serde::ser::{Error as SerializerError, Serializer};
 use serde::Deserialize;
 
-pub mod validate_game_rating {
+pub mod validate_block {
     use super::*;
 
-    const ERROR_MESSAGE: &str = "rating must be a number between 0 and 100";
+    const ERROR_MESSAGE: &str = "block cannot have an empty transaction list";
 
     pub fn deserialize<'de, D>(deserializer: D) -> Result<u8, D::Error>
     where
