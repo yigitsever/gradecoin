@@ -100,7 +100,7 @@ pub struct Block {
 }
 
 /// For prototyping and letting serde handle everything json
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct NakedBlock {
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub transaction_list: Vec<PublicKeySignature>,
