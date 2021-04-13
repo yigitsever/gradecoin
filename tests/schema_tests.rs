@@ -3,6 +3,7 @@ mod tests {
     use gradecoin::schema::*;
     use serde_json::error::Error;
     use serde_test::{assert_tokens, Token};
+    use chrono::{NaiveDate, NaiveTime, NaiveDateTime};
 
     #[test]
     fn claims_serialize_correctly() {
@@ -40,12 +41,46 @@ mod tests {
 
     #[test]
     fn transaction_serialize_correctly() {
+        let transaction = Transaction {
+            by: "source".to_owned(),
+            source: "source".to_owned(),
+            target: "target".to_owned(),
+            amount: 0,
+            timestamp: NaiveDate::from_ymd(2021, 4, 2).and_hms(4, 2, 42),
+        };
 
+        assert_tokens(
+            &transaction,
+            &[
+                Token::Struct{name: "Transaction", len: 5},
+                Token::String("by"),
+                Token::String("source"),
+                Token::String("source"),
+                Token::String("source"),
+                Token::String("target"),
+                Token::String("target"),
+                Token::String("amount"),
+                Token::I32(0),
+                Token::String("timestamp"),
+                Token::String("2021-04-02T04:02:42"),
+                Token::StructEnd,
+            ]
+        )
     }
 
     #[test]
     fn transaction_deserialize_correctly() {
+        let data = r#"{"by":"source","source":"source","target":"target","amount":0,"timestamp":"2021-04-02T04:02:42"}"#;
+        let transaction: Transaction = serde_json::from_str(data).unwrap();
+        let expected_transaction = Transaction {
+            by: "source".to_owned(),
+            source: "source".to_owned(),
+            target: "target".to_owned(),
+            amount: 0,
+            timestamp: NaiveDate::from_ymd(2021, 4, 2).and_hms(4, 2, 42),
+        };
 
+        assert_eq!(transaction, expected_transaction);
     }
 
     #[test]
