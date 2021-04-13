@@ -236,7 +236,7 @@ mod tests {
     #[test]
     fn metu_id_deserialize_correctly() {
         let expected_metu_id = MetuId::new ("e254275".to_owned()).unwrap();
-        let data = r#"{"{"id":"e254275"}"#;
+        let data = r#"{"id":"e254275"}"#;
         let metu_id: MetuId = serde_json::from_str(data).unwrap();
 
         assert_eq!(metu_id, expected_metu_id);
@@ -244,11 +244,34 @@ mod tests {
 
     #[test]
     fn auth_request_serialize_correctly() {
+        let auth_request = AuthRequest {
+            student_id: "e254275".to_owned(),
+            public_key: "public_key".to_owned()
+        };
 
+        assert_tokens(
+            &auth_request,
+            &[
+                Token::Struct{name: "AuthRequest", len: 2},
+                Token::String("student_id"),
+                Token::String("e254275"),
+                Token::String("public_key"),
+                Token::String("public_key"),
+                Token::StructEnd,
+            ]
+        )
     }
 
     #[test]
     fn auth_request_deserialize_correctly() {
+        let expected_auth_request = AuthRequest {
+            student_id: "e254275".to_owned(),
+            public_key: "public_key".to_owned()
+        };
+        let data = r#"{"student_id":"e254275","public_key":"public_key"}"#;
+        let auth_request: AuthRequest = serde_json::from_str(data).unwrap();
+
+        assert_eq!(auth_request, expected_auth_request);
 
     }
 
