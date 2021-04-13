@@ -4,10 +4,10 @@
 - [ ] /register is currently accepting non-encrypted (regular JSON) payloads
 
 ## Authorization
-- [ ] POST requests to /block should be authenticated as well
+- [x] POST requests to /block should be authenticated as well (2021-04-13 04:50, they now are but until we make error messages **Verbose** there's not much point in testing because I honestly cannot trace the code)
 
 ## Verbosity
-- [ ] Verbose error messages (use error.rs ❓)
+- [ ] Verbose error messages (use error.rs from [logrocket](https://blog.logrocket.com/create-an-async-crud-web-service-in-rust-with-warp/) ❓)
 
 ## Tests
 - [ ] Schema Tests

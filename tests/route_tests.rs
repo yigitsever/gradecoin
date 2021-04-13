@@ -263,13 +263,14 @@ sQIDAQAB
     /// Should accept the json request, create
     /// the block
     #[tokio::test]
-    async fn post_block_201() {
+    async fn post_block_auth_201() {
         let db = mocked_db();
         let filter = consensus_routes(db.clone());
 
         let res = warp::test::request()
             .method("POST")
             .json(&mocked_block())
+            .header("Authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aGEiOiIyYjY0OGZmYWI1ZDlhZjFkNWQ1ZmMwNTJmYzllNTFiODgyZmM0ZmIwYzk5ODYwOGM5OTIzMmY5MjgyMDAwMDAwIiwiaWF0IjoxNjE4MzYwNjQxLCJleHAiOjE3MTgyNjA2NDF9.P5L_uZ9lOhRZCbsG9GDXn_rmZat3dP9Y2lbk8GY4Kg4pOxJIklBUxot-TtJzB0vEJFcjnxVnT2lFLCgfdQLHTJvURiW0KRHi94e1Kj8aDXxJ0qjlq4-c1JCZnAIbDpvkFtHNKz04yfyeSR2htJ6kOjlqVpeUhLVokHhi1x-ZUZZSpeGnlIXgi-AcmkEoyOypZGSZgQ1hjID2f18zgfbshgPK4Dr0hiN36wYMB0y0YiikRbvDuGgDzRLN2nitih46-CXTGZMqIRz3eAfM2wuUSH1yhdKi5_vavz8L3EPVCGMO-CKlPUDkYA-duQZf_q3tG2fkdaFlTAcCik_kVMprdw")
             .path("/block")
             .reply(&filter)
             .await;
