@@ -3,7 +3,8 @@
 ## Simulation
 - [ ] Blocks should "play out" the transactions and execute transactions
 - [ ] "Coinbase" ("by" of the first transaction of the block) should get rewarded for their efforts
-- [ ] Transactions should be rejected if the user cannot afford to send the amount
+- [ ] Bank mechanism should be added.
+ 
 
 ## Authentication
 - [ ] /register is currently accepting non-encrypted (regular JSON) payloads
@@ -34,3 +35,5 @@
 - [X] users should be able to _sign_ their transactions
 ----
 - [x] Verbose error messages (use error.rs from [logrocket](https://blog.logrocket.com/create-an-async-crud-web-service-in-rust-with-warp/) ❓) (done at 2021-04-13 20:39, not happy with the result)
+----
+- [x] Transactions should be rejected if the user cannot afford to send the amount
