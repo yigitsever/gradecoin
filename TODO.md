@@ -2,7 +2,7 @@
 
 ## Authentication
 - [ ] /register is currently accepting non-encrypted (regular JSON) payloads
-- [ ] regitser should check for public key pem format and assign signatures
+- [ ] /register should check for public key pem format and assign signatures
 
 ## Authorization
 - [x] POST requests to /block should be authenticated as well (2021-04-13 04:50, they now are but until we make error messages **Verbose** there's not much point in testing because I honestly cannot trace the code)
