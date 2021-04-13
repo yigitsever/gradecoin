@@ -1,12 +1,13 @@
 # TODO
 
-## Proof-of-work
-So far so good
+## Authentication
+- [ ] /register is currently accepting non-encrypted (regular JSON) payloads
 
-## Authentication(DONE/DONE)
+## Authorization
+- [ ] POST requests to /block should be authenticated as well
 
 ## Verbosity
-- [ ] Verbose error messages (use error.rs?)
+- [ ] Verbose error messages (use error.rs ❓)
 
 ## Tests
 - [ ] Schema Tests

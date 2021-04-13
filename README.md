@@ -1,25 +1,22 @@
 # Gradecoin
 
-This will sit behind nginx reverse proxy so running at 127.0.0.1:8080 is no problem, or https.
+This will sit behind nginx reverse proxy so running at 127.0.0.1:8080 or not using https is not a problem.
 
 ```
-$ cargo run
+# Test the project
+$ cargo test
 
-$ curl --location --request POST 'localhost:8080/transaction' --header 'Content-Type: application/json' --data-raw '{
-  "source": "Myself Truly",
-  "target": "Literally Anybody Else",
-  "amount": 12,
-  "timestamp": "2021-04-07T00:17:00"
-}'
+# Read the documentation
+$ cargo doc --open
 ```
 
 # how?
-
 ## authentication
 > Uses /register endpoint
 - Student creates their own 2048 bit RSA `keypair`
 - Downloads Gradecoin's Public Key from Moodle
 - Encrypts their JSON wrapped Public Key and Student ID using Gradecoin's Public Key
+- Sends that to the /register endpoint with a POST request
 - Their public key is now in our database and can be used to sign their JWT's during requests
 
 ## transactions
