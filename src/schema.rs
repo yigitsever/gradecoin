@@ -43,7 +43,7 @@ pub struct Claims {
 
 /// Global Database representation
 ///
-/// [`blockchain`] is just the last block that was mined. All the blocks are written to disk as text
+/// [`Db::blockchain`] is just the last block that was mined. All the blocks are written to disk as text
 /// files whenever they are accepted.
 ///
 /// [`pending_transactions`] is the in memory representation of the waiting transactions. Every
