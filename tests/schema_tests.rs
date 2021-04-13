@@ -220,12 +220,26 @@ mod tests {
 
     #[test]
     fn metu_id_serialize_correctly() {
+        let metu_id = MetuId::new ("e254275".to_owned()).unwrap();
 
+        assert_tokens(
+            &metu_id,
+            &[
+                Token::Struct{name: "MetuId", len: 1},
+                Token::String("id"),
+                Token::String("e254275"),
+                Token::StructEnd,
+            ]
+        )
     }
 
     #[test]
     fn metu_id_deserialize_correctly() {
+        let expected_metu_id = MetuId::new ("e254275".to_owned()).unwrap();
+        let data = r#"{"{"id":"e254275"}"#;
+        let metu_id: MetuId = serde_json::from_str(data).unwrap();
 
+        assert_eq!(metu_id, expected_metu_id);
     }
 
     #[test]
