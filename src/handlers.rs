@@ -1,7 +1,8 @@
 /// API handlers, the ends of each filter chain
 use blake2::{Blake2s, Digest};
-use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
-use log::debug;
+use jsonwebtoken::errors::ErrorKind;
+use jsonwebtoken::{decode, Algorithm, DecodingKey, TokenData, Validation};
+use log::{debug, warn};
 use md5::Md5;
 use parking_lot::RwLockUpgradableReadGuard;
 use serde_json;
@@ -82,102 +83,109 @@ pub async fn list_transactions(db: Db) -> Result<impl warp::Reply, Infallible> {
 }
 
 /// POST /block
-/// Proposes a new block for the next round
+///
+/// Proposes a new block for the next round.
 /// Can reject the block
-pub async fn auth_propose_block(
+///
+/// TODO: WHO IS PROPOSING THIS BLOCK OH GOD <13-04-21, yigit> // ok let's say the proposer has
+/// to put their transaction as the first transaction of the transaction_list
+/// that's not going to backfire in any way
+///
+/// TODO: after a block is accepted, it's transactions should play out and the proposer should
+/// get something for their efforts <13-04-21, yigit> //
+pub async fn authorized_propose_block(
     new_block: Block,
     token: String,
     db: Db,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    debug!("POST request to /block, auth_propose_block");
+    debug!("POST request to /block, authorized_propose_block");
 
-    // Authorization check
-    let raw_jwt = token.trim_start_matches(BEARER).to_owned();
-    debug!("raw_jwt: {:?}", raw_jwt);
+    let users_store = db.users.read();
 
-    // TODO: WHO IS PROPOSING THIS BLOCK OH GOD <13-04-21, yigit> // ok let's say the proposer has
-    // to put their transaction as the first transaction of the transaction_list
-    // that's not going to backfire in any way
-    // TODO: after a block is accepted, it's transactions should play out and the proposer should
-    // get something for their efforts <13-04-21, yigit> //
-    if let Some(user) = db.users.read().get(&new_block.transaction_list[0]) {
-        let proposer_public_key = &user.public_key;
-
-        if let Ok(decoded) = decode::<Claims>(
-            &raw_jwt,
-            &DecodingKey::from_rsa_pem(proposer_public_key.as_bytes()).unwrap(),
-            &Validation::new(Algorithm::RS256),
-        ) {
-            if decoded.claims.tha != new_block.hash {
-                debug!("Authorization unsuccessful");
-                return Ok(StatusCode::BAD_REQUEST);
-            }
-
-            debug!("authorized for block proposal");
-
-            let pending_transactions = db.pending_transactions.upgradable_read();
-            let blockchain = db.blockchain.upgradable_read();
-
-            for transaction_hash in new_block.transaction_list.iter() {
-                if !pending_transactions.contains_key(transaction_hash) {
-                    return Ok(StatusCode::BAD_REQUEST);
-                }
-            }
-
-            let naked_block = NakedBlock {
-                transaction_list: new_block.transaction_list.clone(),
-                nonce: new_block.nonce.clone(),
-                timestamp: new_block.timestamp.clone(),
-            };
-
-            let naked_block_flat = serde_json::to_vec(&naked_block).unwrap();
-
-            let hashvalue = Blake2s::digest(&naked_block_flat);
-            let hash_string = format!("{:x}", hashvalue);
-
-            // 6 rightmost bits are zero?
-            let should_zero = hashvalue[31] as i32 + hashvalue[30] as i32 + hashvalue[29] as i32;
-
-            if should_zero == 0 {
-                // one last check to see if block is telling the truth
-                if hash_string == new_block.hash {
-                    let mut blockchain = RwLockUpgradableReadGuard::upgrade(blockchain);
-
-                    let block_json = serde_json::to_string(&new_block).unwrap();
-
-                    fs::write(
-                        format!("blocks/{}.block", new_block.timestamp.timestamp()),
-                        block_json,
-                    )
-                    .unwrap();
-
-                    *blockchain = new_block;
-
-                    let mut pending_transactions =
-                        RwLockUpgradableReadGuard::upgrade(pending_transactions);
-                    pending_transactions.clear();
-
-                    Ok(StatusCode::CREATED)
-                } else {
-                    debug!("request was not telling the truth, hash values do not match");
-                    // TODO: does this condition make more sense _before_ the hash 0s check? <13-04-21, yigit> //
-                    Ok(StatusCode::BAD_REQUEST)
-                }
-            } else {
-                debug!("the hash does not have 6 rightmost zero bits");
-                Ok(StatusCode::BAD_REQUEST)
-            }
-        } else {
-            debug!("authorization failed");
-            Ok(StatusCode::BAD_REQUEST)
+    let internal_user = match users_store.get(&new_block.transaction_list[0]) {
+        Some(existing_user) => existing_user,
+        None => {
+            debug!(
+                "A user with public key signature {:?} is not found in the database",
+                new_block.transaction_list[0]
+            );
+            // TODO: verbose error here <13-04-21, yigit> //
+            return Ok(StatusCode::BAD_REQUEST);
         }
-    } else {
+    };
+
+    let proposer_public_key = &internal_user.public_key;
+
+    let token_payload = match authorize_proposer(token, &proposer_public_key) {
+        Ok(data) => data,
+        Err(below) => {
+            debug!("Something went wrong below {:?}", below);
+            return Ok(StatusCode::BAD_REQUEST);
+        }
+    };
+
+    debug!("authorized for block proposal");
+
+    if token_payload.claims.tha != new_block.hash {
         debug!(
-            "A user with public key signature {:?} is not found in the database",
-            new_block.transaction_list[0]
+            "The Hash of the block {:?} did not match the hash given in jwt {:?}",
+            new_block.hash, token_payload.claims.tha
         );
-        Ok(StatusCode::BAD_REQUEST)
+        return Ok(StatusCode::BAD_REQUEST);
     }
+
+    debug!("clear for block proposal");
+    let pending_transactions = db.pending_transactions.upgradable_read();
+    let blockchain = db.blockchain.upgradable_read();
+
+    for transaction_hash in new_block.transaction_list.iter() {
+        if !pending_transactions.contains_key(transaction_hash) {
+            return Ok(StatusCode::BAD_REQUEST);
+        }
+    }
+
+    let naked_block = NakedBlock {
+        transaction_list: new_block.transaction_list.clone(),
+        nonce: new_block.nonce.clone(),
+        timestamp: new_block.timestamp.clone(),
+    };
+
+    let naked_block_flat = serde_json::to_vec(&naked_block).unwrap();
+
+    let hashvalue = Blake2s::digest(&naked_block_flat);
+    let hash_string = format!("{:x}", hashvalue);
+
+    // 6 rightmost bits are zero?
+    let should_zero = hashvalue[31] as i32 + hashvalue[30] as i32 + hashvalue[29] as i32;
+
+    if should_zero != 0 {
+        debug!("the hash does not have 6 rightmost zero bits");
+        return Ok(StatusCode::BAD_REQUEST);
+    }
+
+    // one last check to see if block is telling the truth
+    if hash_string != new_block.hash {
+        debug!("request was not telling the truth, hash values do not match");
+        // TODO: does this condition make more sense _before_ the hash 0s check? <13-04-21, yigit> //
+        return Ok(StatusCode::BAD_REQUEST);
+    }
+
+    let mut blockchain = RwLockUpgradableReadGuard::upgrade(blockchain);
+
+    let block_json = serde_json::to_string(&new_block).unwrap();
+
+    fs::write(
+        format!("blocks/{}.block", new_block.timestamp.timestamp()),
+        block_json,
+    )
+    .unwrap();
+
+    *blockchain = new_block;
+
+    let mut pending_transactions = RwLockUpgradableReadGuard::upgrade(pending_transactions);
+    pending_transactions.clear();
+
+    Ok(StatusCode::CREATED)
 }
 
 /// POST /transaction
@@ -190,64 +198,66 @@ pub async fn auth_propose_block(
 /// * `db` - Global [`Db`] instance
 ///
 /// TODO This method should check if the user has enough balance for the transaction
-///
-/// TODO: refactor this https://refactoring.com/catalog/replaceNestedConditionalWithGuardClauses.html
-pub async fn auth_propose_transaction(
+pub async fn authorized_propose_transaction(
     new_transaction: Transaction,
     token: String,
     db: Db,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    debug!("POST request to /transaction, propose_transaction");
+    debug!("POST request to /transaction, authorized_propose_transaction");
     debug!("The transaction request: {:?}", new_transaction);
 
-    let raw_jwt = token.trim_start_matches(BEARER).to_owned();
-    println!("raw_jwt: {:?}", raw_jwt);
+    let users_store = db.users.read();
 
-    // Authorization check first
-    if let Some(user) = db.users.read().get(&new_transaction.by) {
-        // This public key was already written to the database, we can panic if it's not valid at
-        // *this* point
-        let by_public_key = &user.public_key;
-
-        if let Ok(decoded) = decode::<Claims>(
-            &raw_jwt,
-            &DecodingKey::from_rsa_pem(by_public_key.as_bytes()).unwrap(),
-            &Validation::new(Algorithm::RS256),
-        ) {
-            // this transaction was already checked for correctness at custom_filters, we can panic
-            // here if it has been changed since
-            debug!("authorized for transaction proposal");
-
-            let hashed_transaction = Md5::digest(&serde_json::to_vec(&new_transaction).unwrap());
-
-            if decoded.claims.tha == format!("{:x}", hashed_transaction) {
-                let mut transactions = db.pending_transactions.write();
-
-                transactions.insert(new_transaction.source.to_owned(), new_transaction);
-
-                Ok(StatusCode::CREATED)
-            } else {
-                debug!(
-                    "the hash of the request {:x} did not match with the hash given in jwt {:?}",
-                    hashed_transaction, decoded.claims.tha
-                );
-                Ok(StatusCode::BAD_REQUEST)
-            }
-        } else {
-            debug!("raw_jwt was malformed {:?}", raw_jwt);
-            Ok(StatusCode::BAD_REQUEST)
+    // Is this transaction from an authorized source?
+    let internal_user = match users_store.get(&new_transaction.by) {
+        Some(existing_user) => existing_user,
+        None => {
+            debug!(
+                "A user with public key signature {:?} is not found in the database",
+                new_transaction.by
+            );
+            // TODO: verbose error here <13-04-21, yigit> //
+            return Ok(StatusCode::BAD_REQUEST);
         }
-    } else {
+    };
+
+    // `user` is an authenticated student, can propose
+
+    // This public key was already written to the database, we can panic if it's not valid at
+    // *this* point
+    let proposer_public_key = &internal_user.public_key;
+
+    let token_payload = match authorize_proposer(token, &proposer_public_key) {
+        Ok(data) => data,
+        Err(below) => {
+            debug!("Something went wrong below {:?}", below);
+            return Ok(StatusCode::BAD_REQUEST);
+        }
+    };
+
+    // this transaction was already checked for correctness at custom_filters, we can panic
+    // here if it has been changed since
+    debug!("authorized for transaction proposal");
+
+    let hashed_transaction = Md5::digest(&serde_json::to_vec(&new_transaction).unwrap());
+
+    if token_payload.claims.tha != format!("{:x}", hashed_transaction) {
         debug!(
-            "A user with public key signature {:?} is not found in the database",
-            new_transaction.by
+            "the hash of the request {:x} did not match the hash given in jwt {:?}",
+            hashed_transaction, token_payload.claims.tha
         );
-        Ok(StatusCode::BAD_REQUEST)
+        return Ok(StatusCode::BAD_REQUEST);
     }
+
+    debug!("clear for transaction proposal");
+
+    let mut transactions = db.pending_transactions.write();
+    transactions.insert(new_transaction.source.to_owned(), new_transaction);
+    Ok(StatusCode::CREATED)
 }
 
 /// GET /block
-/// Returns JSON array of blocks
+/// Returns the last block's JSON
 /// Cannot fail
 /// Mostly around for debug purposes
 pub async fn list_blocks(db: Db) -> Result<impl warp::Reply, Infallible> {
@@ -256,4 +266,59 @@ pub async fn list_blocks(db: Db) -> Result<impl warp::Reply, Infallible> {
     let block = db.blockchain.read();
 
     Ok(reply::with_status(reply::json(&*block), StatusCode::OK))
+}
+
+/// Handles the JWT Authorization
+///
+/// *[`jwt_token`]: The raw JWT token, "Bearer aaa.bbb.ccc"
+/// *[`user_pem`]: User Public Key, "BEGIN RSA"
+/// NOT async, might look into it if this becomes a bottleneck
+fn authorize_proposer(
+    jwt_token: String,
+    user_pem: &String,
+) -> Result<TokenData<Claims>, jsonwebtoken::errors::Error> {
+    // Throw away the "Bearer " part
+    let raw_jwt = jwt_token.trim_start_matches(BEARER).to_owned();
+    debug!("raw_jwt: {:?}", raw_jwt);
+
+    // Extract a jsonwebtoken compatible decoding_key from user's public key
+    let decoding_key = match DecodingKey::from_rsa_pem(user_pem.as_bytes()) {
+        Ok(key) => key,
+        Err(j) => {
+            warn!(
+                "user has invalid RSA key we should crash and burn here {:?}",
+                j
+            );
+            return Err(j);
+        }
+    };
+
+    // Extract the payload inside the JWT
+    let token_payload =
+        match decode::<Claims>(&raw_jwt, &decoding_key, &Validation::new(Algorithm::RS256)) {
+            Ok(decoded) => decoded,
+            Err(err) => match *err.kind() {
+                ErrorKind::InvalidToken => {
+                    // TODO: verbose error here <13-04-21, yigit> //
+                    debug!("raw_jwt={:?} was malformed err={:?}", raw_jwt, err);
+                    return Err(err);
+                }
+                ErrorKind::InvalidRsaKey => {
+                    // TODO: verbose error here <13-04-21, yigit> //
+                    debug!("the RSA key does not have a valid format, {:?}", err);
+                    return Err(err);
+                }
+                ErrorKind::ExpiredSignature => {
+                    // TODO: verbose error here <13-04-21, yigit> //
+                    debug!("this token has expired {:?}", err);
+                    return Err(err);
+                }
+                _ => {
+                    warn!("AN UNSPECIFIED ERROR: {:?}", err);
+                    return Err(err);
+                }
+            },
+        };
+
+    Ok(token_payload)
 }
