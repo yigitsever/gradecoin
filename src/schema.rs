@@ -34,7 +34,7 @@ pub fn create_database() -> Db {
 /// - `tha`: Transaction Hash, String (custom field)
 /// - `iat`: Issued At, Unix Time, epoch
 /// - `exp`: Expiration Time, epoch
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Claims {
     pub tha: String,
     pub iat: usize,

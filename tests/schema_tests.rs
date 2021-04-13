@@ -1,9 +1,29 @@
 #[cfg(test)]
 mod tests {
+    use gradecoin::schema::*;
+    use serde_json::error::Error;
+    use serde_test::{assert_tokens, Token};
 
     #[test]
     fn claims_serialize_correctly() {
-
+        let claims = Claims {
+            tha: "hashed_string".to_owned(),
+            iat: 0,
+            exp: 100,
+        };
+        assert_tokens(
+            &claims,
+            &[
+                Token::Struct{name: "Claims", len: 3},
+                Token::String("tha"),
+                Token::String("hashed_string"),
+                Token::String("iat"),
+                Token::U64(0),
+                Token::String("exp"),
+                Token::U64(100),
+                Token::StructEnd,
+            ]
+        )
     }
 
     #[test]
