@@ -46,10 +46,10 @@ pub struct Claims {
 /// [`Db::blockchain`] is just the last block that was mined. All the blocks are written to disk as text
 /// files whenever they are accepted.
 ///
-/// [`pending_transactions`] is the in memory representation of the waiting transactions. Every
+/// [`Db::pending_transactions`] is the in memory representation of the waiting transactions. Every
 /// user can have only one outstanding transaction at any given time.
 ///
-/// [`users`] is the in memory representation of the users, with their public keys, metu_ids and
+/// [`Db::users`] is the in memory representation of the users, with their public keys, metu_ids and
 /// gradecoin balances.
 ///
 /// TODO: Replace the pending_transactions HashMap<String, Transaction> with
