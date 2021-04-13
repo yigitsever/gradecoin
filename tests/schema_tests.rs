@@ -1,9 +1,8 @@
 #[cfg(test)]
 mod tests {
     use gradecoin::schema::*;
-    use serde_json::error::Error;
     use serde_test::{assert_tokens, Token};
-    use chrono::{NaiveDate, NaiveTime, NaiveDateTime};
+    use chrono::NaiveDate;
 
     #[test]
     fn claims_serialize_correctly() {
