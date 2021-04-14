@@ -19,6 +19,7 @@ use warp::{http::StatusCode, reply};
 
 use crate::PRIVATE_KEY;
 const BLOCK_TRANSACTION_COUNT: u8 = 10;
+const BLOCK_REWARD: u8 = 3;
 
 // Encryption primitive
 type Aes128Cbc = Cbc<Aes128, Pkcs7>;
@@ -360,18 +361,25 @@ pub async fn authorized_propose_block(
         let pending_transactions = db.pending_transactions.read();
         let mut users = db.users.write();
 
+        let coinbase_fingerprint = new_block.transaction_list.get(0).unwrap();
+
         for fingerprint in new_block.transaction_list.iter() {
-            let transaction = pending_transactions.get(fingerprint).unwrap();
-            let source = &transaction.source;
-            let target = &transaction.target;
+            if let Some(transaction) = pending_transactions.get(fingerprint) {
+                let source = &transaction.source;
+                let target = &transaction.target;
 
-            if let Some(from) = users.get_mut(source) {
-                from.balance -= transaction.amount;
-            }
+                if let Some(from) = users.get_mut(source) {
+                    from.balance -= transaction.amount;
+                }
 
-            if let Some(to) = users.get_mut(target) {
-                to.balance += transaction.amount;
+                if let Some(to) = users.get_mut(target) {
+                    to.balance += transaction.amount;
+                }
             }
+        }
+
+        if let Some(coinbase_user) = users.get_mut(coinbase_fingerprint) {
+            coinbase_user.balance += BLOCK_REWARD as i32;
         }
     }
 
