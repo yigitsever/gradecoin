@@ -1,5 +1,6 @@
-/// API handlers, the ends of each filter chain
 use aes::Aes128;
+/// API handlers, the ends of each filter chain
+use askama::Template;
 use base64;
 use blake2::{Blake2s, Digest};
 use block_modes::block_padding::Pkcs7;
@@ -598,4 +599,20 @@ fn authorize_proposer(jwt_token: String, user_pem: &String) -> Result<TokenData<
         };
 
     Ok(token_payload)
+}
+
+#[derive(Template)]
+#[template(path = "welcome.html")]
+struct WelcomeTemplate<'a> {
+    title: &'a str,
+    body: &'a str,
+}
+
+pub async fn welcome_handler() -> Result<impl warp::Reply, warp::Rejection> {
+    let template = WelcomeTemplate {
+        title: "Welcome",
+        body: "To The Bookstore!",
+    };
+    let res = template.render().unwrap();
+    Ok(warp::reply::html(res))
 }

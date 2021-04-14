@@ -7,7 +7,10 @@ use crate::schema::Db;
 
 /// Every route combined
 pub fn consensus_routes(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
-    transaction_list(db.clone())
+    let welcome_route = warp::path::end().and_then(handlers::welcome_handler);
+
+    welcome_route
+        .or(transaction_list(db.clone()))
         .or(register_user(db.clone()))
         .or(auth_transaction_propose(db.clone()))
         .or(auth_block_propose(db.clone()))
@@ -60,4 +63,3 @@ pub fn auth_block_propose(db: Db) -> impl Filter<Extract = impl Reply, Error = R
         .and(custom_filters::with_db(db))
         .and_then(handlers::authorized_propose_block)
 }
-

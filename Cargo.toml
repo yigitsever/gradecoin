@@ -25,6 +25,7 @@ base64 = "0.13.0"
 sha2 = "0.9.3"
 block-modes = "0.7.0"
 aes = "0.6.0"
+askama = "0.10.5"
 
 [dev-dependencies]
 serde_test = "1.0.117"
