@@ -4,23 +4,18 @@
 - [ ] Blocks should "play out" the transactions and execute transactions
 - [ ] "Coinbase" ("by" of the first transaction of the block) should get rewarded for their efforts
 - [ ] Bank mechanism should be added.
-- [ ] Recover database from files
-
-## Authentication
-- [ ] /register is currently accepting non-encrypted (regular JSON) payloads
-- [ ] /register should check for public key pem format and assign signatures
-
-## Authorization
-- [.] POST requests to /block should be authenticated as well (2021-04-13 04:50, they now are but until we make error messages **Verbose** there's not much point in testing because I honestly cannot trace the code)
 
 ## Tests
+- [ ] User Authentication/Authentication Tests
 - [ ] Route Tests
     - [ ] Malformed JSON bodies
     - [ ] Valid JSON with missing fields
     - [ ] Valid JSON with extra fields
 
-## Fun (if we have time)
+## Please
 - [ ] use [juice](https://www.getzola.org/themes/juice/) theme with [template rendering](https://blog.logrocket.com/template-rendering-in-rust/) to create a landing page. I want it to look handmade & _scammy_, I'm talking [verylegit](https://verylegit.link) shortened urls, botched [this person does not exist](https://www.thispersondoesnotexist.com/) user stories etc.
+
+## Testnet
 - [ ] CHAOS MODE, 3 different coins, combine them to make 1 gradecoin
 
 ## Done & Brag
@@ -38,3 +33,9 @@
 - [x] Transactions should be rejected if the user cannot afford to send the amount
 ----
 - [X] Schema Tests
+----
+- [x] /register is currently accepting non-encrypted (regular JSON) payloads (2021-04-14 19:19)
+- [x] /register should check for public key pem format and assign signatures
+----
+- [x] Recover database from files
+- [.] POST requests to /block should be authenticated as well (2021-04-13 04:50, they now are but until we make error messages **Verbose** there's not much point in testing because I honestly cannot trace the code)
