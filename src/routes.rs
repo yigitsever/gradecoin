@@ -7,14 +7,19 @@ use crate::schema::Db;
 
 /// Every route combined
 pub fn consensus_routes(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
-    let welcome_route = warp::path::end().and_then(handlers::welcome_handler);
+    // Remember when we wanted to implement templating
+    // Why would we? Just put a staic webpage under /public (next to Cargo.toml) and place it and
+    // the end of the filter chain
 
-    welcome_route
-        .or(transaction_list(db.clone()))
+    // Fully fledged website support, phew!
+    let static_route = warp::any().and(warp::fs::dir("public"));
+
+    transaction_list(db.clone())
         .or(register_user(db.clone()))
         .or(auth_transaction_propose(db.clone()))
         .or(auth_block_propose(db.clone()))
         .or(block_list(db.clone()))
+        .or(static_route)
 }
 
 /// POST /register warp route
