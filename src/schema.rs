@@ -15,16 +15,59 @@ use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::fs;
 use std::sync::Arc;
-
+use std::io;
+use std::vec::Vec;
+use std::string::String;
+use std::path::PathBuf;
 // use crate::validators;
 
 pub type PublicKeySignature = String;
 
+
+fn last_block_exists() -> (bool, String) {
+    let blocks = read_block_name().unwrap();
+    for block in blocks {
+        let block = block.to_str().unwrap();
+        if block.contains("last.block") {
+            return (true, block.to_string());
+        }
+    }
+    (false, "".to_string())
+}
+
+fn read_block_name() -> io::Result<Vec<PathBuf>> {
+    let mut entries = fs::read_dir("./blocks")?
+        .map(|res| res.map(|e| e.path()))
+        .collect::<Result<Vec<_>, io::Error>>()?;
+
+    // The order in which `read_dir` returns entries is not guaranteed. If reproducible
+    // ordering is required the entries should be explicitly sorted.
+
+    entries.sort();
+
+    // The entries have now been sorted by their path.
+
+    Ok(entries)
+}
+
+fn create_db_with_last_block(path: String) -> Db {
+    let file = fs::read(path).unwrap();
+    let json = std::str::from_utf8(&file).unwrap();
+    let block: Block = serde_json::from_str(json).unwrap();
+    let db = Db::new();
+    *db.blockchain.write() = block;
+    return db;
+}
 /// Creates a new database
 pub fn create_database() -> Db {
     fs::create_dir_all("blocks").unwrap();
     fs::create_dir_all("users").unwrap();
-    Db::new()
+    let (res, path) = last_block_exists();
+    if res {
+        return create_db_with_last_block(path);
+    } else {
+        return Db::new();
+    }
 }
 
 /// A JWT Payload/Claims representation
