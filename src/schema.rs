@@ -14,15 +14,16 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::fs;
-use std::sync::Arc;
 use std::io;
-use std::vec::Vec;
-use std::string::String;
 use std::path::PathBuf;
+use std::string::String;
+use std::sync::Arc;
+use std::vec::Vec;
 // use crate::validators;
 
-pub type PublicKeySignature = String;
+pub type Fingerprint = String;
 
+// TODO: start by reading users from file too <14-04-21, yigit> //
 
 fn last_block_exists() -> (bool, String) {
     let blocks = read_block_name().unwrap();
@@ -40,13 +41,6 @@ fn read_block_name() -> io::Result<Vec<PathBuf>> {
         .map(|res| res.map(|e| e.path()))
         .collect::<Result<Vec<_>, io::Error>>()?;
 
-    // The order in which `read_dir` returns entries is not guaranteed. If reproducible
-    // ordering is required the entries should be explicitly sorted.
-
-    entries.sort();
-
-    // The entries have now been sorted by their path.
-
     Ok(entries)
 }
 
@@ -58,7 +52,8 @@ fn create_db_with_last_block(path: String) -> Db {
     *db.blockchain.write() = block;
     return db;
 }
-/// Creates a new database
+
+/// Creates a new database, uses the previous last block if one exists
 pub fn create_database() -> Db {
     fs::create_dir_all("blocks").unwrap();
     fs::create_dir_all("users").unwrap();
@@ -96,7 +91,7 @@ pub struct Claims {
 /// gradecoin balances.
 ///
 /// TODO: Replace the pending_transactions HashMap<String, Transaction> with
-/// HashMap<PublicKeySignature, Transaction>
+/// HashMap<Fingerprint, Transaction>
 #[derive(Debug, Clone)]
 pub struct Db {
     pub blockchain: Arc<RwLock<Block>>,
@@ -117,9 +112,9 @@ impl Db {
 /// A transaction between `source` and `target` that moves `amount`
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Transaction {
-    pub by: PublicKeySignature,
-    pub source: PublicKeySignature,
-    pub target: PublicKeySignature,
+    pub by: Fingerprint,
+    pub source: Fingerprint,
+    pub target: Fingerprint,
     pub amount: i32,
     pub timestamp: NaiveDateTime,
 }
@@ -136,7 +131,7 @@ pub struct Transaction {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Block {
     #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub transaction_list: Vec<PublicKeySignature>,
+    pub transaction_list: Vec<Fingerprint>,
     pub nonce: u32,
     pub timestamp: NaiveDateTime,
     pub hash: String,
@@ -146,7 +141,7 @@ pub struct Block {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct NakedBlock {
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
-    pub transaction_list: Vec<PublicKeySignature>,
+    pub transaction_list: Vec<Fingerprint>,
     pub nonce: u32,
     pub timestamp: NaiveDateTime,
 }
@@ -240,7 +235,10 @@ impl fmt::Display for MetuId {
 impl MetuId {
     pub fn new(id: String, pwd: String) -> Option<Self> {
         if OUR_STUDENTS.contains(&(&*id, &*pwd)) {
-            Some(MetuId { id: id, passwd: pwd })
+            Some(MetuId {
+                id: id,
+                passwd: pwd,
+            })
         } else {
             None
         }
