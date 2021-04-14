@@ -126,11 +126,16 @@ mod tests {
     }
 
     #[test]
-    fn block_deserialize_when_vec_emptpy() {
-        // let data = r#"{"transaction_list":[],"nonce":0,"timestamp":"2021-04-02T04:02:42","hash":"hash"}"#;
-        // let err: Error = serde_json::from_str::<Block>(data).unwrap_err();
-        //
-        // assert_eq!(err.is_data(), true);
+    fn block_serialize_when_vec_emptpy() {
+        let block = Block {
+            transaction_list: vec![],
+            nonce: 0,
+            timestamp: NaiveDate::from_ymd(2021, 4, 2).and_hms(4, 2, 42),
+            hash: "hash".to_owned()
+        };
+
+        let json = serde_json::to_string(&block).unwrap();
+        assert_eq!(json, r#"{"nonce":0,"timestamp":"2021-04-02T04:02:42","hash":"hash"}"#)
     }
 
     #[test]
@@ -173,8 +178,15 @@ mod tests {
     }
 
     #[test]
-    fn naked_block_deserialize_when_vec_emptpy() {
-    //
+    fn naked_block_serialize_when_vec_emptpy() {
+        let naked_block = NakedBlock {
+            transaction_list: vec![],
+            nonce: 0,
+            timestamp: NaiveDate::from_ymd(2021, 4, 2).and_hms(4, 2, 42),
+        };
+
+        let json = serde_json::to_string(&naked_block).unwrap();
+        assert_eq!(json, r#"{"nonce":0,"timestamp":"2021-04-02T04:02:42"}"#)
     }
 
     #[test]
