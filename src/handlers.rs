@@ -1,12 +1,15 @@
-use base64;
 /// API handlers, the ends of each filter chain
+use aes::Aes128;
+use base64;
 use blake2::{Blake2s, Digest};
+use block_modes::block_padding::Pkcs7;
+use block_modes::{BlockMode, Cbc};
 use jsonwebtoken::errors::ErrorKind;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, TokenData, Validation};
 use log::{debug, warn};
 use md5::Md5;
 use parking_lot::RwLockUpgradableReadGuard;
-use rsa::{PaddingScheme, RSAPrivateKey};
+use rsa::{PaddingScheme, RSAPrivateKey, RSAPublicKey};
 use serde::Serialize;
 use serde_json;
 use sha2;
@@ -15,6 +18,9 @@ use std::fs;
 use warp::{http::StatusCode, reply};
 
 use crate::PRIVATE_KEY;
+
+// Encryption primitive
+type Aes128Cbc = Cbc<Aes128, Pkcs7>;
 
 #[derive(Serialize, Debug)]
 struct GradeCoinResponse {
@@ -41,21 +47,21 @@ const BEARER: &str = "Bearer ";
 /// the [`AuthRequest.user_id`] of the `request` is not in the list of users that can hold a Gradecoin account
 ///
 /// # Authentication Process
-/// - Gradecoin's Public Key (`G_PK`) is listed on moodle.
-/// - Gradecoin's Private Key (`G_PR`) is loaded here
+/// - Gradecoin's Public Key (`gradecoin_public_key`) is listed on moodle.
+/// - Gradecoin's Private Key (`gradecoin_private_key`) is loaded here
 ///
 /// - Student picks a short temporary key (`k_temp`)
 /// - Creates a JSON object (`auth_plaintext`) with their `metu_id` and `public key` in base64 (PEM) format (`S_PK`):
 /// {
 ///     student_id: "e12345",
+///     passwd: "15 char secret"
 ///     public_key: "---BEGIN PUBLIC KEY..."
 /// }
 ///
-/// - Encrypts the serialized string of `auth_plaintext` with AES in TODO format using the temporary key
-/// (`k_temp`), the result is `auth_ciphertext`, (TODO base64?)
-/// - The temporary key student has picked `k_temp` is encrypted (TODO details) with `G_PK` (TODO
-/// base64?) = `key_ciphertext`
-/// - The payload JSON object (`auth_request`) can be prepared now:
+/// - Encrypts the serialized string of `auth_plaintext` with 128 bit block AES in CBC mode with Pkcs7 padding using the temporary key (`k_temp`), the result is `auth_ciphertext` TODO should this be base64'd?
+/// - The temporary key student has picked `k_temp` is encrypted using RSA with OAEP padding scheme
+/// using sha256 with `gradecoin_public_key` (TODO base64? same as above), giving us `key_ciphertext`
+/// - The payload JSON object (`auth_request`) can be JSON serialized now:
 /// {
 ///     c: "auth_ciphertext"
 ///     key: "key_ciphertext"
@@ -63,8 +69,10 @@ const BEARER: &str = "Bearer ";
 ///
 /// ## Gradecoin Side
 ///
-/// - Upon receiving, we first extract the temporary key by decrypting `key`, receiving `temp_key`
-/// - With this key, we can decrypt c TODO with aes?
+/// - Upon receiving, we first RSA decrypt with OAEP padding scheme using SHA256 with `gradecoin_private_key` as the key and auth_request.key `key` as the ciphertext, receiving `temp_key` (this is the temporary key chosen by student)
+/// - With `temp_key`, we can AES 128 Cbc Pkcs7 decrypt the `auth_request.c`, giving us
+/// auth_plaintext
+/// - The `auth_plaintext` String can be deserialized to [`AuthRequest`]
 /// - We then verify the payload and calculate the User fingerprint
 /// - Finally, create the new [`User`] object, insert to users HashMap `<fingerprint, User>`
 ///
@@ -74,8 +82,11 @@ pub async fn authenticate_user(
 ) -> Result<impl warp::Reply, warp::Rejection> {
     debug!("POST request to /register, authenticate_user");
 
+    // In essence PEM files are just base64 encoded versions of the DER encoded data.
+    // ~tls.mbed.org
+
     // TODO: lazyload or something <14-04-21, yigit> //
-    // This is our key, used to first decrypt the users temporal key
+    // Load our RSA Private Key as DER
     let der_encoded = PRIVATE_KEY
         .lines()
         .filter(|line| !line.starts_with("-"))
@@ -84,23 +95,28 @@ pub async fn authenticate_user(
             data
         });
 
+    // base64(der(pem))
     // Our private key is saved in PEM (base64) format
     let der_bytes = base64::decode(&der_encoded).expect("failed to decode base64 content");
-    let private_key = RSAPrivateKey::from_pkcs1(&der_bytes).expect("failed to parse key");
+    let gradecoin_private_key = RSAPrivateKey::from_pkcs1(&der_bytes).expect("failed to parse key");
 
     let padding = PaddingScheme::new_oaep::<sha2::Sha256>();
-    let dec_key = private_key
+    let temp_key = gradecoin_private_key
         .decrypt(padding, &request.key.as_bytes())
         .expect("failed to decrypt");
 
-    // then decrypt c using key dec_key
+    // decrypt c using key dec_key
+    let cipher = Aes128Cbc::new_var(&temp_key, &request.iv).unwrap();
+    let auth_plaintext = cipher
+        .decrypt_vec(&base64::decode(request.c).unwrap())
+        .unwrap();
 
-    // let request: AuthRequest = serde_json::from_str(&String::from_utf8(dec_data).unwrap()).unwrap();
-    let request;
+    let request: AuthRequest =
+        serde_json::from_str(&String::from_utf8(auth_plaintext).unwrap()).unwrap();
 
     let provided_id = request.student_id.clone();
 
-    let priv_student_id = match MetuId::new(request.student_id, request.passwd) {
+    let privileged_student_id = match MetuId::new(request.student_id) {
         Some(id) => id,
         None => {
             let res_json = warp::reply::json(&GradeCoinResponse {
@@ -117,15 +133,27 @@ pub async fn authenticate_user(
     if userlist.contains_key(&provided_id) {
         let res_json = warp::reply::json(&GradeCoinResponse {
             res: ResponseType::Error,
-            message: "This user is already authenticated".to_owned(),
+            message:
+                "This user is already authenticated, do you think this is a mistake? Contact me"
+                    .to_owned(),
         });
 
         return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
     }
 
-    // TODO: audit public key, is it valid? <13-04-21, yigit> //
+    // We're using this as the validator
+    // I hate myself
+    if let Err(_) = DecodingKey::from_rsa_pem(request.public_key.as_bytes()) {
+        let res_json = warp::reply::json(&GradeCoinResponse {
+            res: ResponseType::Error,
+            message: "The supplied RSA public key is not in valid PEM format".to_owned(),
+        });
+
+        return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+    }
+
     let new_user = User {
-        user_id: priv_student_id,
+        user_id: privileged_student_id,
         public_key: request.public_key,
         balance: 0,
     };
@@ -145,6 +173,17 @@ pub async fn authenticate_user(
 
     Ok(warp::reply::with_status(res_json, StatusCode::CREATED))
 }
+
+// fn shed_pem_header_footer(maybe_key: String) -> Result<Vec<u8>, String> {
+//     let der_encoded = maybe_key
+//         .lines()
+//         .filter(|line| !line.starts_with("-"))
+//         .fold(String::new(), |mut data, line| {
+//             data.push_str(&line);
+//             data
+//         });
+//     Ok(base64::decode(&der_encoded).expect("failed to decode base64 content"))
+// }
 
 /// GET /transaction
 /// Returns JSON array of transactions
@@ -447,7 +486,6 @@ fn authorize_proposer(jwt_token: String, user_pem: &String) -> Result<TokenData<
     debug!("raw_jwt: {:?}", raw_jwt);
 
     // Extract a jsonwebtoken compatible decoding_key from user's public key
-    // TODO: just use this for reading users pem key <13-04-21, yigit> //
     let decoding_key = match DecodingKey::from_rsa_pem(user_pem.as_bytes()) {
         Ok(key) => key,
         Err(j) => {

@@ -190,6 +190,7 @@ pub struct AuthRequest {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct InitialAuthRequest {
     pub c: String,
+    pub iv: [u8; 32],
     pub key: String,
 }
 
