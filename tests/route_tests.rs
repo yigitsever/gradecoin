@@ -12,7 +12,7 @@ mod tests {
         db.users.write().insert(
             "mock_transaction_source".to_owned(),
             User {
-                user_id: MetuId::new("e254275".to_owned()).unwrap(),
+                user_id: MetuId::new("e254275".to_owned(), "DtNX1qk4YF4saRH".to_owned()).unwrap(),
                 public_key: "-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4nU0G4WjkmcQUx0hq6LQ
 uV5Q+ACmUFL/OjoYMDwC/O/6pCd1UZgCfgHN2xEffDPznzcTn8OiFRxr4oWyBiny
@@ -56,6 +56,7 @@ sQIDAQAB
     fn priviliged_mocked_user() -> AuthRequest {
         AuthRequest {
             student_id: String::from("e254275"),
+            passwd: String::from("DtNX1qk4YF4saRH"),
             public_key: "NOT IMPLEMENTED".to_owned(),
         }
     }
@@ -64,6 +65,7 @@ sQIDAQAB
     fn unpriviliged_mocked_user() -> AuthRequest {
         AuthRequest {
             student_id: String::from("foobarbaz"),
+            passwd: String::from("DtNX1qk4YF4saRH"),
             public_key: "NOT IMPLEMENTED".to_owned(),
         }
     }

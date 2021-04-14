@@ -39,7 +39,7 @@ pub async fn authenticate_user(
     debug!("POST request to /register, authenticate_user");
     let provided_id = request.student_id.clone();
 
-    let priv_student_id = match MetuId::new(request.student_id) {
+    let priv_student_id = match MetuId::new(request.student_id, request.passwd) {
         Some(id) => id,
         None => {
             let res_json = warp::reply::json(&GradeCoinResponse {

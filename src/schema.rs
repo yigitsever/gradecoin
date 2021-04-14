@@ -132,22 +132,47 @@ pub struct User {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct MetuId {
     id: String,
+    passwd: String,
 }
 
 // TODO: this will arrive encrypted <13-04-21, yigit> //
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct AuthRequest {
     pub student_id: String,
+    pub passwd: String,
     pub public_key: String,
 }
 
 lazy_static! {
-    static ref OUR_STUDENTS: HashSet<&'static str> = {
+    static ref OUR_STUDENTS: HashSet<(&'static str, &'static str)> = {
         [
-            "e254275", "e223687", "e211024", "e209888", "e223725", "e209362", "e209898", "e230995",
-            "e223743", "e223747", "e223749", "e223751", "e188126", "e209913", "e203608", "e233013",
-            "e216982", "e217185", "e223780", "e194931", "e223783", "e254550", "e217203", "e217477",
-            "e223786", "e231060", "e223795",
+            ("e254275", "DtNX1qk4YF4saRH"),
+            ("e223687", "cvFEs4XLjuGBD1v"),
+            ("e211024", "voQAcxiKJmEXYRT"),
+            ("e209888", "O75dli6AQtz2tUi"),
+            ("e223725", "xXuTD3Y4tyrv2Jz"),
+            ("e209362", "N7wGm5XU5zVWOWu"),
+            ("e209898", "aKBFfB8fZMq8pVn"),
+            ("e230995", "TgcHGlqeFhQGx42"),
+            ("e223743", "YVWVSWuIHplJk9C"),
+            ("e223747", "8LAeHrsjnwXh59Q"),
+            ("e223749", "HMFeJqVOzwCPHbc"),
+            ("e223751", "NjMsxmtmy2VOwMW"),
+            ("e188126", "QibuPdV2gXfsVJW"),
+            ("e209913", "kMxJvl2vHSWCy4A"),
+            ("e203608", "mfkkR0MWurk6Rp1"),
+            ("e233013", "GCqHxdOaDj2pWXx"),
+            ("e216982", "2Z0xmgCStnj5qg5"),
+            ("e217185", "BcaZNlzlhPph7A3"),
+            ("e223780", "2KvVxKUQaA9H4sn"),
+            ("e194931", "hsC0Wb8PQ5vzwdQ"),
+            ("e223783", "ETUJA3kt1QYvJai"),
+            ("e254550", "rPRjX0A4NefvKWi"),
+            ("e217203", "lN3IWhGyCrGfkk5"),
+            ("e217477", "O9xlMaa7LanC82w"),
+            ("e223786", "UxI6czykJfp9T9N"),
+            ("e231060", "VJgziofQQPCoisH"),
+            ("e223795", "pmcTCKox99NFsqp"),
         ]
         .iter()
         .cloned()
@@ -162,9 +187,9 @@ impl fmt::Display for MetuId {
 }
 
 impl MetuId {
-    pub fn new(id: String) -> Option<Self> {
-        if OUR_STUDENTS.contains(&*id) {
-            Some(MetuId { id: id })
+    pub fn new(id: String, pwd: String) -> Option<Self> {
+        if OUR_STUDENTS.contains(&(&*id, &*pwd)) {
+            Some(MetuId { id: id, passwd: pwd })
         } else {
             None
         }

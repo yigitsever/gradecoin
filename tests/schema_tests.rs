@@ -192,7 +192,7 @@ mod tests {
     #[test]
     fn user_serialize_correctly() {
         let user = User {
-            user_id: MetuId::new("e254275".to_owned()).unwrap(),
+            user_id: MetuId::new("e254275".to_owned(), "DtNX1qk4YF4saRH".to_owned()).unwrap(),
             public_key: "public_key".to_owned(),
             balance: 0
         };
@@ -202,9 +202,11 @@ mod tests {
             &[
                 Token::Struct{name: "User", len: 3},
                 Token::String("user_id"),
-                Token::Struct {name: "MetuId", len: 1},
+                Token::Struct {name: "MetuId", len: 2},
                 Token::String("id"),
                 Token::String("e254275"),
+                Token::String("passwd"),
+                Token::String("DtNX1qk4YF4saRH"),
                 Token::StructEnd,
                 Token::String("public_key"),
                 Token::String("public_key"),
@@ -218,11 +220,11 @@ mod tests {
     #[test]
     fn user_deserialize_correctly() {
         let expected_user = User {
-            user_id: MetuId::new("e254275".to_owned()).unwrap(),
+            user_id: MetuId::new("e254275".to_owned(), "DtNX1qk4YF4saRH".to_owned()).unwrap(),
             public_key: "public_key".to_owned(),
             balance: 0
         };
-        let data = r#"{"user_id":{"id":"e254275"},"public_key":"public_key","balance":0}"#;
+        let data = r#"{"user_id":{"id":"e254275","passwd":"DtNX1qk4YF4saRH"},"public_key":"public_key","balance":0}"#;
         let user: User = serde_json::from_str(data).unwrap();
 
         assert_eq!(user, expected_user);
@@ -231,14 +233,16 @@ mod tests {
 
     #[test]
     fn metu_id_serialize_correctly() {
-        let metu_id = MetuId::new ("e254275".to_owned()).unwrap();
+        let metu_id = MetuId::new ("e254275".to_owned(), "DtNX1qk4YF4saRH".to_owned()).unwrap();
 
         assert_tokens(
             &metu_id,
             &[
-                Token::Struct{name: "MetuId", len: 1},
+                Token::Struct{name: "MetuId", len: 2},
                 Token::String("id"),
                 Token::String("e254275"),
+                Token::String("passwd"),
+                Token::String("DtNX1qk4YF4saRH"),
                 Token::StructEnd,
             ]
         )
@@ -246,8 +250,8 @@ mod tests {
 
     #[test]
     fn metu_id_deserialize_correctly() {
-        let expected_metu_id = MetuId::new ("e254275".to_owned()).unwrap();
-        let data = r#"{"id":"e254275"}"#;
+        let expected_metu_id = MetuId::new ("e254275".to_owned(), "DtNX1qk4YF4saRH".to_owned()).unwrap();
+        let data = r#"{"id":"e254275","passwd":"DtNX1qk4YF4saRH"}"#;
         let metu_id: MetuId = serde_json::from_str(data).unwrap();
 
         assert_eq!(metu_id, expected_metu_id);
@@ -257,15 +261,18 @@ mod tests {
     fn auth_request_serialize_correctly() {
         let auth_request = AuthRequest {
             student_id: "e254275".to_owned(),
+            passwd: "DtNX1qk4YF4saRH".to_owned(),
             public_key: "public_key".to_owned()
         };
 
         assert_tokens(
             &auth_request,
             &[
-                Token::Struct{name: "AuthRequest", len: 2},
+                Token::Struct{name: "AuthRequest", len: 3},
                 Token::String("student_id"),
                 Token::String("e254275"),
+                Token::String("passwd"),
+                Token::String("DtNX1qk4YF4saRH"),
                 Token::String("public_key"),
                 Token::String("public_key"),
                 Token::StructEnd,
@@ -277,9 +284,10 @@ mod tests {
     fn auth_request_deserialize_correctly() {
         let expected_auth_request = AuthRequest {
             student_id: "e254275".to_owned(),
+            passwd: "DtNX1qk4YF4saRH".to_owned(),
             public_key: "public_key".to_owned()
         };
-        let data = r#"{"student_id":"e254275","public_key":"public_key"}"#;
+        let data = r#"{"student_id":"e254275","passwd":"DtNX1qk4YF4saRH","public_key":"public_key"}"#;
         let auth_request: AuthRequest = serde_json::from_str(data).unwrap();
 
         assert_eq!(auth_request, expected_auth_request);
