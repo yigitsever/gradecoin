@@ -152,7 +152,7 @@ pub async fn authenticate_user(
         return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
     }
 
-    let fingerprint = format!(Sha256::digest(&request.public_key.as_bytes()));
+    let fingerprint = format!("{:x}", Sha256::digest(&request.public_key.as_bytes()));
 
     let new_user = User {
         user_id: privileged_student_id,
@@ -166,7 +166,7 @@ pub async fn authenticate_user(
 
     let mut userlist = RwLockUpgradableReadGuard::upgrade(userlist);
 
-    userlist.insert(fingerprint, new_user);
+    userlist.insert(fingerprint.clone(), new_user);
 
     let res_json = warp::reply::json(&GradeCoinResponse {
         res: ResponseType::Success,
