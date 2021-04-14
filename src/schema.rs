@@ -93,15 +93,28 @@ pub struct Claims {
 pub struct Db {
     pub blockchain: Arc<RwLock<Block>>,
     pub pending_transactions: Arc<RwLock<HashMap<Fingerprint, Transaction>>>,
-    pub users: Arc<RwLock<HashMap<String, User>>>,
+    pub users: Arc<RwLock<HashMap<Fingerprint, User>>>,
 }
 
 impl Db {
     fn new() -> Self {
+        let mut users: HashMap<Fingerprint, User> = HashMap::new();
+
+        let bank_acc = MetuId::new("bank".to_owned(), "P7oxDm30g1jeIId".to_owned()).unwrap();
+
+        users.insert(
+            "31415926535897932384626433832795028841971693993751058209749445923".to_owned(),
+            User {
+                user_id: bank_acc,
+                public_key: "null".to_owned(),
+                balance: 27 * 80,
+            },
+        );
+
         Db {
             blockchain: Arc::new(RwLock::new(Block::new())),
             pending_transactions: Arc::new(RwLock::new(HashMap::new())),
-            users: Arc::new(RwLock::new(HashMap::new())),
+            users: Arc::new(RwLock::new(users)),
         }
     }
 }
@@ -216,6 +229,7 @@ lazy_static! {
             ("e223786", "UxI6czykJfp9T9N"),
             ("e231060", "VJgziofQQPCoisH"),
             ("e223795", "pmcTCKox99NFsqp"),
+            ("bank", "P7oxDm30g1jeIId"),
         ]
         .iter()
         .cloned()

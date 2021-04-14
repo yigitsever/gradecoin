@@ -1,8 +1,5 @@
 # TODO
 
-## Simulation
-- [ ] Bank mechanism should be added.
-
 ## Tests
 - [ ] User Authentication/Authentication Tests
 - [ ] Route Tests
@@ -36,3 +33,4 @@
 - [.] POST requests to /block should be authenticated as well (2021-04-13 04:50, they now are but until we make error messages **Verbose** there's not much point in testing because I honestly cannot trace the code)
 - [X] Blocks should "play out" the transactions and execute transactions (2021-04-14 21:29)
 - [X] "Coinbase" ("by" of the first transaction of the block) should get rewarded for their efforts (2021-04-14 21:48)
+- [X] Implemented Bank Account (2021-04-14 23:28)
