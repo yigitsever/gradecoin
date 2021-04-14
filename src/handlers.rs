@@ -199,27 +199,25 @@ pub async fn authorized_propose_block(
     let hashvalue = Blake2s::digest(&naked_block_flat);
     let hash_string = format!("{:x}", hashvalue);
 
-    // 6 rightmost bits are zero?
+    // Does the hash claimed in block matched with the actual hash?
+    if hash_string != new_block.hash {
+        debug!("request was not telling the truth, hash values do not match");
+        let res_json = warp::reply::json(&GradeCoinResponse {
+            res: ResponseType::Error,
+            message: "Given hash value does not match the actual block hash".to_owned(),
+        });
+
+        return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+    }
+
+    // Are the 6 rightmost characters (=24 bits) zero?
     let should_zero = hashvalue[31] as i32 + hashvalue[30] as i32 + hashvalue[29] as i32;
-    // TODO: this can be offloaded to validator <13-04-21, yigit> //
 
     if should_zero != 0 {
         debug!("the hash does not have 6 rightmost zero bits");
         let res_json = warp::reply::json(&GradeCoinResponse {
             res: ResponseType::Error,
             message: "Given block hash is larger than target value".to_owned(),
-        });
-
-        return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
-    }
-
-    // one last check to see if block is telling the truth
-    if hash_string != new_block.hash {
-        debug!("request was not telling the truth, hash values do not match");
-        // TODO: does this condition make more sense _before_ the hash 0s check? <13-04-21, yigit> //
-        let res_json = warp::reply::json(&GradeCoinResponse {
-            res: ResponseType::Error,
-            message: "Given hash value does not match the actual block hash".to_owned(),
         });
 
         return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
@@ -292,23 +290,23 @@ pub async fn authorized_propose_transaction(
     // `user` is an authenticated student, can propose
 
     // check if user can afford the transaction
-    if new_transaction.by == new_transaction.source {  // Propose to transact with another user
+    if new_transaction.by == new_transaction.source {
+        // Propose to transact with another user
         if internal_user.balance < new_transaction.amount {
             return Ok(warp::reply::with_status(
                 warp::reply::json(&GradeCoinResponse {
                     res: ResponseType::Error,
-                    message: "User does not have enough balance in their account"
-                        .to_owned(),
+                    message: "User does not have enough balance in their account".to_owned(),
                 }),
                 StatusCode::BAD_REQUEST,
             ));
         }
-    } else {  // todo: add bank mechanism
+    } else {
+        // todo: add bank mechanism
         return Ok(warp::reply::with_status(
             warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
-                message: "Invalid by field for the proposed transaction"
-                    .to_owned(),
+                message: "Invalid by field for the proposed transaction".to_owned(),
             }),
             StatusCode::BAD_REQUEST,
         ));
@@ -353,7 +351,6 @@ pub async fn authorized_propose_transaction(
     }
 
     debug!("clear for transaction proposal");
-
 
     let mut transactions = db.pending_transactions.write();
     transactions.insert(new_transaction.source.to_owned(), new_transaction);
