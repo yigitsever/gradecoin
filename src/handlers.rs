@@ -18,6 +18,7 @@ use std::fs;
 use warp::{http::StatusCode, reply};
 
 use crate::PRIVATE_KEY;
+const BLOCK_TRANSACTION_COUNT: u8 = 10;
 
 // Encryption primitive
 type Aes128Cbc = Cbc<Aes128, Pkcs7>;
@@ -116,7 +117,7 @@ pub async fn authenticate_user(
 
     let provided_id = request.student_id.clone();
 
-    let privileged_student_id = match MetuId::new(request.student_id) {
+    let privileged_student_id = match MetuId::new(request.student_id, request.passwd) {
         Some(id) => id,
         None => {
             let res_json = warp::reply::json(&GradeCoinResponse {
@@ -223,12 +224,10 @@ pub async fn list_transactions(db: Db) -> Result<impl warp::Reply, Infallible> {
 /// Proposes a new block for the next round.
 /// Can reject the block
 ///
-/// TODO: WHO IS PROPOSING THIS BLOCK OH GOD <13-04-21, yigit> // ok let's say the proposer has
-/// to put their transaction as the first transaction of the transaction_list
-/// that's not going to backfire in any way
+/// The proposer has to put their transaction as the first transaction of the [`transaction_list`].
+/// This is the analogue of `coinbase` in Bitcoin works
 ///
-/// TODO: after a block is accepted, it's transactions should play out and the proposer should
-/// get something for their efforts <13-04-21, yigit> //
+/// The `coinbase` transaction also gets something for their efforts.
 pub async fn authorized_propose_block(
     new_block: Block,
     token: String,
@@ -236,10 +235,23 @@ pub async fn authorized_propose_block(
 ) -> Result<impl warp::Reply, warp::Rejection> {
     debug!("POST request to /block, authorized_propose_block");
 
-    let users_store = db.users.read();
+    let users_store = db.users.upgradable_read();
 
     println!("{:?}", &new_block);
 
+    if new_block.transaction_list.len() < 1 {
+        let res_json = warp::reply::json(&GradeCoinResponse {
+            res: ResponseType::Error,
+            message: format!(
+                "There should be {} transactions in the block",
+                BLOCK_TRANSACTION_COUNT
+            ),
+        });
+
+        return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+    }
+
+    // proposer (first transaction fingerprint) checks
     let internal_user = match users_store.get(&new_block.transaction_list[0]) {
         Some(existing_user) => existing_user,
         None => {
@@ -250,7 +262,7 @@ pub async fn authorized_propose_block(
 
             let res_json = warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
-                message: "User with the given public key signature is not found in the database"
+                message: "User with that public key signature is not found in the database"
                     .to_owned(),
             });
 
@@ -260,6 +272,7 @@ pub async fn authorized_propose_block(
 
     let proposer_public_key = &internal_user.public_key;
 
+    // JWT Check
     let token_payload = match authorize_proposer(token, &proposer_public_key) {
         Ok(data) => data,
         Err(below) => {
@@ -274,8 +287,7 @@ pub async fn authorized_propose_block(
         }
     };
 
-    debug!("authorized for block proposal");
-
+    // Block hash check
     if token_payload.claims.tha != new_block.hash {
         debug!(
             "The Hash of the block {:?} did not match the hash given in jwt {:?}",
@@ -289,18 +301,20 @@ pub async fn authorized_propose_block(
         return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
     }
 
-    debug!("clear for block proposal");
-    let pending_transactions = db.pending_transactions.upgradable_read();
-    let blockchain = db.blockchain.upgradable_read();
+    // Scope the RwLocks, there are hashing stuff below
+    {
+        let pending_transactions = db.pending_transactions.read();
 
-    for transaction_hash in new_block.transaction_list.iter() {
-        if !pending_transactions.contains_key(transaction_hash) {
-            let res_json = warp::reply::json(&GradeCoinResponse {
-                res: ResponseType::Error,
-                message: "Block contains unknown transaction".to_owned(),
-            });
+        // Are transactions in the block valid?
+        for transaction_hash in new_block.transaction_list.iter() {
+            if !pending_transactions.contains_key(transaction_hash) {
+                let res_json = warp::reply::json(&GradeCoinResponse {
+                    res: ResponseType::Error,
+                    message: "Block contains unknown transaction".to_owned(),
+                });
 
-            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+                return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+            }
         }
     }
 
@@ -315,7 +329,7 @@ pub async fn authorized_propose_block(
     let hashvalue = Blake2s::digest(&naked_block_flat);
     let hash_string = format!("{:x}", hashvalue);
 
-    // Does the hash claimed in block matched with the actual hash?
+    // Does the hash claimed in block match with the actual hash?
     if hash_string != new_block.hash {
         debug!("request was not telling the truth, hash values do not match");
         let res_json = warp::reply::json(&GradeCoinResponse {
@@ -339,7 +353,32 @@ pub async fn authorized_propose_block(
         return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
     }
 
-    let mut blockchain = RwLockUpgradableReadGuard::upgrade(blockchain);
+    // All clear, block accepted!
+    debug!("We have a new block!");
+
+    {
+        let pending_transactions = db.pending_transactions.read();
+        let mut users = db.users.write();
+
+        for fingerprint in new_block.transaction_list.iter() {
+            let transaction = pending_transactions.get(fingerprint).unwrap();
+            let source = &transaction.source;
+            let target = &transaction.target;
+
+            if let Some(from) = users.get_mut(source) {
+                from.balance -= transaction.amount;
+            }
+
+            if let Some(to) = users.get_mut(target) {
+                to.balance += transaction.amount;
+            }
+        }
+    }
+
+    {
+        let mut pending_transactions = db.pending_transactions.write();
+        pending_transactions.clear();
+    }
 
     let block_json = serde_json::to_string(&new_block).unwrap();
 
@@ -349,15 +388,15 @@ pub async fn authorized_propose_block(
     )
     .unwrap();
 
-    *blockchain = new_block;
-
-    let mut pending_transactions = RwLockUpgradableReadGuard::upgrade(pending_transactions);
-    pending_transactions.clear();
+    {
+        let mut blockchain = db.blockchain.write();
+        *blockchain = new_block;
+    }
 
     Ok(warp::reply::with_status(
         warp::reply::json(&GradeCoinResponse {
             res: ResponseType::Success,
-            message: "Block accepted".to_owned(),
+            message: "Block accepted coinbase reward awarded".to_owned(),
         }),
         StatusCode::CREATED,
     ))
@@ -379,7 +418,6 @@ pub async fn authorized_propose_transaction(
     db: Db,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     debug!("POST request to /transaction, authorized_propose_transaction");
-    debug!("The transaction request: {:?}", new_transaction);
 
     let users_store = db.users.read();
 
@@ -403,7 +441,7 @@ pub async fn authorized_propose_transaction(
         }
     };
 
-    // `user` is an authenticated student, can propose
+    // `internal_user` is an authenticated student, can propose
 
     // check if user can afford the transaction
     if new_transaction.by == new_transaction.source {
@@ -418,7 +456,7 @@ pub async fn authorized_propose_transaction(
             ));
         }
     } else {
-        // todo: add bank mechanism
+        // TODO: add bank mechanism <14-04-21, keles> //
         return Ok(warp::reply::with_status(
             warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
@@ -446,9 +484,10 @@ pub async fn authorized_propose_transaction(
         }
     };
 
-    // this transaction was already checked for correctness at custom_filters, we can panic
-    // here if it has been changed since
-    debug!("authorized for transaction proposal");
+    // authorized for transaction proposal
+
+    // this transaction was already checked for correctness at custom_filters, we can panic here if
+    // it has been changed since
 
     let hashed_transaction = Md5::digest(&serde_json::to_vec(&new_transaction).unwrap());
 

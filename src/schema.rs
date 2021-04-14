@@ -37,7 +37,7 @@ fn last_block_exists() -> (bool, String) {
 }
 
 fn read_block_name() -> io::Result<Vec<PathBuf>> {
-    let mut entries = fs::read_dir("./blocks")?
+    let entries = fs::read_dir("./blocks")?
         .map(|res| res.map(|e| e.path()))
         .collect::<Result<Vec<_>, io::Error>>()?;
 
@@ -89,13 +89,10 @@ pub struct Claims {
 ///
 /// [`Db::users`] is the in memory representation of the users, with their public keys, metu_ids and
 /// gradecoin balances.
-///
-/// TODO: Replace the pending_transactions HashMap<String, Transaction> with
-/// HashMap<Fingerprint, Transaction>
 #[derive(Debug, Clone)]
 pub struct Db {
     pub blockchain: Arc<RwLock<Block>>,
-    pub pending_transactions: Arc<RwLock<HashMap<String, Transaction>>>,
+    pub pending_transactions: Arc<RwLock<HashMap<Fingerprint, Transaction>>>,
     pub users: Arc<RwLock<HashMap<String, User>>>,
 }
 
@@ -166,7 +163,7 @@ pub struct User {
     pub balance: i32,
 }
 
-/// The values will be hard coded so MetuId::new() can accept/reject values based on that
+/// The values are hard coded in [`OUR_STUDENTS`] so MetuId::new() can accept/reject values based on that
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct MetuId {
     id: String,
