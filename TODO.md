@@ -14,7 +14,6 @@
 - [.] POST requests to /block should be authenticated as well (2021-04-13 04:50, they now are but until we make error messages **Verbose** there's not much point in testing because I honestly cannot trace the code)
 
 ## Tests
-- [ ] Schema Tests
 - [ ] Route Tests
     - [ ] Malformed JSON bodies
     - [ ] Valid JSON with missing fields
@@ -37,3 +36,5 @@
 - [x] Verbose error messages (use error.rs from [logrocket](https://blog.logrocket.com/create-an-async-crud-web-service-in-rust-with-warp/) ❓) (done at 2021-04-13 20:39, not happy with the result)
 ----
 - [x] Transactions should be rejected if the user cannot afford to send the amount
+----
+- [X] Schema Tests
