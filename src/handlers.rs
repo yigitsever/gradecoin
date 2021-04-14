@@ -13,6 +13,7 @@ use rsa::{PaddingScheme, RSAPrivateKey};
 use serde::Serialize;
 use serde_json;
 use sha2::Sha256;
+use std::collections::HashMap;
 use std::convert::Infallible;
 use std::fs;
 use warp::{http::StatusCode, reply};
@@ -208,13 +209,13 @@ pub async fn authenticate_user(
 /// Cannot fail
 pub async fn list_transactions(db: Db) -> Result<impl warp::Reply, Infallible> {
     debug!("GET request to /transaction, list_transactions");
-    let mut result = Vec::new();
+    let mut result = HashMap::new();
 
     let transactions = db.pending_transactions.read();
     // let transactions = transactions.clone().into_iter().collect();
 
-    for (_, value) in transactions.iter() {
-        result.push(value)
+    for (fp, tx) in transactions.iter() {
+        result.insert(fp, tx);
     }
 
     Ok(reply::with_status(reply::json(&result), StatusCode::OK))
