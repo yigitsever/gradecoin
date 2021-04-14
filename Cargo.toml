@@ -20,6 +20,9 @@ blake2 = "0.9.1"
 hex-literal = "0.3.1"
 jsonwebtoken = "7.2.0"
 md-5 = "0.9.1"
+rsa = "0.4.0"
+base64 = "0.13.0"
+sha2 = "0.9.3"
 
 [dev-dependencies]
 serde_test = "1.0.117"

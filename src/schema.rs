@@ -178,12 +178,19 @@ pub struct MetuId {
     passwd: String,
 }
 
-// TODO: this will arrive encrypted <13-04-21, yigit> //
+/// The plaintext of the initial user authentication request
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct AuthRequest {
     pub student_id: String,
     pub passwd: String,
     pub public_key: String,
+}
+
+/// Ciphertext of the initial authentication request, or what we will receive
+#[derive(Serialize, Deserialize, Debug)]
+pub struct InitialAuthRequest {
+    pub c: String,
+    pub key: String,
 }
 
 lazy_static! {

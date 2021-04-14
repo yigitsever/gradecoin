@@ -1,3 +1,4 @@
+use base64;
 /// API handlers, the ends of each filter chain
 use blake2::{Blake2s, Digest};
 use jsonwebtoken::errors::ErrorKind;
@@ -5,11 +6,15 @@ use jsonwebtoken::{decode, Algorithm, DecodingKey, TokenData, Validation};
 use log::{debug, warn};
 use md5::Md5;
 use parking_lot::RwLockUpgradableReadGuard;
+use rsa::{PaddingScheme, RSAPrivateKey};
 use serde::Serialize;
 use serde_json;
+use sha2;
 use std::convert::Infallible;
 use std::fs;
 use warp::{http::StatusCode, reply};
+
+use crate::PRIVATE_KEY;
 
 #[derive(Serialize, Debug)]
 struct GradeCoinResponse {
@@ -23,7 +28,9 @@ enum ResponseType {
     Error,
 }
 
-use crate::schema::{AuthRequest, Block, Claims, Db, MetuId, NakedBlock, Transaction, User};
+use crate::schema::{
+    AuthRequest, Block, Claims, Db, InitialAuthRequest, MetuId, NakedBlock, Transaction, User,
+};
 
 const BEARER: &str = "Bearer ";
 
@@ -32,11 +39,34 @@ const BEARER: &str = "Bearer ";
 /// Lets a [`User`] (=student) to authenticate themselves to the system
 /// This `request` can be rejected if the payload is malformed (= not authenticated properly) or if
 /// the [`AuthRequest.user_id`] of the `request` is not in the list of users that can hold a Gradecoin account
+/// The request first comes in encrypted
 pub async fn authenticate_user(
-    request: AuthRequest,
+    request: InitialAuthRequest,
     db: Db,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     debug!("POST request to /register, authenticate_user");
+
+    // TODO: lazyload or something <14-04-21, yigit> //
+    let der_encoded = PRIVATE_KEY
+        .lines()
+        .filter(|line| !line.starts_with("-"))
+        .fold(String::new(), |mut data, line| {
+            data.push_str(&line);
+            data
+        });
+    let der_bytes = base64::decode(&der_encoded).expect("failed to decode base64 content");
+    let private_key = RSAPrivateKey::from_pkcs1(&der_bytes).expect("failed to parse key");
+
+    let padding = PaddingScheme::new_oaep::<sha2::Sha256>();
+    let dec_key = private_key
+        .decrypt(padding, &request.key.as_bytes())
+        .expect("failed to decrypt");
+
+    // then decrypt c using key dec_key
+
+    // let request: AuthRequest = serde_json::from_str(&String::from_utf8(dec_data).unwrap()).unwrap();
+    let request;
+
     let provided_id = request.student_id.clone();
 
     let priv_student_id = match MetuId::new(request.student_id, request.passwd) {

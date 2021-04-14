@@ -1,5 +1,5 @@
 /// Functions that extracts Structs to be used in warp routines
-use crate::schema::{AuthRequest, Block, Db, Transaction};
+use crate::schema::{Block, Db, InitialAuthRequest, Transaction};
 use std::convert::Infallible;
 use warp::{Filter, Rejection};
 
@@ -8,12 +8,12 @@ pub fn with_db(db: Db) -> impl Filter<Extract = (Db,), Error = Infallible> + Clo
     warp::any().map(move || db.clone())
 }
 
-/// Extracts an `AuthRequest` JSON body from the request
+/// Extracts an `InitialAuthRequest` JSON body from the request
 /// Accepts only JSON encoded `AuthRequest` body and rejects big payloads
 ///
 // TODO: find a good limit for this, (=e2482057; 8 char String + rsa pem) <11-04-21, yigit> //
-pub fn auth_request_json_body() -> impl Filter<Extract = (AuthRequest,), Error = Rejection> + Clone
-{
+pub fn auth_request_json_body(
+) -> impl Filter<Extract = (InitialAuthRequest,), Error = Rejection> + Clone {
     warp::body::content_length_limit(1024 * 32).and(warp::body::json())
 }
 
