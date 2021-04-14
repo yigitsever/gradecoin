@@ -246,5 +246,3 @@ impl MetuId {
         }
     }
 }
-
-// TODO: write schema tests using the original repo <09-04-21, yigit> //
