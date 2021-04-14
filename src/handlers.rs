@@ -9,7 +9,7 @@ use jsonwebtoken::{decode, Algorithm, DecodingKey, TokenData, Validation};
 use log::{debug, warn};
 use md5::Md5;
 use parking_lot::RwLockUpgradableReadGuard;
-use rsa::{PaddingScheme, RSAPrivateKey, RSAPublicKey};
+use rsa::{PaddingScheme, RSAPrivateKey};
 use serde::Serialize;
 use serde_json;
 use sha2;
