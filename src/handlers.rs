@@ -152,6 +152,17 @@ pub async fn authenticate_user(
         return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
     }
 
+    // We're using this as the validator
+    // I hate myself
+    if let Err(_) = DecodingKey::from_rsa_pem(request.public_key.as_bytes()) {
+        let res_json = warp::reply::json(&GradeCoinResponse {
+            res: ResponseType::Error,
+            message: "The supplied RSA public key is not in valid PEM format".to_owned(),
+        });
+
+        return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+    }
+
     let fingerprint = format!("{:x}", Sha256::digest(&request.public_key.as_bytes()));
 
     let new_user = User {
