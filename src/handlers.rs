@@ -12,7 +12,7 @@ use parking_lot::RwLockUpgradableReadGuard;
 use rsa::{PaddingScheme, RSAPrivateKey};
 use serde::Serialize;
 use serde_json;
-use sha2;
+use sha2::Sha256;
 use std::convert::Infallible;
 use std::fs;
 use warp::{http::StatusCode, reply};
@@ -152,6 +152,8 @@ pub async fn authenticate_user(
         return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
     }
 
+    let fingerprint = Sha256::digest(&request.public_key.as_bytes());
+
     let new_user = User {
         user_id: privileged_student_id,
         public_key: request.public_key,
@@ -163,8 +165,8 @@ pub async fn authenticate_user(
     fs::write(format!("users/{}.guy", new_user.user_id), user_json).unwrap();
 
     let mut userlist = RwLockUpgradableReadGuard::upgrade(userlist);
-    userlist.insert(provided_id, new_user);
-    // TODO: signature of the public key, please <11-04-21, yigit> //
+
+    userlist.insert(format!("{:x}", fingerprint), new_user);
 
     let res_json = warp::reply::json(&GradeCoinResponse {
         res: ResponseType::Success,
