@@ -23,7 +23,7 @@ GHwdFxy1niLkXwtHNjV7lnIOkTbx6+sSPamRfQAlZqUWM2Lf5o+7h3qWP3ENB138
 sQIDAQAB
 -----END PUBLIC KEY-----"
                     .to_owned(),
-                balance: 0,
+                balance: 30,
             },
         );
 
