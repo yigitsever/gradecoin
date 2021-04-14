@@ -37,9 +37,37 @@ const BEARER: &str = "Bearer ";
 /// POST request to /register endpoint
 ///
 /// Lets a [`User`] (=student) to authenticate themselves to the system
-/// This `request` can be rejected if the payload is malformed (= not authenticated properly) or if
+/// This `request` can be rejected if the payload is malformed (=not authenticated properly) or if
 /// the [`AuthRequest.user_id`] of the `request` is not in the list of users that can hold a Gradecoin account
-/// The request first comes in encrypted
+///
+/// # Authentication Process
+/// - Gradecoin's Public Key (`G_PK`) is listed on moodle.
+/// - Gradecoin's Private Key (`G_PR`) is loaded here
+///
+/// - Student picks a short temporary key (`k_temp`)
+/// - Creates a JSON object (`auth_plaintext`) with their `metu_id` and `public key` in base64 (PEM) format (`S_PK`):
+/// {
+///     student_id: "e12345",
+///     public_key: "---BEGIN PUBLIC KEY..."
+/// }
+///
+/// - Encrypts the serialized string of `auth_plaintext` with AES in TODO format using the temporary key
+/// (`k_temp`), the result is `auth_ciphertext`, (TODO base64?)
+/// - The temporary key student has picked `k_temp` is encrypted (TODO details) with `G_PK` (TODO
+/// base64?) = `key_ciphertext`
+/// - The payload JSON object (`auth_request`) can be prepared now:
+/// {
+///     c: "auth_ciphertext"
+///     key: "key_ciphertext"
+/// }
+///
+/// ## Gradecoin Side
+///
+/// - Upon receiving, we first extract the temporary key by decrypting `key`, receiving `temp_key`
+/// - With this key, we can decrypt c TODO with aes?
+/// - We then verify the payload and calculate the User fingerprint
+/// - Finally, create the new [`User`] object, insert to users HashMap `<fingerprint, User>`
+///
 pub async fn authenticate_user(
     request: InitialAuthRequest,
     db: Db,
@@ -47,6 +75,7 @@ pub async fn authenticate_user(
     debug!("POST request to /register, authenticate_user");
 
     // TODO: lazyload or something <14-04-21, yigit> //
+    // This is our key, used to first decrypt the users temporal key
     let der_encoded = PRIVATE_KEY
         .lines()
         .filter(|line| !line.starts_with("-"))
@@ -54,6 +83,8 @@ pub async fn authenticate_user(
             data.push_str(&line);
             data
         });
+
+    // Our private key is saved in PEM (base64) format
     let der_bytes = base64::decode(&der_encoded).expect("failed to decode base64 content");
     let private_key = RSAPrivateKey::from_pkcs1(&der_bytes).expect("failed to parse key");
 
