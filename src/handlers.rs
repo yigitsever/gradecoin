@@ -420,7 +420,6 @@ pub async fn authorized_propose_block(
 /// * `token` - An Authorization header value such as `Bearer aaa.bbb.ccc`
 /// * `db` - Global [`Db`] instance
 ///
-/// TODO This method should check if the user has enough balance for the transaction
 pub async fn authorized_propose_transaction(
     new_transaction: Transaction,
     token: String,
@@ -459,17 +458,30 @@ pub async fn authorized_propose_transaction(
             return Ok(warp::reply::with_status(
                 warp::reply::json(&GradeCoinResponse {
                     res: ResponseType::Error,
-                    message: "User does not have enough balance in their account".to_owned(),
+                    message:
+                        "User does not have enough balance in their account for this transaction"
+                            .to_owned(),
                 }),
                 StatusCode::BAD_REQUEST,
             ));
         }
-    } else {
-        // TODO: add bank mechanism <14-04-21, keles> //
+    } else if new_transaction.by == new_transaction.target
+        && new_transaction.source
+            != "31415926535897932384626433832795028841971693993751058209749445923"
+    {
+        // Propose to transact with the bank
         return Ok(warp::reply::with_status(
             warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
-                message: "Invalid by field for the proposed transaction".to_owned(),
+                message: "Transactions cannot extort Gradecoin from unsuspecting users".to_owned(),
+            }),
+            StatusCode::BAD_REQUEST,
+        ));
+    } else {
+        return Ok(warp::reply::with_status(
+            warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "Transactions cannot be proposed between two unrelated parties".to_owned(),
             }),
             StatusCode::BAD_REQUEST,
         ));
