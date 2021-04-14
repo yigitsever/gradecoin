@@ -117,7 +117,7 @@ pub struct Transaction {
 }
 
 /// A block that was proposed with `transaction_list` and `nonce` that made `hash` valid, 6 zeroes
-/// at the right hand side of the hash (24 bytes)
+/// at the left hand side of the hash (24 bytes)
 ///
 /// We are mining using blake2s algorithm, which produces 256 bit hashes. Hash/second is roughly
 /// 20x10^3.
