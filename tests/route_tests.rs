@@ -313,42 +313,42 @@ sQIDAQAB
     ///
     /// Should accept the json request, create a new user and
     /// add it to the user hashmap in the db
-    #[tokio::test]
-    async fn post_register_priviliged_user() {
-        let db = mocked_db();
-        let filter = consensus_routes(db.clone());
+    // #[tokio::test]
+    // async fn post_register_priviliged_user() {
+    //     let db = mocked_db();
+    //     let filter = consensus_routes(db.clone());
 
-        let res = warp::test::request()
-            .method("POST")
-            .json(&priviliged_mocked_user())
-            .path("/register")
-            .reply(&filter)
-            .await;
+    //     let res = warp::test::request()
+    //         .method("POST")
+    //         .json(&priviliged_mocked_user())
+    //         .path("/register")
+    //         .reply(&filter)
+    //         .await;
 
-        println!("{:?}", res.body());
-        assert_eq!(res.status(), StatusCode::CREATED);
-        assert_eq!(db.users.read().len(), 2);
-    }
+    //     println!("{:?}", res.body());
+    //     assert_eq!(res.status(), StatusCode::CREATED);
+    //     assert_eq!(db.users.read().len(), 2);
+    // }
 
     /// Test a POST request to /transaction, an endpoint that exists
     /// https://tools.ietf.org/html/rfc7231#section-6.3.2
     /// Should NOT accept the json request as the user is unpriviliged
-    #[tokio::test]
-    async fn post_register_unpriviliged_user() {
-        let db = mocked_db();
-        let filter = consensus_routes(db.clone());
+    // #[tokio::test]
+    // async fn post_register_unpriviliged_user() {
+    //     let db = mocked_db();
+    //     let filter = consensus_routes(db.clone());
 
-        let res = warp::test::request()
-            .method("POST")
-            .json(&unpriviliged_mocked_user())
-            .path("/register")
-            .reply(&filter)
-            .await;
+    //     let res = warp::test::request()
+    //         .method("POST")
+    //         .json(&unpriviliged_mocked_user())
+    //         .path("/register")
+    //         .reply(&filter)
+    //         .await;
 
-        println!("{:?}", res.body());
-        assert_eq!(res.status(), StatusCode::BAD_REQUEST);
-        assert_eq!(db.users.read().len(), 1);
-    }
+    //     println!("{:?}", res.body());
+    //     assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+    //     assert_eq!(db.users.read().len(), 1);
+    // }
 
     /// Test a POST request to /transaction, an endpoint that exists with a longer than expected
     /// payload
@@ -370,6 +370,10 @@ sQIDAQAB
 
         assert_eq!(res.status(), StatusCode::PAYLOAD_TOO_LARGE);
     }
+
+    /// Test the User Authentication Process
+    #[tokio::test]
+    async fn user_authentication() {}
 }
 
 // TODO: POST block without correct transactions test <09-04-21, yigit> //
