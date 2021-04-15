@@ -9,6 +9,7 @@
 //! Users are held in memory and they're also backed up to text files
 use chrono::{NaiveDate, NaiveDateTime};
 use lazy_static::lazy_static;
+use log::debug;
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -22,8 +23,6 @@ use std::vec::Vec;
 // use crate::validators;
 
 pub type Fingerprint = String;
-
-// TODO: start by reading users from file too <14-04-21, yigit> //
 
 fn block_parser(path: String) -> u64 {
     let end_pos = path.find(".block").unwrap();
@@ -63,16 +62,49 @@ fn read_block_name() -> io::Result<Vec<PathBuf>> {
     Ok(entries)
 }
 
-fn create_db_with_last_block(path: String) -> Db {
+fn read_users() -> io::Result<Vec<PathBuf>> {
+    let entries = fs::read_dir("./users")?
+        .map(|res| res.map(|e| e.path()))
+        .collect::<Result<Vec<_>, io::Error>>()?;
+
+    Ok(entries)
+}
+
+fn populate_db_with_last_block(db: &mut Db, path: String) -> &mut Db {
+    debug!("Populating db with last block {}", path);
     let file = fs::read(path).unwrap();
     let json = std::str::from_utf8(&file).unwrap();
     let block: Block = serde_json::from_str(json).unwrap();
-    let db = Db::new();
     *db.blockchain.write() = block;
-    return db;
+
+    db
 }
 
-/// Creates a new database, uses the previous last block if one exists
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+pub struct UserAtRest {
+    pub fingerprint: Fingerprint,
+    pub user: User,
+}
+
+fn populate_db_with_users(db: &mut Db, files: Vec<PathBuf>) -> &mut Db {
+    for fs in files {
+        if let Ok(file_content) = fs::read(fs) {
+            let json =
+                String::from_utf8(file_content).expect("we have written a malformed user file");
+            let user_at_rest: UserAtRest = serde_json::from_str(&json).unwrap();
+
+            debug!("Populating db with user: {:?}", user_at_rest);
+            db.users
+                .write()
+                .insert(user_at_rest.fingerprint, user_at_rest.user);
+        }
+    }
+
+    db
+}
+
+/// Creates a new database, uses the previous last block if one exists and attempts the populate
+/// the users
 pub fn create_database() -> Db {
     fs::create_dir_all("blocks").unwrap();
     fs::create_dir_all("users").unwrap();
@@ -82,6 +114,12 @@ pub fn create_database() -> Db {
     } else {
         return Db::new();
     }
+
+    if let Ok(users_path) = read_users() {
+        populate_db_with_users(&mut db, users_path);
+    }
+
+    db
 }
 
 /// A JWT Payload/Claims representation
@@ -181,13 +219,23 @@ impl Block {
         Block {
             transaction_list: vec!["gradecoin_bank".to_owned()],
             nonce: 0,
-            timestamp: NaiveDate::from_ymd(2021, 04, 11).and_hms(20, 45, 00),
+            timestamp: NaiveDate::from_ymd(2021, 4, 11).and_hms(20, 45, 00),
             hash: String::from("not_actually_mined"),
         }
     }
 }
 
-/// Simply a Student
+impl Default for Block {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// A Student
+///
+/// * [`user_id`]: Can only be one of the repopulated
+/// * [`public_key`]: A PEM format public key "---- BEGIN" and all
+/// * [`balance`]: User's current Gradecoin amount
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct User {
     pub user_id: MetuId,
@@ -196,7 +244,7 @@ pub struct User {
 }
 
 /// The values are hard coded in [`OUR_STUDENTS`] so MetuId::new() can accept/reject values based on that
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct MetuId {
     id: String,
     passwd: String,
@@ -214,7 +262,7 @@ pub struct AuthRequest {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct InitialAuthRequest {
     pub c: String,
-    pub iv: [u8; 32],
+    pub iv: String,
     pub key: String,
 }
 
@@ -265,10 +313,7 @@ impl fmt::Display for MetuId {
 impl MetuId {
     pub fn new(id: String, pwd: String) -> Option<Self> {
         if OUR_STUDENTS.contains(&(&*id, &*pwd)) {
-            Some(MetuId {
-                id: id,
-                passwd: pwd,
-            })
+            Some(MetuId { id, passwd: pwd })
         } else {
             None
         }

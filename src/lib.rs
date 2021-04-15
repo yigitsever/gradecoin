@@ -22,12 +22,11 @@
 //! `Authorization`: The request header should have Bearer JWT.Token signed with Student Public Key
 
 pub mod custom_filters;
-pub mod error;
 pub mod handlers;
 pub mod routes;
 pub mod schema;
 
-pub const PRIVATE_KEY: &'static str = "-----BEGIN RSA PRIVATE KEY-----
+pub const PRIVATE_KEY: &str = "-----BEGIN RSA PRIVATE KEY-----
 MIIEogIBAAKCAQEAyGuqiCPGcguy+Y9TH7Bl7XlEsalyqb9bYlzpbV0dnqZ3lPkE
 PkuOhkN+GcuiV6iXtSwyh7nB+xTRXKJFRUBO/jbN8jfcxVwBu0JxjF3v1YRBxbOH
 hz2A295mbKD9xHQCKxkfYBNkUXxj8gd+GaDvQiSW5NdrX/lEkvqfGtdEX1m2+Hdc
@@ -55,7 +54,7 @@ PDYHM9dfQ8xn51U0fTeaXjy/8Km8fyX2Jtxntlm6puyhSTJ8AX+FEgJkC4ajNEvA
 mJ1Gsy2fXKUyyZdI2b74MLqOpzr9cvS60tmTIScuiHFzg/SJgiA=
 -----END RSA PRIVATE KEY-----";
 
-pub const PUB_KEY: &'static str = "-----BEGIN PUBLIC KEY-----
+pub const PUB_KEY: &str = "-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyGuqiCPGcguy+Y9TH7Bl
 7XlEsalyqb9bYlzpbV0dnqZ3lPkEPkuOhkN+GcuiV6iXtSwyh7nB+xTRXKJFRUBO
 /jbN8jfcxVwBu0JxjF3v1YRBxbOHhz2A295mbKD9xHQCKxkfYBNkUXxj8gd+GaDv

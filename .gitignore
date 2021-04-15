@@ -1,5 +1,7 @@
-/target
+log/
+target/
 blocks/
 users/
+public/
 tags.lock
 tags.temp

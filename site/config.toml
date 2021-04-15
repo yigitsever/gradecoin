@@ -1,0 +1,28 @@
+# The URL the site will be built for
+base_url = "https://gradecoin.xyz"
+
+theme = "juice"
+
+title = "Gradecoin"
+description = "Mine Your Grades"
+
+# Whether to automatically compile all Sass files in the sass directory
+compile_sass = true
+
+# Whether to build a search index to be used later on by a JavaScript library
+build_search_index = true
+
+[markdown]
+# Whether to do syntax highlighting
+# Theme can be customised by setting the `highlight_theme` variable to a theme supported by Zola
+highlight_code = true
+highlight_theme = "subway-moscow"
+
+[extra]
+# Put all your custom variables here
+juice_logo_name = "Gradecoin"
+juice_logo_path = "gradecoin.png"
+juice_extra_menu = [
+    { title = "why?", link = "https://github.com/zhuowei/nft_ptr#why"}
+]
+

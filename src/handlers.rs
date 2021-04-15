@@ -1,6 +1,6 @@
-/// API handlers, the ends of each filter chain
 use aes::Aes128;
-use base64;
+/// API handlers, the ends of each filter chain
+use askama::Template;
 use blake2::{Blake2s, Digest};
 use block_modes::block_padding::Pkcs7;
 use block_modes::{BlockMode, Cbc};
@@ -8,10 +8,8 @@ use jsonwebtoken::errors::ErrorKind;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, TokenData, Validation};
 use log::{debug, warn};
 use md5::Md5;
-use parking_lot::RwLockUpgradableReadGuard;
 use rsa::{PaddingScheme, RSAPrivateKey};
 use serde::Serialize;
-use serde_json;
 use sha2::Sha256;
 use std::collections::HashMap;
 use std::convert::Infallible;
@@ -39,6 +37,7 @@ enum ResponseType {
 
 use crate::schema::{
     AuthRequest, Block, Claims, Db, InitialAuthRequest, MetuId, NakedBlock, Transaction, User,
+    UserAtRest,
 };
 
 const BEARER: &str = "Bearer ";
@@ -61,9 +60,9 @@ const BEARER: &str = "Bearer ";
 ///     public_key: "---BEGIN PUBLIC KEY..."
 /// }
 ///
-/// - Encrypts the serialized string of `auth_plaintext` with 128 bit block AES in CBC mode with Pkcs7 padding using the temporary key (`k_temp`), the result is `auth_ciphertext` TODO should this be base64'd?
+/// - Encrypts the serialized string of `auth_plaintext` with 128 bit block AES in CBC mode with Pkcs7 padding using the temporary key (`k_temp`), the result is `auth_ciphertext`
 /// - The temporary key student has picked `k_temp` is encrypted using RSA with OAEP padding scheme
-/// using sha256 with `gradecoin_public_key` (TODO base64? same as above), giving us `key_ciphertext`
+/// using sha256 with `gradecoin_public_key`, giving us `key_ciphertext`
 /// - The payload JSON object (`auth_request`) can be JSON serialized now:
 /// {
 ///     c: "auth_ciphertext"
@@ -92,7 +91,7 @@ pub async fn authenticate_user(
     // Load our RSA Private Key as DER
     let der_encoded = PRIVATE_KEY
         .lines()
-        .filter(|line| !line.starts_with("-"))
+        .filter(|line| !line.starts_with('-'))
         .fold(String::new(), |mut data, line| {
             data.push_str(&line);
             data
@@ -104,18 +103,126 @@ pub async fn authenticate_user(
     let gradecoin_private_key = RSAPrivateKey::from_pkcs1(&der_bytes).expect("failed to parse key");
 
     let padding = PaddingScheme::new_oaep::<sha2::Sha256>();
-    let temp_key = gradecoin_private_key
-        .decrypt(padding, &request.key.as_bytes())
-        .expect("failed to decrypt");
 
-    // decrypt c using key dec_key
-    let cipher = Aes128Cbc::new_var(&temp_key, &request.iv).unwrap();
-    let auth_plaintext = cipher
-        .decrypt_vec(&base64::decode(request.c).unwrap())
-        .unwrap();
+    let key_ciphertext = match base64::decode(&request.key) {
+        Ok(c) => c,
+        Err(err) => {
+            debug!(
+                "The ciphertext of the key was not base64 encoded {}, {}",
+                &request.key, err
+            );
 
-    let request: AuthRequest =
-        serde_json::from_str(&String::from_utf8(auth_plaintext).unwrap()).unwrap();
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "The ciphertext of the key was not base64 encoded {}, {}".to_owned(),
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+        }
+    };
+
+    let temp_key = match gradecoin_private_key.decrypt(padding, &key_ciphertext) {
+        Ok(k) => k,
+        Err(err) => {
+            debug!(
+                "Failed to decrypt ciphertext {:?}, {}",
+                &key_ciphertext, err
+            );
+
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "Failed to decrypt the ciphertext of the temporary key".to_owned(),
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+        }
+    };
+
+    let cipher = match Aes128Cbc::new_var(&temp_key, &request.iv.as_bytes()) {
+        Ok(c) => c,
+        Err(err) => {
+            debug!(
+                "Could not create a cipher from temp_key and request.iv {:?}, {}, {}",
+                &temp_key, &request.iv, err
+            );
+
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "Given IV has invalid length".to_owned(),
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+        }
+    };
+
+    let auth_packet = match base64::decode(&request.c) {
+        Ok(a) => a,
+
+        Err(err) => {
+            debug!(
+                "The auth_packet (c field) did not base64 decode {} {}",
+                &request.c, err
+            );
+
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "The c field was not correctly base64 encoded".to_owned(),
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+        }
+    };
+
+    let auth_plaintext = match cipher.decrypt_vec(&auth_packet) {
+        Ok(p) => p,
+        Err(err) => {
+            debug!(
+                "Base64 decoded auth request did not decrypt correctly {:?} {}",
+                &auth_packet, err
+            );
+
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "The Bas64 decoded auth request did not decrypt correctly".to_owned(),
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+        }
+    };
+
+    let utf8_auth_plaintext = match String::from_utf8(auth_plaintext.clone()) {
+        Ok(text) => text,
+        Err(err) => {
+            debug!(
+                "Auth plaintext did not convert into utf8 {:?} {}",
+                &auth_plaintext, err
+            );
+
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "Auth plaintext couldn't get converted to UTF-8".to_owned(),
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+        }
+    };
+
+    let request: AuthRequest = match serde_json::from_str(&utf8_auth_plaintext) {
+        Ok(req) => req,
+        Err(err) => {
+            debug!(
+                "Auth plaintext did not serialize correctly {:?} {}",
+                &utf8_auth_plaintext, err
+            );
+
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "The auth request JSON did not serialize correctly".to_owned(),
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+        }
+    };
 
     let provided_id = request.student_id.clone();
 
@@ -131,33 +238,24 @@ pub async fn authenticate_user(
         }
     };
 
-    let userlist = db.users.upgradable_read();
+    {
+        let userlist = db.users.read();
 
-    if userlist.contains_key(&provided_id) {
-        let res_json = warp::reply::json(&GradeCoinResponse {
-            res: ResponseType::Error,
-            message:
-                "This user is already authenticated, do you think this is a mistake? Contact me"
-                    .to_owned(),
-        });
+        if userlist.contains_key(&provided_id) {
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message:
+                    "This user is already authenticated, do you think this is a mistake? Contact me"
+                        .to_owned(),
+            });
 
-        return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+        }
     }
 
     // We're using this as the validator
     // I hate myself
-    if let Err(_) = DecodingKey::from_rsa_pem(request.public_key.as_bytes()) {
-        let res_json = warp::reply::json(&GradeCoinResponse {
-            res: ResponseType::Error,
-            message: "The supplied RSA public key is not in valid PEM format".to_owned(),
-        });
-
-        return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
-    }
-
-    // We're using this as the validator
-    // I hate myself
-    if let Err(_) = DecodingKey::from_rsa_pem(request.public_key.as_bytes()) {
+    if DecodingKey::from_rsa_pem(request.public_key.as_bytes()).is_err() {
         let res_json = warp::reply::json(&GradeCoinResponse {
             res: ResponseType::Error,
             message: "The supplied RSA public key is not in valid PEM format".to_owned(),
@@ -174,11 +272,19 @@ pub async fn authenticate_user(
         balance: 0,
     };
 
-    let user_json = serde_json::to_string(&new_user).unwrap();
+    let user_at_rest_json = serde_json::to_string(&UserAtRest {
+        user: User {
+            user_id: new_user.user_id.clone(),
+            public_key: new_user.public_key.clone(),
+            balance: 0,
+        },
+        fingerprint: fingerprint.clone(),
+    })
+    .unwrap();
 
-    fs::write(format!("users/{}.guy", new_user.user_id), user_json).unwrap();
+    fs::write(format!("users/{}.guy", new_user.user_id), user_at_rest_json).unwrap();
 
-    let mut userlist = RwLockUpgradableReadGuard::upgrade(userlist);
+    let mut userlist = db.users.write();
 
     userlist.insert(fingerprint.clone(), new_user);
 
@@ -192,17 +298,6 @@ pub async fn authenticate_user(
 
     Ok(warp::reply::with_status(res_json, StatusCode::CREATED))
 }
-
-// fn shed_pem_header_footer(maybe_key: String) -> Result<Vec<u8>, String> {
-//     let der_encoded = maybe_key
-//         .lines()
-//         .filter(|line| !line.starts_with("-"))
-//         .fold(String::new(), |mut data, line| {
-//             data.push_str(&line);
-//             data
-//         });
-//     Ok(base64::decode(&der_encoded).expect("failed to decode base64 content"))
-// }
 
 /// GET /transaction
 /// Returns JSON array of transactions
@@ -241,7 +336,7 @@ pub async fn authorized_propose_block(
 
     println!("{:?}", &new_block);
 
-    if new_block.transaction_list.len() < 1 {
+    if new_block.transaction_list.is_empty() {
         let res_json = warp::reply::json(&GradeCoinResponse {
             res: ResponseType::Error,
             message: format!(
@@ -322,8 +417,8 @@ pub async fn authorized_propose_block(
 
     let naked_block = NakedBlock {
         transaction_list: new_block.transaction_list.clone(),
-        nonce: new_block.nonce.clone(),
-        timestamp: new_block.timestamp.clone(),
+        nonce: new_block.nonce,
+        timestamp: new_block.timestamp,
     };
 
     let naked_block_flat = serde_json::to_vec(&naked_block).unwrap();
@@ -556,7 +651,7 @@ pub async fn list_blocks(db: Db) -> Result<impl warp::Reply, Infallible> {
 /// *[`jwt_token`]: The raw JWT token, "Bearer aaa.bbb.ccc"
 /// *[`user_pem`]: User Public Key, "BEGIN RSA"
 /// NOT async, might look into it if this becomes a bottleneck
-fn authorize_proposer(jwt_token: String, user_pem: &String) -> Result<TokenData<Claims>, String> {
+fn authorize_proposer(jwt_token: String, user_pem: &str) -> Result<TokenData<Claims>, String> {
     // Throw away the "Bearer " part
     let raw_jwt = jwt_token.trim_start_matches(BEARER).to_owned();
     debug!("raw_jwt: {:?}", raw_jwt);
@@ -598,4 +693,20 @@ fn authorize_proposer(jwt_token: String, user_pem: &String) -> Result<TokenData<
         };
 
     Ok(token_payload)
+}
+
+#[derive(Template)]
+#[template(path = "welcome.html")]
+struct WelcomeTemplate<'a> {
+    title: &'a str,
+    body: &'a str,
+}
+
+pub async fn welcome_handler() -> Result<impl warp::Reply, warp::Rejection> {
+    let template = WelcomeTemplate {
+        title: "Welcome",
+        body: "To The Bookstore!",
+    };
+    let res = template.render().unwrap();
+    Ok(warp::reply::html(res))
 }

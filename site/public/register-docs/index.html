@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Register | Gradecoin </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <style>
+    :root {
+        /* Primary theme color */
+        --primary-color: #F8D12F;
+        /* Primary theme text color */
+        --primary-text-color: #1E2329;
+        /* Primary theme link color */
+        --primary-link-color: #2F57F7;
+        /* Secondary color: the background body color */
+        --secondary-color: #FAFAFA;
+        --secondary-text-color: #303030;
+        /* Highlight text color of table of content */
+        --toc-highlight-text-color: #d46e13;
+    }
+</style>
+
+    <link href="https://fonts.googleapis.com/css?family=Alfa+Slab+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Fira+Sans:400,500,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/normalize.css">
+    <link rel="stylesheet" href="https:&#x2F;&#x2F;gradecoin.xyz&#x2F;juice.css">
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+</head>
+
+<body>
+    
+<header class="box-shadow">
+    
+
+<a href="https:&#x2F;&#x2F;gradecoin.xyz&#x2F;">
+    <div class="logo">
+        <img src="https:&#x2F;&#x2F;gradecoin.xyz&#x2F;gradecoin.png" alt="logo">
+        Gradecoin
+    </div>
+</a>
+
+<nav>
+    
+    <a class="nav-item subtitle-text" href="https:&#x2F;&#x2F;gradecoin.xyz&#x2F;register-docs&#x2F;">Register</a>
+    
+    <a class="nav-item subtitle-text" href="https:&#x2F;&#x2F;gradecoin.xyz&#x2F;jwt&#x2F;">JWT</a>
+    
+    <a class="nav-item subtitle-text" href="https:&#x2F;&#x2F;gradecoin.xyz&#x2F;transaction-docs&#x2F;">Transactions</a>
+    
+    <a class="nav-item subtitle-text" href="https:&#x2F;&#x2F;gradecoin.xyz&#x2F;block-docs&#x2F;">Blocks</a>
+    
+    
+        
+        <a class="nav-item subtitle-text" href="https:&#x2F;&#x2F;github.com&#x2F;zhuowei&#x2F;nft_ptr#why">why?</a>
+        
+    
+</nav>
+
+</header>
+
+
+    <main>
+        
+        
+        
+        
+        
+        <div class="toc">
+            <div class="toc-sticky">
+                
+                <div class="toc-item">
+                    <a class="subtext" href="https://gradecoin.xyz/register-docs/#authentication-process">Authentication Process</a>
+                </div>
+                
+                
+            </div>
+        </div>
+        
+        
+
+        <div class="content text">
+            
+<div class="heading-text">Register Documentation</div>
+<p>POST request to /register endpoint</p>
+<p>Lets a user to authenticate themselves to the system.
+Only people who are enrolled to the class can open Gradecoin accounts.
+This is enforced with your Student ID and a one time password you will receive.</p>
+<h1 id="authentication-process">Authentication Process</h1>
+<ul>
+<li>Gradecoin's Public Key (<code>gradecoin_public_key</code>) is listed on our Moodle page.</li>
+<li>You pick a short temporary key (<code>k_temp</code>)</li>
+<li>Create a JSON object (<code>auth_plaintext</code>) with your <code>metu_id</code> and <code>public key</code> in base64 (PEM) format (<code>S_PK</code>) <a href="https://tls.mbed.org/kb/cryptography/asn1-key-structures-in-der-and-pem">reference</a></li>
+</ul>
+<pre style="background-color:#ffffff;">
+<code class="language-json" data-lang="json"><span style="color:#545052;">{
+    &quot;</span><span style="color:#009854;">student_id</span><span style="color:#545052;">&quot;: &quot;</span><span style="color:#009854;">e12345</span><span style="color:#545052;">&quot;,
+    &quot;</span><span style="color:#009854;">passwd</span><span style="color:#545052;">&quot;: &quot;</span><span style="color:#009854;">15 char secret</span><span style="color:#545052;">&quot;,
+    &quot;</span><span style="color:#009854;">public_key</span><span style="color:#545052;">&quot;: &quot;</span><span style="color:#009854;">---BEGIN PUBLIC KEY...</span><span style="color:#545052;">&quot;
+}
+</span></code></pre>
+<ul>
+<li>Pick a random IV.</li>
+<li>Encrypt the serialized string of <code>auth_plaintext</code> with 128 bit block AES in CBC mode with Pkcs7 padding using the temporary key (<code>k_temp</code>), the result is <code>auth_ciphertext</code>. Encode this with base64.</li>
+<li>The temporary key you have picked <code>k_temp</code> is encrypted using RSA with OAEP padding scheme
+using SHA-256 with <code>gradecoin_public_key</code>, giving us <code>key_ciphertext</code>. Encode this with base 64.</li>
+<li>The payload JSON object (<code>auth_request</code>) can be serialized now:</li>
+</ul>
+<pre style="background-color:#ffffff;">
+<code class="language-json" data-lang="json"><span style="color:#545052;">{
+    &quot;</span><span style="color:#009854;">c</span><span style="color:#545052;">&quot;: &quot;</span><span style="color:#009854;">auth_ciphertext</span><span style="color:#545052;">&quot;,
+    &quot;</span><span style="color:#009854;">iv</span><span style="color:#545052;">&quot;: &quot;</span><span style="color:#009854;">hexadecimal</span><span style="color:#545052;">&quot;,
+    &quot;</span><span style="color:#009854;">key</span><span style="color:#545052;">&quot;: &quot;</span><span style="color:#009854;">key_ciphertext</span><span style="color:#545052;">&quot;
+}
+</span></code></pre>
+<p>If your authentication process was valid, you will be given access and your public key fingerprint that is your address.</p>
+
+
+        </div>
+
+        
+        
+    </main>
+
+    
+<footer>
+Built For ⁂ CENG489 ⁂ Introduction to Computer Security
+</footer>
+
+</body>
+<script>
+    function highlightNav(heading) {
+        let pathname = location.pathname;
+        document.querySelectorAll(".toc a").forEach((item) => {
+            item.classList.remove("active");
+        });
+        document.querySelector(".toc a[href$='" + pathname + "#" + heading + "']").classList.add("active");
+    }
+
+    let currentHeading = "";
+    window.onscroll = function () {
+        let h = document.querySelectorAll("h1,h2,h3,h4,h5,h6");
+        let elementArr = [];
+
+        h.forEach(item => {
+            if (item.id !== "") {
+                elementArr[item.id] = item.getBoundingClientRect().top;
+            }
+        });
+        elementArr.sort();
+        for (let key in elementArr) {
+            if (!elementArr.hasOwnProperty(key)) {
+                continue;
+            }
+            if (elementArr[key] > 0 && elementArr[key] < 300) {
+                if (currentHeading !== key) {
+                    highlightNav(key);
+                    currentHeading = key;
+                }
+                break;
+            }
+        }
+    }
+</script>
+
+</html>

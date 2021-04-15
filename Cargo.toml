@@ -12,7 +12,7 @@ tokio = { version = "0.2.9", features = ["macros"] }
 serde = { version = "1.0.104", features = ["derive"] }
 chrono = { version = "0.4.10", features = ["serde"] }
 log = "0.4.8"
-pretty_env_logger = "0.3.1"
+log4rs = "1.0.0"
 parking_lot = "0.10.0"
 serde_json = "1.0.59"
 lazy_static = "1.4.0"
@@ -25,6 +25,7 @@ base64 = "0.13.0"
 sha2 = "0.9.3"
 block-modes = "0.7.0"
 aes = "0.6.0"
+askama = "0.10.5"
 
 [dev-dependencies]
 serde_test = "1.0.117"
