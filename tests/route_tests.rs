@@ -7,7 +7,7 @@ mod tests {
 
     /// Create a mock database to be used in tests
     fn mocked_db() -> Db {
-        let db = create_database();
+        let db = Db::new();
 
         db.users.write().insert(
             "mock_transaction_source".to_owned(),

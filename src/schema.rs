@@ -152,7 +152,7 @@ pub struct Db {
 }
 
 impl Db {
-    fn new() -> Self {
+    pub fn new() -> Self {
         let mut users: HashMap<Fingerprint, User> = HashMap::new();
 
         let bank_acc = MetuId::new("bank".to_owned(), "P7oxDm30g1jeIId".to_owned()).unwrap();
