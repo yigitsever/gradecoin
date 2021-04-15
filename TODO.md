@@ -1,7 +1,7 @@
 # TODO
 
-- [ ] IV is ARRAY NO
-- [ ] RESTORE STUDENTS FROM DISK
+- [ ] IV is array, should be hex, implement checks
+- [ ] Restore students from disk
 
 ## Office Hour/Recitation
 - [ ] Should give a little pointers but not too much, I think at first this is going to seem hard to many students but it should become fairly easy after some little pointers
