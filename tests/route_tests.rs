@@ -14,25 +14,54 @@ mod tests {
             User {
                 user_id: MetuId::new("e254275".to_owned(), "DtNX1qk4YF4saRH".to_owned()).unwrap(),
                 public_key: "-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4nU0G4WjkmcQUx0hq6LQ
-uV5Q+ACmUFL/OjoYMDwC/O/6pCd1UZgCfgHN2xEffDPznzcTn8OiFRxr4oWyBiny
-rUpnY4mhy0SQUwoeCw7YkcHAyhCjNT74aR/ohX0MCj0qRRdbt5ZQXM/GC3HJuXE1
-ptSuhFgQxziItamn8maoJ6JUSVEXVO1NOrrjoM3r7Q+BK2B+sX4/bLZ+VG5g1q2n
-EbFdTHS6pHqtZNHQndTmEKwRfh0RYtzEzOXuO6e1gQY42Tujkof40dhGCIU7TeIG
-GHwdFxy1niLkXwtHNjV7lnIOkTbx6+sSPamRfQAlZqUWM2Lf5o+7h3qWP3ENB138
-sQIDAQAB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5yWTMeFqr2nvOC9oR5Wq
+/nzcNlwCIaziojt7rJ4BBvuwkT0tERDz8AgvUsaewiB+Fz5OXTeb3WAB1FEXnBXG
+ekrGzvC8jHQMKHyNoWzUlpQJ9UMtdQIWPOCuMyLpc+rNPL3428U8UpldjbTHHyq2
+/ef6abkdj+XWg/slYtrFeOf3ktc1l50R4k8VO8L6kQuh2+YIjXGPLShRaqnUQPtH
+8LFPX4bO9lJ9mAoMZFec6XVwumn/uqu9jyWQL6qh6gtwQHgN+A9wGvzVvltJ9h8s
+shSHWWtBD0M19ilbXhKyBsHSSZkpx+TAvFhfQ8JURw7KqahUPVlCwJ5OIKccJ/6F
+FQIDAQAB
 -----END PUBLIC KEY-----"
                     .to_owned(),
                 balance: 30,
             },
         );
 
+        // -----BEGIN RSA PRIVATE KEY-----
+// MIIEpAIBAAKCAQEA5yWTMeFqr2nvOC9oR5Wq/nzcNlwCIaziojt7rJ4BBvuwkT0t
+// ERDz8AgvUsaewiB+Fz5OXTeb3WAB1FEXnBXGekrGzvC8jHQMKHyNoWzUlpQJ9UMt
+// dQIWPOCuMyLpc+rNPL3428U8UpldjbTHHyq2/ef6abkdj+XWg/slYtrFeOf3ktc1
+// l50R4k8VO8L6kQuh2+YIjXGPLShRaqnUQPtH8LFPX4bO9lJ9mAoMZFec6XVwumn/
+// uqu9jyWQL6qh6gtwQHgN+A9wGvzVvltJ9h8sshSHWWtBD0M19ilbXhKyBsHSSZkp
+// x+TAvFhfQ8JURw7KqahUPVlCwJ5OIKccJ/6FFQIDAQABAoIBADTZGnZlG4dPqSon
+// bKgxSA83bQHgt3wLkyWUhApLdeCq2wvZ+NvWDG/s7yT11IZ991ZJIJGfjTtoIALz
+// J3rAX8jGH/5gfDuArOb000z9HP3wivZQjawa9gqlNC7s5INkQ9iHdsaIqeoYtpMX
+// qg8uLPiQeWiCsoeb/Rff7ARWEKA7udoZ2uZcZFMHTKx+mBpk8IiepQAJPBRVwmXk
+// x/3LTaezi6Tkvp/k/gf4IeSICiRGFRmm2Vxciduj11/CrdTHPQLz/Rh5/IN8Bkry
+// xdQdQxxhwxF/ap6OJIJyguq7gximn2uK0jbHY3nRmrF8SsEtIT+Gd7I46L/goR8c
+// jQOQRmECgYEA9RJSOBUkZMLoUcC2LGJBZOAnJZ7WToCVdu3LrPceRYtQHwcznW4O
+// NAHF+blQRzqvbMi11ap8NVpkDDu0ki/Yi2VdSVjQmlaOcpAXjN6T5ZrKoz61xj4g
+// 2T2/K6d6ypkZRKPhKCC1iI419rq/APVEZHYCl7jZp4iD2izHiegZYccCgYEA8XRK
+// rfVuPiYsaB07eJrRKKjuoM1Jcr19jZyXY8sbALRcExaTX2CRaPA7binVeDBXayQ1
+// I0+kA1nV1EI+ROegV+b6gs2YaUmMJzI1yLqMqGDgHFxFvhkDsZaI+/V+G9eOLEt4
+// 5ic5tImfZITLE/GSC8b+C16gxMGUN4t9gHq2okMCgYAKyNedaDDFzl3y2wwpP9mo
+// 2sReP3Mm2Tm6lhRUdDt8y/impOZ8kw9E8p8HskP6HncBzoNR98KnhmbIswfrNvfM
+// ipVkWOg1IoH6QKUIqfLQM9OfA290Xd+ML89t2Fzq9XnLL3sFDQtwCvIM/YLSQ/jS
+// gu7yRkwttzA2NapCQ1h6mQKBgQClwBwn8Qyd01y2mCKkNzsP+2/cqTAbeSNAXFe8
+// pMfDowx1+hBu7/7CF+/kPwmQuTa5kSB9PgWsWzYjwNm4OX1j+mbL9lEDLf7tRVWQ
+// lydJyz7tmRYzWj6j4V/l/u90M3QgyiqTbCf73GG0AkjaRwHn3dG1gl9A0lZqDvK3
+// iQXouwKBgQCrx6SCnEkhLISSZpzdDehtWmyCQJIwcdlRQlAmFLVn+TJHTXR7xUm2
+// VpTrPTfaYWx83OQUn/OZqY5gIQ+jlfwqnVg+PDQQ/P09/4xygRCLvjL6NCSvtkj1
+// MRArEl4y68+jZLRu74TVG0lXi6ht6KhNHF6GiWKU9FHZ4B+btLicsg==
+// -----END RSA PRIVATE KEY-----
+
+
         db.pending_transactions.write().insert(
-            "source_public_key_signature".to_owned(),
+            "mock_transaction_source".to_owned(),
             Transaction {
-                by: "source_public_key_signature".to_owned(),
-                source: "source_public_key_signature".to_owned(),
-                target: "target_public_key_signature".to_owned(),
+                by: "mock_transaction_source".to_owned(),
+                source: "31415926535897932384626433832795028841971693993751058209749445923".to_owned(),
+                target: "mock_transaction_source".to_owned(),
                 amount: 3,
                 timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(20, 55, 30),
             },
@@ -211,12 +240,12 @@ sQIDAQAB
             timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(23, 38, 00),
             hash: "0000007c52e4486359f62b2d19781fafaf059bd691bc6d835b666f6eac1d01d9".to_owned(),
         } )
-            .header("Authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aGEiOiIyYjY0OGZmYWI1ZDlhZjFkNWQ1ZmMwNTJmYzllNTFiODgyZmM0ZmIwYzk5ODYwOGM5OTIzMmY5MjgyMDAwMDAwIiwiaWF0IjoxNjE4MzYwNjQxLCJleHAiOjE3MTgyNjA2NDF9.P5L_uZ9lOhRZCbsG9GDXn_rmZat3dP9Y2lbk8GY4Kg4pOxJIklBUxot-TtJzB0vEJFcjnxVnT2lFLCgfdQLHTJvURiW0KRHi94e1Kj8aDXxJ0qjlq4-c1JCZnAIbDpvkFtHNKz04yfyeSR2htJ6kOjlqVpeUhLVokHhi1x-ZUZZSpeGnlIXgi-AcmkEoyOypZGSZgQ1hjID2f18zgfbshgPK4Dr0hiN36wYMB0y0YiikRbvDuGgDzRLN2nitih46-CXTGZMqIRz3eAfM2wuUSH1yhdKi5_vavz8L3EPVCGMO-CKlPUDkYA-duQZf_q3tG2fkdaFlTAcCik_kVMprdw")
+            .header("Authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aGEiOiIwMDAwMDA3YzUyZTQ0ODYzNTlmNjJiMmQxOTc4MWZhZmFmMDU5YmQ2OTFiYzZkODM1YjY2NmY2ZWFjMWQwMWQ5IiwiaWF0IjoxMDAwMDAwMDAwMCwiZXhwIjoxMDkwMDAwMDAwMH0.JrzYlamBnT3qcjttzLTLXpiO5qfBu1e2HjQWueJ8l__aas6I1xq77UO8kCWn2Sm-zwUOI_155Pbd4xAqL6pokjLHZSFnAi9ZJ8cpqgw4ZXdI-Z3tDpZMUSiI018CGMZQZ_BwdGDIBbjEy0P-MX590DW9ofLVZckJKoXU5fFYi47OBegh4-8cchco_Z4wDPVamyhZXo8YmIN_ioSQNBQT2gNJnWsVvsXAQ7IdX9fhwS19t1kdnyk_WlezGbkrQ5xW-XAs4qMCgybbW9ErRwIruxI0PLlILFw2-m-UtH7fGdSIAaG-q6gKy79rPQLEE2kI9I39SVdIfMTadfnu6bduag")
             .path("/block")
             .reply(&filter)
             .await;
 
-        println!("{:?}, {:?}", res, db.blockchain.read());
+        println!("ISSUE: {:?}", res.body());
 
         // should be reflectled on the db as well
         assert_eq!(
