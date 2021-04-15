@@ -175,7 +175,11 @@ impl Default for Block {
     }
 }
 
-/// Simply a Student
+/// A Student
+///
+/// * [`user_id`]: Can only be one of the repopulated
+/// * [`public_key`]: A PEM format public key "---- BEGIN" and all
+/// * [`balance`]: User's current Gradecoin amount
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct User {
     pub user_id: MetuId,
@@ -253,10 +257,7 @@ impl fmt::Display for MetuId {
 impl MetuId {
     pub fn new(id: String, pwd: String) -> Option<Self> {
         if OUR_STUDENTS.contains(&(&*id, &*pwd)) {
-            Some(MetuId {
-                id,
-                passwd: pwd,
-            })
+            Some(MetuId { id, passwd: pwd })
         } else {
             None
         }
