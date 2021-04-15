@@ -60,9 +60,9 @@ const BEARER: &str = "Bearer ";
 ///     public_key: "---BEGIN PUBLIC KEY..."
 /// }
 ///
-/// - Encrypts the serialized string of `auth_plaintext` with 128 bit block AES in CBC mode with Pkcs7 padding using the temporary key (`k_temp`), the result is `auth_ciphertext` TODO should this be base64'd?
+/// - Encrypts the serialized string of `auth_plaintext` with 128 bit block AES in CBC mode with Pkcs7 padding using the temporary key (`k_temp`), the result is `auth_ciphertext`
 /// - The temporary key student has picked `k_temp` is encrypted using RSA with OAEP padding scheme
-/// using sha256 with `gradecoin_public_key` (TODO base64? same as above), giving us `key_ciphertext`
+/// using sha256 with `gradecoin_public_key`, giving us `key_ciphertext`
 /// - The payload JSON object (`auth_request`) can be JSON serialized now:
 /// {
 ///     c: "auth_ciphertext"
@@ -103,18 +103,126 @@ pub async fn authenticate_user(
     let gradecoin_private_key = RSAPrivateKey::from_pkcs1(&der_bytes).expect("failed to parse key");
 
     let padding = PaddingScheme::new_oaep::<sha2::Sha256>();
-    let temp_key = gradecoin_private_key
-        .decrypt(padding, &request.key.as_bytes())
-        .expect("failed to decrypt");
 
-    // decrypt c using key dec_key
-    let cipher = Aes128Cbc::new_var(&temp_key, &request.iv.as_bytes()).unwrap();
-    let auth_plaintext = cipher
-        .decrypt_vec(&base64::decode(request.c).unwrap())
-        .unwrap();
+    let key_ciphertext = match base64::decode(&request.key) {
+        Ok(c) => c,
+        Err(err) => {
+            debug!(
+                "The ciphertext of the key was not base64 encoded {}, {}",
+                &request.key, err
+            );
 
-    let request: AuthRequest =
-        serde_json::from_str(&String::from_utf8(auth_plaintext).unwrap()).unwrap();
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "The ciphertext of the key was not base64 encoded {}, {}".to_owned(),
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+        }
+    };
+
+    let temp_key = match gradecoin_private_key.decrypt(padding, &key_ciphertext) {
+        Ok(k) => k,
+        Err(err) => {
+            debug!(
+                "Failed to decrypt ciphertext {:?}, {}",
+                &key_ciphertext, err
+            );
+
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "Failed to decrypt the ciphertext of the temporary key".to_owned(),
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+        }
+    };
+
+    let cipher = match Aes128Cbc::new_var(&temp_key, &request.iv.as_bytes()) {
+        Ok(c) => c,
+        Err(err) => {
+            debug!(
+                "Could not create a cipher from temp_key and request.iv {:?}, {}, {}",
+                &temp_key, &request.iv, err
+            );
+
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "Given IV has invalid length".to_owned(),
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+        }
+    };
+
+    let auth_packet = match base64::decode(&request.c) {
+        Ok(a) => a,
+
+        Err(err) => {
+            debug!(
+                "The auth_packet (c field) did not base64 decode {} {}",
+                &request.c, err
+            );
+
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "The c field was not correctly base64 encoded".to_owned(),
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+        }
+    };
+
+    let auth_plaintext = match cipher.decrypt_vec(&auth_packet) {
+        Ok(p) => p,
+        Err(err) => {
+            debug!(
+                "Base64 decoded auth request did not decrypt correctly {:?} {}",
+                &auth_packet, err
+            );
+
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "The Bas64 decoded auth request did not decrypt correctly".to_owned(),
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+        }
+    };
+
+    let utf8_auth_plaintext = match String::from_utf8(auth_plaintext.clone()) {
+        Ok(text) => text,
+        Err(err) => {
+            debug!(
+                "Auth plaintext did not convert into utf8 {:?} {}",
+                &auth_plaintext, err
+            );
+
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "Auth plaintext couldn't get converted to UTF-8".to_owned(),
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+        }
+    };
+
+    let request: AuthRequest = match serde_json::from_str(&utf8_auth_plaintext) {
+        Ok(req) => req,
+        Err(err) => {
+            debug!(
+                "Auth plaintext did not serialize correctly {:?} {}",
+                &utf8_auth_plaintext, err
+            );
+
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "The auth request JSON did not serialize correctly".to_owned(),
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+        }
+    };
 
     let provided_id = request.student_id.clone();
 

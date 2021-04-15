@@ -163,7 +163,7 @@ impl Block {
         Block {
             transaction_list: vec!["gradecoin_bank".to_owned()],
             nonce: 0,
-            timestamp: NaiveDate::from_ymd(2021, 04, 11).and_hms(20, 45, 00),
+            timestamp: NaiveDate::from_ymd(2021, 4, 11).and_hms(20, 45, 00),
             hash: String::from("not_actually_mined"),
         }
     }
