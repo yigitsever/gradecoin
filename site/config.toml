@@ -3,6 +3,9 @@ base_url = "https://gradecoin.xyz"
 
 theme = "juice"
 
+title = "Gradecoin"
+description = "Mine Your Grades"
+
 # Whether to automatically compile all Sass files in the sass directory
 compile_sass = true
 
@@ -22,3 +25,4 @@ juice_logo_path = "gradecoin.png"
 juice_extra_menu = [
     { title = "why?", link = "https://github.com/zhuowei/nft_ptr#why"}
 ]
+
