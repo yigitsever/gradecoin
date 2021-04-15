@@ -17,8 +17,8 @@
 - [ ] Explain JSON Wrapped
 - [ ] Give links to the functions, their docs are very good. For example, it seems impossible to understand authentication from the first page, but when you go to handlers::authenticate_user many things are clarified.
 - [ ] There is todo at handlers::authorized_propose_transaction, fix that
-- [ ] authorized_propose_transaction and authorized_propose_block may have more explanation as in the case of 
- 
+- [ ] authorized_propose_transaction and authorized_propose_block may have more explanation as in the case of
+
 
 ### Authorization
 - [ ] Pointer to JWT
@@ -31,8 +31,6 @@
     - [ ] Valid JSON with missing fields
     - [ ] Valid JSON with extra fields
 
-## Please
-- [ ] use [juice](https://www.getzola.org/themes/juice/) theme with [template rendering](https://blog.logrocket.com/template-rendering-in-rust/) to create a landing page. I want it to look handmade & _scammy_, I'm talking [verylegit](https://verylegit.link) shortened urls, botched [this person does not exist](https://www.thispersondoesnotexist.com/) user stories etc.
 
 ## Testnet
 - [ ] CHAOS MODE, 3 different coins, combine them to make 1 gradecoin
@@ -58,3 +56,4 @@
 - [X] Blocks should "play out" the transactions and execute transactions (2021-04-14 21:29)
 - [X] "Coinbase" ("by" of the first transaction of the block) should get rewarded for their efforts (2021-04-14 21:48)
 - [X] Implemented Bank Account (2021-04-14 23:28)
+- [x] use [juice](https://www.getzola.org/themes/juice/) theme ~~with [template rendering](https://blog.logrocket.com/template-rendering-in-rust/)~~ zola to create a landing page. (done at 2021-04-15 03:41, in the most hilarious way possible)
