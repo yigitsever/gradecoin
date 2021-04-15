@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Blocks |  </title>
+    <title>Register |  </title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <style>
     :root {
@@ -66,14 +66,76 @@
         
         
         
+        
+        <div class="toc">
+            <div class="toc-sticky">
+                
+                <div class="toc-item">
+                    <a class="subtext" href="http://localhost:8080/register-docs/#authentication-process">Authentication Process</a>
+                </div>
+                
+                
+                <div class="toc-item-child">
+                    <a class="subtext" href="http://localhost:8080/register-docs/#gradecoin-side"><small>- Gradecoin Side</small></a>
+                </div>
+                
+                
+                
+            </div>
+        </div>
+        
+        
 
         <div class="content text">
             
-<div class="heading-text">Block Documentation</div>
-<p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod
-tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At
-vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd
-ubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+<div class="heading-text">Register Documentation</div>
+<p>POST request to /register endpoint
+Lets a [<code>User</code>] (=student) to authenticate themselves to the system
+This <code>request</code> can be rejected if the payload is malformed (=not authenticated properly) or if
+the [<code>AuthRequest.user_id</code>] of the <code>request</code> is not in the list of users that can hold a Gradecoin account</p>
+<h1 id="authentication-process">Authentication Process</h1>
+<ul>
+<li>
+<p>Gradecoin's Public Key (<code>gradecoin_public_key</code>) is listed on moodle.</p>
+</li>
+<li>
+<p>Gradecoin's Private Key (<code>gradecoin_private_key</code>) is loaded here</p>
+</li>
+<li>
+<p>Student picks a short temporary key (<code>k_temp</code>)</p>
+</li>
+<li>
+<p>Creates a JSON object (<code>auth_plaintext</code>) with their <code>metu_id</code> and <code>public key</code> in base64 (PEM) format (<code>S_PK</code>):
+{
+student_id: &quot;e12345&quot;,
+passwd: &quot;15 char secret&quot;
+public_key: &quot;---BEGIN PUBLIC KEY...&quot;
+}</p>
+</li>
+<li>
+<p>Encrypts the serialized string of <code>auth_plaintext</code> with 128 bit block AES in CBC mode with Pkcs7 padding using the temporary key (<code>k_temp</code>), the result is <code>auth_ciphertext</code> TODO should this be base64'd?</p>
+</li>
+<li>
+<p>The temporary key student has picked <code>k_temp</code> is encrypted using RSA with OAEP padding scheme
+using sha256 with <code>gradecoin_public_key</code> (TODO base64? same as above), giving us <code>key_ciphertext</code></p>
+</li>
+<li>
+<p>The payload JSON object (<code>auth_request</code>) can be JSON serialized now:
+{
+c: &quot;auth_ciphertext&quot;
+key: &quot;key_ciphertext&quot;
+}</p>
+</li>
+</ul>
+<h2 id="gradecoin-side">Gradecoin Side</h2>
+<ul>
+<li>Upon receiving, we first RSA decrypt with OAEP padding scheme using SHA256 with <code>gradecoin_private_key</code> as the key and auth_request.key <code>key</code> as the ciphertext, receiving <code>temp_key</code> (this is the temporary key chosen by stu</li>
+<li>With <code>temp_key</code>, we can AES 128 Cbc Pkcs7 decrypt the <code>auth_request.c</code>, giving us
+auth_plaintext</li>
+<li>The <code>auth_plaintext</code> String can be deserialized to [<code>AuthRequest</code>]</li>
+<li>We then verify the payload and calculate the User fingerprint</li>
+<li>Finally, create the new [<code>User</code>] object, insert to users HashMap <code>&lt;fingerprint, User&gt;</code></li>
+</ul>
 
 
         </div>
@@ -84,7 +146,7 @@ ubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
 
     
 <footer>
-Built For ⁂ CENG489 ⁂ Introduction to Computer Security
+    ⁂
 </footer>
 
 </body>

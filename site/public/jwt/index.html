@@ -66,14 +66,66 @@
         
         
         
+        
+        <div class="toc">
+            <div class="toc-sticky">
+                
+                <div class="toc-item">
+                    <a class="subtext" href="http://localhost:8080/jwt/#how">How?</a>
+                </div>
+                
+                
+                <div class="toc-item">
+                    <a class="subtext" href="http://localhost:8080/jwt/#algorithm">Algorithm</a>
+                </div>
+                
+                
+                <div class="toc-item">
+                    <a class="subtext" href="http://localhost:8080/jwt/#references">References</a>
+                </div>
+                
+                
+            </div>
+        </div>
+        
+        
 
         <div class="content text">
             
 <div class="heading-text">JSON Web Token Documentation</div>
-<p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod
-tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At
-vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd
-ubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+<blockquote>
+<p>JSON Web Tokens are representations of claims, or authorization proofs that fit into the <code>Header</code> of HTTP requests.</p>
+</blockquote>
+<h1 id="how">How?</h1>
+<p>JWTs are used as the <a href="https://en.wikipedia.org/wiki/Message_authentication_code">MAC</a> of operations that require authorization:</p>
+<ul>
+<li>block proposal</li>
+<li>transaction proposal.</li>
+</ul>
+<p>They are send alongside the JSON request body in the <code>Header</code>;</p>
+<pre style="background-color:#ffffff;">
+<code class="language-html" data-lang="html"><span style="color:#545052;">Authorization: Bearer aaaaaa.bbbbbb.ccccc
+</span></code></pre>
+<p>Gradecoin uses 3 fields for the JWTs;</p>
+<pre style="background-color:#ffffff;">
+<code class="language-json" data-lang="json"><span style="color:#545052;">{
+&quot;</span><span style="color:#009854;">tha</span><span style="color:#545052;">&quot;: &quot;</span><span style="color:#009854;">Hash of the payload, check invididual references</span><span style="color:#545052;">&quot;,
+&quot;</span><span style="color:#009854;">iat</span><span style="color:#545052;">&quot;: &quot;</span><span style="color:#009854;">Issued At, Unix Time</span><span style="color:#545052;">&quot;,
+&quot;</span><span style="color:#009854;">exp</span><span style="color:#545052;">&quot;: &quot;</span><span style="color:#009854;">Expiration Time, epoch</span><span style="color:#545052;">&quot;
+}
+</span></code></pre>
+<ul>
+<li><code>tha</code> is explained in <a href="http://localhost:8080/block-docs/">blocks</a> and <a href="http://localhost:8080/transaction-docs/">transactions</a> documentations.</li>
+<li><code>iat</code> when the JWT was created in <a href="https://en.wikipedia.org/wiki/Unix_time">Unix Time</a> format</li>
+<li><code>exp</code> when the JWT will expire &amp; be rejected in <a href="https://en.wikipedia.org/wiki/Unix_time">Unix Time</a></li>
+</ul>
+<h1 id="algorithm">Algorithm</h1>
+<p>We are using <a href="https://www.rfc-editor.org/rfc/rfc7518.html#section-3.1">RS256</a>, <code>RSASSA-PKCS1-v1_5 using SHA-256</code>. The JWTs you encode with your private RSA key will be decoded using the public key you have authenticated with. You can see how the process works <a href="https://jwt.io/">here</a>.</p>
+<h1 id="references">References</h1>
+<ul>
+<li><a href="https://tools.ietf.org/html/rfc7519">RFC, the ultimate reference</a></li>
+<li><a href="https://jwt.io/">JWT Debugger</a></li>
+</ul>
 
 
         </div>
@@ -84,7 +136,7 @@ ubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
 
     
 <footer>
-    ⁂
+Built For ⁂ CENG489 ⁂ Introduction to Computer Security
 </footer>
 
 </body>
