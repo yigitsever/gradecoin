@@ -8,6 +8,7 @@ use jsonwebtoken::errors::ErrorKind;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, TokenData, Validation};
 use log::{debug, warn};
 use md5::Md5;
+use parking_lot::RwLockUpgradableReadGuard;
 use rsa::{PaddingScheme, RSAPrivateKey};
 use serde::Serialize;
 use sha2::Sha256;
@@ -334,7 +335,7 @@ pub async fn authorized_propose_block(
 
     let users_store = db.users.upgradable_read();
 
-    println!("{:?}", &new_block);
+    warn!("{:?}", &new_block);
 
     if new_block.transaction_list.is_empty() {
         let res_json = warp::reply::json(&GradeCoinResponse {
@@ -455,7 +456,7 @@ pub async fn authorized_propose_block(
 
     {
         let pending_transactions = db.pending_transactions.read();
-        let mut users = db.users.write();
+        let mut users_store = RwLockUpgradableReadGuard::upgrade(users_store);
 
         let coinbase_fingerprint = new_block.transaction_list.get(0).unwrap();
 
@@ -464,17 +465,17 @@ pub async fn authorized_propose_block(
                 let source = &transaction.source;
                 let target = &transaction.target;
 
-                if let Some(from) = users.get_mut(source) {
+                if let Some(from) = users_store.get_mut(source) {
                     from.balance -= transaction.amount;
                 }
 
-                if let Some(to) = users.get_mut(target) {
+                if let Some(to) = users_store.get_mut(target) {
                     to.balance += transaction.amount;
                 }
             }
         }
 
-        if let Some(coinbase_user) = users.get_mut(coinbase_fingerprint) {
+        if let Some(coinbase_user) = users_store.get_mut(coinbase_fingerprint) {
             coinbase_user.balance += BLOCK_REWARD as i32;
         }
     }
