@@ -10,11 +10,10 @@ use gradecoin::schema::create_database;
 #[tokio::main]
 async fn main() {
     // Show debug logs by default by setting `RUST_LOG=gradecoin=debug`
-    // TODO: write logs to file? <13-04-21, yigit> //
     if env::var_os("RUST_LOG").is_none() {
         env::set_var("RUST_LOG", "gradecoin=debug");
     }
-    pretty_env_logger::init();
+    log4rs::init_file("log.conf.yml", Default::default()).unwrap();
 
     let db = create_database();
 

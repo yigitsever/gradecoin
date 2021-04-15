@@ -1,0 +1,41 @@
+# Scan this file for changes every 2 minutes
+refresh_rate: 2 minutes
+
+appenders:
+  # An appender named "stdout" that writes to stdout with pretty colours
+  stdout:
+    kind: console
+    encoder:
+      pattern: "[{d(%Y-%m-%d %H:%M:%S)} {h({l})}] - {m}\n"
+
+  # And this guy writes to file, also rolls the files (when they get too large)
+  gradecoin:
+    kind: rolling_file
+    path: "log/gradecoin.log"
+    append: true
+    encoder:
+      kind: pattern
+      pattern: "[{d(%Y-%m-%d %H:%M:%S)} {l}] - {m}\n"
+
+    policy:
+      kind: compound
+
+      trigger:
+        kind: size
+        limit: 4 mb
+
+      roller:
+        kind: fixed_window
+        pattern: "log/gradecoin.{}.old.log"
+        count: 5
+        base: 1
+
+loggers:
+  gradecoin:
+    level: info
+    appenders:
+      - stdout
+      - gradecoin
+    additive: false
+
+

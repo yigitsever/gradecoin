@@ -1,4 +1,5 @@
-/target
+log/
+target/
 blocks/
 users/
 tags.lock
