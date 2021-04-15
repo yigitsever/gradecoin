@@ -31,11 +31,11 @@ fn block_parser(path: String) -> u64 {
     block_u64
 }
 
-fn last_block_content() -> (bool, String) {
+fn last_block_content() -> Option<String> {
     let blocks = read_block_name().unwrap();
 
     if blocks.len() == 0 {
-        return (false, "".to_string());
+        return None;
     }
 
     let last_block = blocks[0].to_str().unwrap();
@@ -50,7 +50,7 @@ fn last_block_content() -> (bool, String) {
             last_block_index = index;
         }
     }
-    return (true, blocks[last_block_index].to_str().unwrap().parse().unwrap());
+    return Some(blocks[last_block_index].to_str().unwrap().parse().unwrap());
 
 }
 
@@ -108,11 +108,9 @@ fn populate_db_with_users(db: &mut Db, files: Vec<PathBuf>) -> &mut Db {
 pub fn create_database() -> Db {
     fs::create_dir_all("blocks").unwrap();
     fs::create_dir_all("users").unwrap();
-    let (res, path) = last_block_content();
-    if res {
-        return create_db_with_last_block(path);
-    } else {
-        return Db::new();
+    let mut db = Db::new();
+    if let Some(block_path) = last_block_content() {
+        populate_db_with_last_block(&mut db, block_path);
     }
 
     if let Ok(users_path) = read_users() {
