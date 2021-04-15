@@ -52,23 +52,23 @@ sQIDAQAB
         db
     }
 
-    /// Create a mock user that is allowed to be in gradecoin to be used in tests
-    fn priviliged_mocked_user() -> AuthRequest {
-        AuthRequest {
-            student_id: String::from("e254275"),
-            passwd: String::from("DtNX1qk4YF4saRH"),
-            public_key: "NOT IMPLEMENTED".to_owned(),
-        }
-    }
+    // /// Create a mock user that is allowed to be in gradecoin to be used in tests
+    // fn priviliged_mocked_user() -> AuthRequest {
+    //     AuthRequest {
+    //         student_id: String::from("e254275"),
+    //         passwd: String::from("DtNX1qk4YF4saRH"),
+    //         public_key: "NOT IMPLEMENTED".to_owned(),
+    //     }
+    // }
 
-    /// Create a mock user that is NOT allowed to be in gradecoin to be used in tests
-    fn unpriviliged_mocked_user() -> AuthRequest {
-        AuthRequest {
-            student_id: String::from("foobarbaz"),
-            passwd: String::from("DtNX1qk4YF4saRH"),
-            public_key: "NOT IMPLEMENTED".to_owned(),
-        }
-    }
+    // /// Create a mock user that is NOT allowed to be in gradecoin to be used in tests
+    // fn unpriviliged_mocked_user() -> AuthRequest {
+    //     AuthRequest {
+    //         student_id: String::from("foobarbaz"),
+    //         passwd: String::from("DtNX1qk4YF4saRH"),
+    //         public_key: "NOT IMPLEMENTED".to_owned(),
+    //     }
+    // }
 
     /// Create a mock transaction to be used in tests
     fn mocked_transaction() -> Transaction {
@@ -216,9 +216,11 @@ sQIDAQAB
             .reply(&filter)
             .await;
 
+        println!("{:?}, {:?}", res, db.blockchain.read());
+
         // should be reflectled on the db as well
         assert_eq!(
-            *db.blockchain.read().hash,
+            db.blockchain.read().hash,
             "0000007c52e4486359f62b2d19781fafaf059bd691bc6d835b666f6eac1d01d9".to_owned()
         );
         assert_eq!(res.status(), StatusCode::CREATED);
@@ -373,7 +375,9 @@ sQIDAQAB
 
     /// Test the User Authentication Process
     #[tokio::test]
-    async fn user_authentication() {}
+    async fn user_authentication() {
+        let db = mocked_db();
+    }
 }
 
 // TODO: POST block without correct transactions test <09-04-21, yigit> //
