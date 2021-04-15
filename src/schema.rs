@@ -9,6 +9,7 @@
 //! Users are held in memory and they're also backed up to text files
 use chrono::{NaiveDate, NaiveDateTime};
 use lazy_static::lazy_static;
+use log::debug;
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -23,17 +24,15 @@ use std::vec::Vec;
 
 pub type Fingerprint = String;
 
-// TODO: start by reading users from file too <14-04-21, yigit> //
-
-fn last_block_exists() -> (bool, String) {
+fn last_block_exists() -> Option<String> {
     let blocks = read_block_name().unwrap();
     for block in blocks {
         let block = block.to_str().unwrap();
         if block.contains("last.block") {
-            return (true, block.to_string());
+            return Some(block.to_string());
         }
     }
-    (false, "".to_string())
+    None
 }
 
 fn read_block_name() -> io::Result<Vec<PathBuf>> {
@@ -44,26 +43,64 @@ fn read_block_name() -> io::Result<Vec<PathBuf>> {
     Ok(entries)
 }
 
-fn create_db_with_last_block(path: String) -> Db {
+fn read_users() -> io::Result<Vec<PathBuf>> {
+    let entries = fs::read_dir("./users")?
+        .map(|res| res.map(|e| e.path()))
+        .collect::<Result<Vec<_>, io::Error>>()?;
+
+    Ok(entries)
+}
+
+fn populate_db_with_last_block(db: &mut Db, path: String) -> &mut Db {
+    debug!("Populating db with last block {}", path);
     let file = fs::read(path).unwrap();
     let json = std::str::from_utf8(&file).unwrap();
     let block: Block = serde_json::from_str(json).unwrap();
-    let db = Db::new();
     *db.blockchain.write() = block;
 
     db
 }
 
-/// Creates a new database, uses the previous last block if one exists
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+pub struct UserAtRest {
+    pub fingerprint: Fingerprint,
+    pub user: User,
+}
+
+fn populate_db_with_users(db: &mut Db, files: Vec<PathBuf>) -> &mut Db {
+    for fs in files {
+        if let Ok(file_content) = fs::read(fs) {
+            let json =
+                String::from_utf8(file_content).expect("we have written a malformed user file");
+            let user_at_rest: UserAtRest = serde_json::from_str(&json).unwrap();
+
+            debug!("Populating db with user: {:?}", user_at_rest);
+            db.users
+                .write()
+                .insert(user_at_rest.fingerprint, user_at_rest.user);
+        }
+    }
+
+    db
+}
+
+/// Creates a new database, uses the previous last block if one exists and attempts the populate
+/// the users
 pub fn create_database() -> Db {
     fs::create_dir_all("blocks").unwrap();
     fs::create_dir_all("users").unwrap();
-    let (res, path) = last_block_exists();
-    if res {
-        create_db_with_last_block(path)
-    } else {
-        Db::new()
+
+    let mut db = Db::new();
+
+    if let Some(blocks_path) = last_block_exists() {
+        populate_db_with_last_block(&mut db, blocks_path);
     }
+
+    if let Ok(users_path) = read_users() {
+        populate_db_with_users(&mut db, users_path);
+    }
+
+    db
 }
 
 /// A JWT Payload/Claims representation
@@ -188,7 +225,7 @@ pub struct User {
 }
 
 /// The values are hard coded in [`OUR_STUDENTS`] so MetuId::new() can accept/reject values based on that
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct MetuId {
     id: String,
     passwd: String,

@@ -8,7 +8,6 @@ use jsonwebtoken::errors::ErrorKind;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, TokenData, Validation};
 use log::{debug, warn};
 use md5::Md5;
-use parking_lot::RwLockUpgradableReadGuard;
 use rsa::{PaddingScheme, RSAPrivateKey};
 use serde::Serialize;
 use sha2::Sha256;
@@ -38,6 +37,7 @@ enum ResponseType {
 
 use crate::schema::{
     AuthRequest, Block, Claims, Db, InitialAuthRequest, MetuId, NakedBlock, Transaction, User,
+    UserAtRest,
 };
 
 const BEARER: &str = "Bearer ";
@@ -238,17 +238,19 @@ pub async fn authenticate_user(
         }
     };
 
-    let userlist = db.users.upgradable_read();
+    {
+        let userlist = db.users.read();
 
-    if userlist.contains_key(&provided_id) {
-        let res_json = warp::reply::json(&GradeCoinResponse {
-            res: ResponseType::Error,
-            message:
-                "This user is already authenticated, do you think this is a mistake? Contact me"
-                    .to_owned(),
-        });
+        if userlist.contains_key(&provided_id) {
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message:
+                    "This user is already authenticated, do you think this is a mistake? Contact me"
+                        .to_owned(),
+            });
 
-        return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+        }
     }
 
     // We're using this as the validator
@@ -270,11 +272,19 @@ pub async fn authenticate_user(
         balance: 0,
     };
 
-    let user_json = serde_json::to_string(&new_user).unwrap();
+    let user_at_rest_json = serde_json::to_string(&UserAtRest {
+        user: User {
+            user_id: new_user.user_id.clone(),
+            public_key: new_user.public_key.clone(),
+            balance: 0,
+        },
+        fingerprint: fingerprint.clone(),
+    })
+    .unwrap();
 
-    fs::write(format!("users/{}.guy", new_user.user_id), user_json).unwrap();
+    fs::write(format!("users/{}.guy", new_user.user_id), user_at_rest_json).unwrap();
 
-    let mut userlist = RwLockUpgradableReadGuard::upgrade(userlist);
+    let mut userlist = db.users.write();
 
     userlist.insert(fingerprint.clone(), new_user);
 
