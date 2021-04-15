@@ -1,7 +1,7 @@
 +++
 title = "Blocks"
 description = "Block Documentation"
-weight = 2
+weight = 10
 +++
 
 A block that was proposed to commit Transactions in `transaction_list` to the

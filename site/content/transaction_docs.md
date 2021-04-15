@@ -1,7 +1,7 @@
 +++
 title = "Transactions"
 description = "Transaction documentation"
-weight = 2
+weight = 6
 +++
 
 A transaction request between `source` and `target` to move `amount` Gradecoin.

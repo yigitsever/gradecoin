@@ -1,7 +1,7 @@
 +++
 title = "JWT"
 description = "JSON Web Token Documentation"
-weight = 5
+weight = 4
 +++
 
 > JSON Web Tokens are representations of claims, or authorization proofs that fit into the `Header` of HTTP requests.
