@@ -1,6 +1,6 @@
 +++
-title = "Changelog"
-description = "Changelog"
+title = "Blocks"
+description = "Block Documentation"
 weight = 2
 +++
 

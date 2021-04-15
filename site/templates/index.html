@@ -1,0 +1,44 @@
+{% extends "juice/templates/index.html" %}
+
+{% block hero %}
+<section class="text-center">
+    <h1 class="heading-text" style="font-size: 50px">
+        Mine your own grades
+    </h1>
+    <h3 class="title-text">
+        <b style="color: deepskyblue">Gradecoin</b> is the latest cutting edge blockchain technology agile grading framework that drives organic engagement and other buzzwords, with big data mining search engine optimization
+    </h3>
+    <div>
+        <!-- <a class="github-button" href="https://github.com/huhu/juice" data-size="large" data-show-count="true" -->
+        <!--                                                                                 aria-label="Star huhu/juice on GitHub">Star</a> -->
+        <!-- <a class="github-button" href="https://github.com/huhu/juice/fork" data-size="large" -->
+        <!--                                                                    data-show-count="true" aria-label="Fork huhu/juice on GitHub">Fork</a> -->
+    </div>
+</section>
+<img class="hero-image" style="width: 50%" src="{{ get_url(path="gradecoin.png") }}">
+
+<div class="explore-more text"
+     onclick="document.getElementById('features').scrollIntoView({behavior: 'smooth'})">
+    ⇩ Learn How ⇩
+</div>
+<style>
+.hero section {
+    padding: 0 5rem;
+}
+                    @media screen and (max-width: 768px) {
+                        .hero section {
+                            padding: 0 2rem;
+                        }
+
+                    .hero-image {
+                        display: none
+                    }
+                }
+</style>
+{% endblock hero %}
+
+{% block footer %}
+<footer>
+    ⁂
+</footer>
+{% endblock footer %}
