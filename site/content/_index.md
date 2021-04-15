@@ -82,4 +82,4 @@ If your favourite programming language is missing please let me know 🤷?
 Sadly, no. Student's who are enrolled to the class will receive one-time-passwords for authentication.
 
 ## How and or Why?
-- [Built](https://xkcd.com/2314/), with [Rust](https://xkcd.com/2418/)
+- [Built](https://xkcd.com/2314/), [with](https://lofi.cafe/) [Rust](https://xkcd.com/2418/)

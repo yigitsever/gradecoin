@@ -1,5 +1,8 @@
 # TODO
 
+- [ ] IV is ARRAY NO
+- [ ] RESTORE STUDENTS FROM DISK
+
 ## Office Hour/Recitation
 - [ ] Should give a little pointers but not too much, I think at first this is going to seem hard to many students but it should become fairly easy after some little pointers
 
@@ -31,9 +34,9 @@
     - [ ] Valid JSON with missing fields
     - [ ] Valid JSON with extra fields
 
-
 ## Testnet
 - [ ] CHAOS MODE, 3 different coins, combine them to make 1 gradecoin
+- [ ] [SQLite](https://unixsheikh.com/articles/sqlite-the-only-database-you-will-ever-need-in-most-cases.html), not PostgreSQL
 
 ## Done & Brag
 - [x] Switch to RwLock (parking_lot) (done at 2021-04-07 03:43, two possible schemes to represent inner Db (ledger) in code)
