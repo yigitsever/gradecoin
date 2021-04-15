@@ -25,15 +25,34 @@ pub type Fingerprint = String;
 
 // TODO: start by reading users from file too <14-04-21, yigit> //
 
-fn last_block_exists() -> (bool, String) {
+fn block_parser(path: String) -> u64 {
+    let end_pos = path.find(".block").unwrap();
+    let block_str = path[9..end_pos].to_string();
+    let block_u64 : u64 = block_str.parse().unwrap();
+    block_u64
+}
+
+fn last_block_content() -> (bool, String) {
     let blocks = read_block_name().unwrap();
-    for block in blocks {
+
+    if blocks.len() == 0 {
+        return (false, "".to_string());
+    }
+
+    let last_block = blocks[0].to_str().unwrap();
+    let mut last_block = block_parser(last_block.to_string());
+    let mut last_block_index = 0;
+
+    for (index, block) in blocks.iter().enumerate() {
         let block = block.to_str().unwrap();
-        if block.contains("last.block") {
-            return (true, block.to_string());
+        let block = block_parser(block.to_string());
+        if block > last_block {
+            last_block = block;
+            last_block_index = index;
         }
     }
-    (false, "".to_string())
+    return (true, blocks[last_block_index].to_str().unwrap().parse().unwrap());
+
 }
 
 fn read_block_name() -> io::Result<Vec<PathBuf>> {
@@ -57,7 +76,7 @@ fn create_db_with_last_block(path: String) -> Db {
 pub fn create_database() -> Db {
     fs::create_dir_all("blocks").unwrap();
     fs::create_dir_all("users").unwrap();
-    let (res, path) = last_block_exists();
+    let (res, path) = last_block_content();
     if res {
         return create_db_with_last_block(path);
     } else {
