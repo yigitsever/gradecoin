@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://gradecoin.xyz/</loc>
+    </url>
+    <url>
+        <loc>https://gradecoin.xyz/block-docs/</loc>
+    </url>
+    <url>
+        <loc>https://gradecoin.xyz/jwt/</loc>
+    </url>
+    <url>
+        <loc>https://gradecoin.xyz/register-docs/</loc>
+    </url>
+    <url>
+        <loc>https://gradecoin.xyz/transaction-docs/</loc>
+    </url>
+</urlset>
