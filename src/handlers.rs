@@ -437,8 +437,8 @@ pub async fn authorized_propose_block(
         return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
     }
 
-    // Are the 6 rightmost characters (=24 bits) zero?
-    let should_zero = hashvalue[31] as i32 + hashvalue[30] as i32 + hashvalue[29] as i32;
+    // Are the 6 leftmost characters (=24 bits) zero?
+    let should_zero = hashvalue[0] as i32 + hashvalue[1] as i32 + hashvalue[2] as i32;
 
     if should_zero != 0 {
         debug!("the hash does not have 6 rightmost zero bits");
