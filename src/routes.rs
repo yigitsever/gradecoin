@@ -18,7 +18,7 @@ pub fn consensus_routes(db: Db) -> impl Filter<Extract = impl Reply, Error = Rej
         .or(register_user(db.clone()))
         .or(auth_transaction_propose(db.clone()))
         .or(auth_block_propose(db.clone()))
-        .or(block_list(db.clone()))
+        .or(block_list(db))
         .or(static_route)
 }
 

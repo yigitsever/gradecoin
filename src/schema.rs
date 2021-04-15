@@ -50,7 +50,8 @@ fn create_db_with_last_block(path: String) -> Db {
     let block: Block = serde_json::from_str(json).unwrap();
     let db = Db::new();
     *db.blockchain.write() = block;
-    return db;
+
+    db
 }
 
 /// Creates a new database, uses the previous last block if one exists
@@ -59,9 +60,9 @@ pub fn create_database() -> Db {
     fs::create_dir_all("users").unwrap();
     let (res, path) = last_block_exists();
     if res {
-        return create_db_with_last_block(path);
+        create_db_with_last_block(path)
     } else {
-        return Db::new();
+        Db::new()
     }
 }
 
@@ -168,6 +169,12 @@ impl Block {
     }
 }
 
+impl Default for Block {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Simply a Student
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct User {
@@ -247,7 +254,7 @@ impl MetuId {
     pub fn new(id: String, pwd: String) -> Option<Self> {
         if OUR_STUDENTS.contains(&(&*id, &*pwd)) {
             Some(MetuId {
-                id: id,
+                id,
                 passwd: pwd,
             })
         } else {

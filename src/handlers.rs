@@ -1,7 +1,6 @@
 use aes::Aes128;
 /// API handlers, the ends of each filter chain
 use askama::Template;
-use base64;
 use blake2::{Blake2s, Digest};
 use block_modes::block_padding::Pkcs7;
 use block_modes::{BlockMode, Cbc};
@@ -12,7 +11,6 @@ use md5::Md5;
 use parking_lot::RwLockUpgradableReadGuard;
 use rsa::{PaddingScheme, RSAPrivateKey};
 use serde::Serialize;
-use serde_json;
 use sha2::Sha256;
 use std::collections::HashMap;
 use std::convert::Infallible;
@@ -93,7 +91,7 @@ pub async fn authenticate_user(
     // Load our RSA Private Key as DER
     let der_encoded = PRIVATE_KEY
         .lines()
-        .filter(|line| !line.starts_with("-"))
+        .filter(|line| !line.starts_with('-'))
         .fold(String::new(), |mut data, line| {
             data.push_str(&line);
             data
@@ -147,18 +145,7 @@ pub async fn authenticate_user(
 
     // We're using this as the validator
     // I hate myself
-    if let Err(_) = DecodingKey::from_rsa_pem(request.public_key.as_bytes()) {
-        let res_json = warp::reply::json(&GradeCoinResponse {
-            res: ResponseType::Error,
-            message: "The supplied RSA public key is not in valid PEM format".to_owned(),
-        });
-
-        return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
-    }
-
-    // We're using this as the validator
-    // I hate myself
-    if let Err(_) = DecodingKey::from_rsa_pem(request.public_key.as_bytes()) {
+    if DecodingKey::from_rsa_pem(request.public_key.as_bytes()).is_err() {
         let res_json = warp::reply::json(&GradeCoinResponse {
             res: ResponseType::Error,
             message: "The supplied RSA public key is not in valid PEM format".to_owned(),
@@ -231,7 +218,7 @@ pub async fn authorized_propose_block(
 
     println!("{:?}", &new_block);
 
-    if new_block.transaction_list.len() < 1 {
+    if new_block.transaction_list.is_empty() {
         let res_json = warp::reply::json(&GradeCoinResponse {
             res: ResponseType::Error,
             message: format!(
@@ -312,8 +299,8 @@ pub async fn authorized_propose_block(
 
     let naked_block = NakedBlock {
         transaction_list: new_block.transaction_list.clone(),
-        nonce: new_block.nonce.clone(),
-        timestamp: new_block.timestamp.clone(),
+        nonce: new_block.nonce,
+        timestamp: new_block.timestamp,
     };
 
     let naked_block_flat = serde_json::to_vec(&naked_block).unwrap();
@@ -546,7 +533,7 @@ pub async fn list_blocks(db: Db) -> Result<impl warp::Reply, Infallible> {
 /// *[`jwt_token`]: The raw JWT token, "Bearer aaa.bbb.ccc"
 /// *[`user_pem`]: User Public Key, "BEGIN RSA"
 /// NOT async, might look into it if this becomes a bottleneck
-fn authorize_proposer(jwt_token: String, user_pem: &String) -> Result<TokenData<Claims>, String> {
+fn authorize_proposer(jwt_token: String, user_pem: &str) -> Result<TokenData<Claims>, String> {
     // Throw away the "Bearer " part
     let raw_jwt = jwt_token.trim_start_matches(BEARER).to_owned();
     debug!("raw_jwt: {:?}", raw_jwt);
