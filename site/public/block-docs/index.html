@@ -66,14 +66,55 @@
         
         
         
+        
+        <div class="toc">
+            <div class="toc-sticky">
+                
+                <div class="toc-item">
+                    <a class="subtext" href="https://gradecoin.xyz/block-docs/#requests">Requests</a>
+                </div>
+                
+                
+                <div class="toc-item-child">
+                    <a class="subtext" href="https://gradecoin.xyz/block-docs/#get"><small>- GET</small></a>
+                </div>
+                
+                <div class="toc-item-child">
+                    <a class="subtext" href="https://gradecoin.xyz/block-docs/#post"><small>- POST</small></a>
+                </div>
+                
+                
+                
+                <div class="toc-item">
+                    <a class="subtext" href="https://gradecoin.xyz/block-docs/#fields">Fields</a>
+                </div>
+                
+                
+            </div>
+        </div>
+        
+        
 
         <div class="content text">
             
 <div class="heading-text">Block Documentation</div>
-<p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod
-tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At
-vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd
-ubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+<p>A block that was proposed to commit Transactions in <code>transaction_list</code> to the
+ledger with a nonce that made <code>hash</code> valid; 6 zeroes at the left hand side of the
+hash (24 bytes).</p>
+<p>We are <em>mining</em> using <a href="https://www.blake2.net/">blake2s</a> algorithm, which produces 256 bit hashes. Hash/second is roughly 20x10^3 on my machine, a new block can be mined in around 4-6 minutes.</p>
+<h1 id="requests">Requests</h1>
+<h2 id="get">GET</h2>
+<p>A HTTP <code>GET</code> request to <a href="/block">/block</a> endpoint will return the latest mined block.</p>
+<h2 id="post">POST</h2>
+<p>A HTTP <code>POST</code> request with Authorization using JWT will allow you to propose your own blocks.</p>
+<h1 id="fields">Fields</h1>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#545052;">transaction_list: [array of Fingerprints]
+nonce: unsigned 32-bit integer
+timestamp: ISO 8601 &lt;date&gt;T&lt;time&gt;
+hash: String
+</span></code></pre>
+<p><a href="https://en.wikipedia.org/wiki/ISO_8601#Combined_date_and_time_representations">ISO 8601 Reference</a></p>
 
 
         </div>

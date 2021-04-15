@@ -110,7 +110,7 @@ pub async fn authenticate_user(
         .expect("failed to decrypt");
 
     // decrypt c using key dec_key
-    let cipher = Aes128Cbc::new_var(&temp_key, &request.iv).unwrap();
+    let cipher = Aes128Cbc::new_var(&temp_key, &request.iv.as_bytes()).unwrap();
     let auth_plaintext = cipher
         .decrypt_vec(&base64::decode(request.c).unwrap())
         .unwrap();

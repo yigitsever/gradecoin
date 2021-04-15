@@ -4,8 +4,23 @@ description = "Transaction documentation"
 weight = 2
 +++
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod
-tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At
-vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd
-ubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+A transaction request between `source` and `target` to move `amount` Gradecoin.
 
+# Requests
+
+## GET
+A HTTP `GET` request to [/transaction](/transaction) endpoint will return the current list of pending transactions.
+
+## POST
+
+A HTTP `POST` request with Authorization using JWT to [/transaction](/transactions) will allow you to propose your own transactions.
+
+
+# Fields
+```
+by: Fingerprint
+source: Fingerprint
+target: Fingerprint
+amount: unsigned 16 bit integer
+timestamp: ISO 8601 <date>T<time>
+```
