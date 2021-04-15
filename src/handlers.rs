@@ -194,17 +194,6 @@ pub async fn authenticate_user(
     Ok(warp::reply::with_status(res_json, StatusCode::CREATED))
 }
 
-// fn shed_pem_header_footer(maybe_key: String) -> Result<Vec<u8>, String> {
-//     let der_encoded = maybe_key
-//         .lines()
-//         .filter(|line| !line.starts_with("-"))
-//         .fold(String::new(), |mut data, line| {
-//             data.push_str(&line);
-//             data
-//         });
-//     Ok(base64::decode(&der_encoded).expect("failed to decode base64 content"))
-// }
-
 /// GET /transaction
 /// Returns JSON array of transactions
 /// Cannot fail
