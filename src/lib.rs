@@ -22,7 +22,6 @@
 //! `Authorization`: The request header should have Bearer JWT.Token signed with Student Public Key
 
 pub mod custom_filters;
-pub mod error;
 pub mod handlers;
 pub mod routes;
 pub mod schema;
