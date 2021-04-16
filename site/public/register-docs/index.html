@@ -27,6 +27,7 @@
     <link rel="stylesheet" href="https:&#x2F;&#x2F;gradecoin.xyz&#x2F;juice.css">
     
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<link rel="stylesheet" href="/site.css" />
 
 </head>
 
@@ -76,6 +77,16 @@
                 </div>
                 
                 
+                <div class="toc-item-child">
+                    <a class="subtext" href="https://gradecoin.xyz/register-docs/#cipher-initialization"><small>- Cipher Initialization</small></a>
+                </div>
+                
+                <div class="toc-item-child">
+                    <a class="subtext" href="https://gradecoin.xyz/register-docs/#encryption"><small>- Encryption</small></a>
+                </div>
+                
+                
+                
             </div>
         </div>
         
@@ -87,7 +98,7 @@
 <p>POST request to <code>/register</code> endpoint</p>
 <p>Lets a user to authenticate themselves to the system.
 Only people who are enrolled to the class can open Gradecoin accounts.
-This is enforced with your Student ID and a one time password you will receive.</p>
+This is enforced with your Student ID (e123456) and a one time password you will receive.</p>
 <h1 id="authentication-process">Authentication Process</h1>
 <blockquote>
 <p>The bytes you are sending over the network are all Base64 Encoded</p>
@@ -102,13 +113,26 @@ This is enforced with your Student ID and a one time password you will receive.<
     &quot;</span><span style="color:#009854;">passwd</span><span style="color:#545052;">&quot;: &quot;</span><span style="color:#009854;">15 char secret</span><span style="color:#545052;">&quot;,
     &quot;</span><span style="color:#009854;">public_key</span><span style="color:#545052;">&quot;: &quot;</span><span style="color:#009854;">---BEGIN PUBLIC KEY...</span><span style="color:#545052;">&quot;
 }
-</span></code></pre>
+</span></code></pre><h2 id="cipher-initialization">Cipher Initialization</h2>
+<blockquote>
+<p>Since we are working with AES-128, both key and IV should be 128 bits (or 16 hexadecimal characters)</p>
+</blockquote>
 <ul>
 <li>Pick a short temporary key (<code>k_temp</code>)</li>
-<li>Pick a random IV (<code>iv</code>).</li>
-<li>Encrypt the serialized string of <code>P_AR</code> with 128 bit block AES in CBC mode with Pkcs7 padding using the temporary key (<code>k_temp</code>), the result is <code>C_AR</code>. Encode this with base64.</li>
-<li>The temporary key you have picked <code>k_temp</code> is encrypted using RSA with OAEP padding scheme using SHA-256 with <code>gradecoin_public_key</code>, giving us <code>key_ciphertext</code>. Encode this with base64.</li>
+<li>Pick a random IV <a href="https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Initialization_vector_(IV)">1</a> <a href="https://en.wikipedia.org/wiki/Initialization_vector">2</a> (<code>iv</code>).</li>
+</ul>
+<h2 id="encryption">Encryption</h2>
+<ul>
+<li>Encrypt the serialized string of <code>P_AR</code> with 128 bit block <a href="https://en.wikipedia.org/wiki/Initialization_vector">AES</a> in <a href="https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#CBC">CBC</a> mode with <a href="https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Padding">Pkcs7 padding</a> using the temporary key (<code>k_temp</code>), the result is <code>C_AR</code>. Encode this with base64.</li>
+<li>The temporary key you have picked <code>k_temp</code> is encrypted using RSA with <a href="https://en.wikipedia.org/wiki/Optimal_asymmetric_encryption_padding">OAEP</a> padding scheme using SHA-256 with <code>gradecoin_public_key</code>, giving us <code>key_ciphertext</code>. Encode this with base64.</li>
 <li>Base64 encode the IV (<code>iv</code>) as well.</li>
+</ul>
+<blockquote class="tidbit">
+    <p>
+    The available tools and libraries might warn you about how using the primitives given above are &quot;hazardous&quot;. They are, crypto is hard.
+    </p>
+</blockquote>
+<ul>
 <li>The payload JSON object (<code>auth_request</code>) can be serialized now:</li>
 </ul>
 <pre style="background-color:#ffffff;">
@@ -119,7 +143,7 @@ This is enforced with your Student ID and a one time password you will receive.<
 }
 </span></code></pre>
 <p>If your authentication process was valid, you will be given access and your public key fingerprint that is your address.
-You can now sign JWTs to send authorized transaction requests.</p>
+You can now sign <a href="https://gradecoin.xyz/jwt/">JWTs</a> to send authorized transaction requests.</p>
 
 
         </div>

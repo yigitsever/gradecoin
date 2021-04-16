@@ -8,7 +8,7 @@ POST request to `/register` endpoint
 
 Lets a user to authenticate themselves to the system.
 Only people who are enrolled to the class can open Gradecoin accounts.
-This is enforced with your Student ID and a one time password you will receive.
+This is enforced with your Student ID (e123456) and a one time password you will receive.
 
 # Authentication Process
 
@@ -24,11 +24,22 @@ This is enforced with your Student ID and a one time password you will receive.
 }
 ```
 
+## Cipher Initialization
+
+> Since we are working with AES-128, both key and IV should be 128 bits (or 16 hexadecimal characters)
+
 - Pick a short temporary key (`k_temp`)
-- Pick a random IV (`iv`).
-- Encrypt the serialized string of `P_AR` with 128 bit block AES in CBC mode with Pkcs7 padding using the temporary key (`k_temp`), the result is `C_AR`. Encode this with base64.
-- The temporary key you have picked `k_temp` is encrypted using RSA with OAEP padding scheme using SHA-256 with `gradecoin_public_key`, giving us `key_ciphertext`. Encode this with base64.
+- Pick a random IV [1](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Initialization_vector_(IV)) [2](https://en.wikipedia.org/wiki/Initialization_vector) (`iv`).
+
+## Encryption
+- Encrypt the serialized string of `P_AR` with 128 bit block [AES](https://en.wikipedia.org/wiki/Initialization_vector) in [CBC](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#CBC) mode with [Pkcs7 padding](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Padding) using the temporary key (`k_temp`), the result is `C_AR`. Encode this with base64.
+- The temporary key you have picked `k_temp` is encrypted using RSA with [OAEP](https://en.wikipedia.org/wiki/Optimal_asymmetric_encryption_padding) padding scheme using SHA-256 with `gradecoin_public_key`, giving us `key_ciphertext`. Encode this with base64.
 - Base64 encode the IV (`iv`) as well.
+
+{% tidbit() %}
+The available tools and libraries might warn you about how using the primitives given above are "hazardous". They are, crypto is hard.
+{% end %}
+
 - The payload JSON object (`auth_request`) can be serialized now:
 
 ```json
@@ -40,4 +51,4 @@ This is enforced with your Student ID and a one time password you will receive.
 ```
 
 If your authentication process was valid, you will be given access and your public key fingerprint that is your address.
-You can now sign JWTs to send authorized transaction requests.
+You can now sign [JWTs](@/JWT.md) to send authorized transaction requests.
