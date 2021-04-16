@@ -27,4 +27,4 @@ timestamp: ISO 8601 <date>T<time>
 
 # Hash
 
-```tha``` field in [jwt documentation](/jwt) in fact stands for "The Hash", in the case of a post request for a transaction, you need the hash of the serialized JSON representation of transaction. 
+```tha``` field in [jwt documentation](/jwt) in fact stands for "The Hash", in the case of a post request for a transaction, you need the md5 hash of the serialized JSON representation of transaction. 
