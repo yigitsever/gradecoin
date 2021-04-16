@@ -157,7 +157,7 @@ FQIDAQAB
 
         assert_eq!(res.status(), StatusCode::OK);
 
-        let expected_json_body = r#"{"source_public_key_signature":{"by":"source_public_key_signature","source":"source_public_key_signature","target":"target_public_key_signature","amount":3,"timestamp":"2021-04-13T20:55:30"}}"#;
+        let expected_json_body = r#"{"mock_transaction_source":{"by":"mock_transaction_source","source":"31415926535897932384626433832795028841971693993751058209749445923","target":"mock_transaction_source","amount":3,"timestamp":"2021-04-13T20:55:30"}}"#;
 
         assert_eq!(res.body(), expected_json_body);
     }
