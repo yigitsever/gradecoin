@@ -1,8 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use gradecoin::schema::{
-        create_database, AuthRequest, Block, Db, InitialAuthRequest, MetuId, Transaction, User,
-    };
+    use gradecoin::schema::{Block, Db, InitialAuthRequest, MetuId, Transaction, User};
 
     use gradecoin::routes::consensus_routes;
     use warp::http::StatusCode;
@@ -100,24 +98,6 @@ FQIDAQAB
 
         db
     }
-
-    // /// Create a mock user that is allowed to be in gradecoin to be used in tests
-    // fn priviliged_mocked_user() -> AuthRequest {
-    //     AuthRequest {
-    //         student_id: String::from("e254275"),
-    //         passwd: String::from("DtNX1qk4YF4saRH"),
-    //         public_key: "NOT IMPLEMENTED".to_owned(),
-    //     }
-    // }
-
-    // /// Create a mock user that is NOT allowed to be in gradecoin to be used in tests
-    // fn unpriviliged_mocked_user() -> AuthRequest {
-    //     AuthRequest {
-    //         student_id: String::from("foobarbaz"),
-    //         passwd: String::from("DtNX1qk4YF4saRH"),
-    //         public_key: "NOT IMPLEMENTED".to_owned(),
-    //     }
-    // }
 
     /// Create a mock transaction to be used in tests
     fn mocked_transaction() -> Transaction {
