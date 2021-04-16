@@ -27,6 +27,7 @@
     <link rel="stylesheet" href="https:&#x2F;&#x2F;gradecoin.xyz&#x2F;juice.css">
     
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<link rel="stylesheet" href="/site.css" />
 
 </head>
 
@@ -196,7 +197,7 @@ When there are enough transactions then you can propose <a href="https://gradeco
 Blocks need to be <em>mined</em> beforehand using Proof-of-work, or brute force.</p>
 <p>Gradecoin offers 3 endpoints at <a href="/register">/register</a>, <a href="/block">/block</a> and <a href="/transaction">/transaction</a>. You can only send GET requests to /block and /transaction without authorization.
 The server is programmed in <a href="https://www.service-architecture.com/articles/web-services/representational_state_transfer_rest.html">RESTful</a> architecture, there are no <code>DELETE</code>, <code>PUT</code> or <code>UPDATE</code> operations, though.</p>
-<p>Gradecoin uses a Proof-of-work block accepting mechanism. It uses single round <a href="https://www.blake2.net/">Blake2s</a> hashing which produces 256-bit (64 hexadecimal characters) output. The <a href="https://wiki.bitcoinsv.io/index.php/Target">target</a> hash is <em>24 bits</em> or <em>6 hexadecimal characters</em> of 0. During testing, I could mine a block on average around 2-7 minutes.</p>
+<p>Gradecoin uses a Proof-of-work block accepting mechanism. It uses single round <a href="https://www.blake2.net/">Blake2s</a> hashing which produces 256-bit (64 hexadecimal characters) output. The <a href="https://wiki.bitcoinsv.io/index.php/Target">target</a> hash is <em>24 bits</em> or <em>6 hexadecimal characters</em> of 0. During testing, I could mine a block on average around 4-6 minutes.</p>
 <blockquote>
 <p>We're expecting you to use existing tools and implementations. Standards are hard. <a href="https://www.reddit.com/r/crypto/comments/2coqsy/dont_roll_your_own/">Don't roll your own crypto</a>. Feel free to ask questions. Collaborate.</p>
 </blockquote>
