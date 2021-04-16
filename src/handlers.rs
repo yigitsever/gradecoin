@@ -608,9 +608,11 @@ pub async fn authorized_propose_transaction(
     // it has been changed since
 
     let hashed_transaction = Md5::digest(&serde_json::to_vec(&new_transaction).unwrap());
-
+    println!("{:?}", new_transaction);
+    println!("{:?}", &serde_json::to_vec(&new_transaction).unwrap());
+    println!("{:x}", hashed_transaction);
     if token_payload.claims.tha != format!("{:x}", hashed_transaction) {
-        debug!(
+        println!(
             "the hash of the request {:x} did not match the hash given in jwt {:?}",
             hashed_transaction, token_payload.claims.tha
         );
