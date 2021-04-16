@@ -4,16 +4,14 @@
 - [ ] Should give a little pointers but not too much, I think at first this is going to seem hard to many students but it should become fairly easy after some little pointers
 
 ## Docs
-- [ ] Make a better explanation of authorization schema
-- [ ] register: give the register message schema(passwd is missing)
+- [x] Make a better explanation of authorization schema
+- [x] register: give the register message schema(passwd is missing)
 - [ ] how to bank works
-- [ ] register should have AuthRequest in the explanation
-- [ ] link all types in schema.rs to the docs, they need to understand why we have them
-- [ ] explain hash type(MD5 is missing in Claims)
-- [ ] Initial auth request needs more explanation
-- [ ] Explain JSON Wrapped
-- [ ] Give links to the functions, their docs are very good. For example, it seems impossible to understand authentication from the first page, but when you go to handlers::authenticate_user many things are clarified.
-- [ ] authorized_propose_transaction and authorized_propose_block may have more explanation as in the case of
+- [x] register should have AuthRequest in the explanation
+- [x] link all types in schema.rs to the docs, they need to understand why we have them
+- [x] explain hash type(MD5 is missing in Claims)
+- [x] Initial auth request needs more explanation
+- [x] Explain JSON Wrapped
 - [x] how to start(possibly some pointers and links -- blockchain, rest, jwt, rsa, public key)
 - [x] There is todo at handlers::authorized_propose_transaction, fix that
 - [x] gradecoin: give narrative explanation
