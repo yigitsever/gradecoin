@@ -27,4 +27,9 @@ timestamp: ISO 8601 <date>T<time>
 hash: String
 ```
 
+# Hash
+
+```tha``` field in [jwt documentation](/jwt) in fact stands for "The Hash", in the case of a post request for a block, you need to use hash field of the block. 
+
+
 [ISO 8601 Reference](https://en.wikipedia.org/wiki/ISO_8601#Combined_date_and_time_representations)

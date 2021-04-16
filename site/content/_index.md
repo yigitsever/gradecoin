@@ -17,7 +17,7 @@ Blocks need to be _mined_ beforehand using Proof-of-work, or brute force.
 Gradecoin offers 3 endpoints at [/register](/register), [/block](/block) and [/transaction](/transaction). You can only send GET requests to /block and /transaction without authorization.
 The server is programmed in [RESTful](https://www.service-architecture.com/articles/web-services/representational_state_transfer_rest.html) architecture, there are no `DELETE`, `PUT` or `UPDATE` operations, though.
 
-Gradecoin uses a Proof-of-work block accepting mechanism. It uses single round [Blake2s](https://www.blake2.net/) hashing which produces 256-bit (64 hexadecimal characters) output. The [target](https://wiki.bitcoinsv.io/index.php/Target) hash is _24 bits_ or _6 hexadecimal characters_ of 0. During testing, I could mine a block on average around 2-7 minutes.
+Gradecoin uses a Proof-of-work block accepting mechanism. It uses single round [Blake2s](https://www.blake2.net/) hashing which produces 256-bit (64 hexadecimal characters) output. The [target](https://wiki.bitcoinsv.io/index.php/Target) hash is _24 bits_ or _6 hexadecimal characters_ of 0. During testing, I could mine a block on average around 4-6 minutes.
 
 > We're expecting you to use existing tools and implementations. Standards are hard. [Don't roll your own crypto](https://www.reddit.com/r/crypto/comments/2coqsy/dont_roll_your_own/). Feel free to ask questions. Collaborate.
 
