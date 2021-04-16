@@ -608,10 +608,7 @@ pub async fn authorized_propose_transaction(
     // this transaction was already checked for correctness at custom_filters, we can panic here if
     // it has been changed since
 
-    let hashed_transaction = Md5::digest(&serde_json::to_vec(&new_transaction).unwrap());
-    println!("{:?}", new_transaction);
-    println!("{:?}", &serde_json::to_vec(&new_transaction).unwrap());
-    println!("{:x}", hashed_transaction);
+    let hashed_transaction = Md5::digest((&serde_json::to_string(&new_transaction).unwrap()).as_ref());
     if token_payload.claims.tha != format!("{:x}", hashed_transaction) {
         println!(
             "the hash of the request {:x} did not match the hash given in jwt {:?}",

@@ -131,8 +131,8 @@ FQIDAQAB
     }
     fn mocked_transaction2() -> Transaction {
         Transaction {
-            by: "mock_transaction_source".to_owned(),
-            source: "mock_transaction_source".to_owned(),
+            by: "mock_transaction_source2".to_owned(),
+            source: "mock_transaction_source2".to_owned(),
             target: "mock_transaction_target".to_owned(),
             amount: 25,
             timestamp: chrono::NaiveDate::from_ymd(2021, 04, 09).and_hms(14, 30, 00),
@@ -214,8 +214,8 @@ FQIDAQAB
 
         let res = warp::test::request()
             .method("POST")
-            .json(&mocked_transaction())
-            .header("Authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aGEiOiJmODRmNTBjNjZkNDdhZTAzNzcwZjY0ZjUwMDgzMTAwMSIsImlhdCI6MTUxNjIzOTAyMiwiZXhwIjoyMDE2MjM5MDIyfQ.APOAH0nOqxnW5FoRjM-T9Mm0VThLrDZspKeTGXioKZJNkAMc6ZbQ_wqdvRXG-GRzivyVAW8849kbnQ-smWFHQjftKEF-aiKxWeO17vsQ4j5I9UdwwPJpGDbxU5vBgLAPXYG8wEndvC4bgy_a0P3FAlD8gIHebMh1YsbyfyEc6DFD4nvZwHzRFJtR43xRfCVgFAjSF_pB5YPAccB0DmYz_uKaGj69-9eNQYKr6giwXaiYIcF-G561kKLmTFPjCuACYNLMHONjwg8i0pT-tdiZgS7SiiWAOAo_98X54W0bCvn6i5tUPpzWKv61QXCWDdHi831YA8kMNJ2az_baRMtmhg")
+            .json(&mocked_transaction2())
+            .header("Authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aGEiOiI2NDNmOGYzMjkxNTMzNTMzOTcwMDZmNjVmOWQ1ZmViMyIsImlhdCI6MTUxNjIzOTAyMiwiZXhwIjoyMDE2MjM5MDIyfQ.yNca1RJOkSEKoF7S4PSF4iB8zmnj13ujcfsdVRcJMcQNN4CxP-pJwbUBdRgR8kNwdfLP3nLo0UBwevP42TBoujMKx7oaIl-JXsO37x7Y9GWMAHYBxEOoq1EsBeaxv9pCdyZvuVeJYIMrOpzW7oTcF4tHHvmvySD2ITnQTWu_ioCXEFdX21QQIvsqpRn7XumfCMvWfUy_C2XTFIQEAGdakPmkZ2Xt66k9zhT9hazJgAwELv5VyMV54iF8vyvvmnLkiODwTt_8VdqC6fr6jPwYaP1mzgd58r0fM76Wu0g9tIXVU83rcFMRsm_faXGbsrDJIQ06-fAO_D1sh74fhndK_g")
             .path("/transaction")
             .reply(&filter)
             .await;
