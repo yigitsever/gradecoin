@@ -1,8 +1,5 @@
 # TODO
 
-- [ ] IV is array, should be hex, implement checks
-- [ ] Restore students from disk
-
 ## Office Hour/Recitation
 - [ ] Should give a little pointers but not too much, I think at first this is going to seem hard to many students but it should become fairly easy after some little pointers
 
@@ -28,7 +25,6 @@
 - [x] Pointer to Public Key Sign
 
 ## Tests
-- [ ] User Authentication/Authentication Tests
 - [ ] Route Tests
     - [ ] Malformed JSON bodies
     - [ ] Valid JSON with missing fields
@@ -60,3 +56,8 @@
 - [X] "Coinbase" ("by" of the first transaction of the block) should get rewarded for their efforts (2021-04-14 21:48)
 - [X] Implemented Bank Account (2021-04-14 23:28)
 - [x] use [juice](https://www.getzola.org/themes/juice/) theme ~~with [template rendering](https://blog.logrocket.com/template-rendering-in-rust/)~~ zola to create a landing page. (done at 2021-04-15 03:41, in the most hilarious way possible)
+----
+- [x] IV is array, should be hex, implement checks
+- [x] Restore students from disk
+----
+- [x] User Authentication/Authentication Tests (2021-04-16 15:34, Thanks Austin, Tx)
