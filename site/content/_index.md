@@ -31,32 +31,31 @@ There is a bank! Their public key is `314159265358979323846264338327950288419716
 The first transactions of a block is called the `coinbase`. They are the **author** of the block proposal and if the block is accepted then they get compensated for their efforts with some Gradecoin.
 
 # Public Key Signatures
-Gradecoin uses 2048 bit RSA keyspairs.
+Gradecoin uses 2048 bit RSA keypairs.
 
 # Services
 ## /register
-- Student creates their own 2048 bit RSA `keypair`
-- Downloads `Gradecoin`'s Public Key from [Moodle](https://odtuclass.metu.edu.tr/my/)
-- Encrypts their [JSON](https://www.json.org/json-en.html) wrapped `Public Key`, `Student ID` and one time `passwd` using Gradecoin's Public Key
-- Their public key is now in our database and can be used to sign their JWT's during requests
-- For more information, check our [register](@/register_docs.md) page.
+-Create your own 2048 bit RSA `keypair`
+- Download `Gradecoin`'s Public Key from [Moodle](https://odtuclass.metu.edu.tr/my/)
+- Encrypt your [JSON](https://www.json.org/json-en.html) wrapped `Public Key`, `Student ID` and one time `passwd` using Gradecoin's Public Key
+- Your public key is now in our database and can be used to sign your JWT's during requests
+- For more information, check the [register](@/register_docs.md) page
 
 ## /transaction
-- You can offer a [Transaction](@/transaction_docs.md) - POST request
+- You can offer a [Transaction](@/transaction_docs.md) with a POST request
     - The request should have `Authorization`
     - The request header should be signed by the Public Key of the `by` field in the transaction
-- fetch the list of `Transaction`s - GET request
-- For more information, check our [transaction](@/transaction_docs.md) page.
-
+- Fetch the list of `Transaction`s with a GET request
+- For more information, check our [transaction](@/transaction_docs.md) page
 
 ## /block
-- offer a [Block](@/block_docs.md) - POST request
+- Offer a [Block](@/block_docs.md) with a POST request
     - The request should have `Authorization`
-    - The [`schema::Block::transaction_list`] of the block should be a subset of [`schema::Db::pending_transactions`]
-- fetch the last accepted [`schema::Block`] - GET request
-- For more information, check our [block](@/block_docs.md) page.
+    - The `transaction_list` of the block should be a subset of pending transactions, available on [/transaction](/transaction)
+- Fetch the last accepted `Block` with a GET request
+- For more information, check our [block](@/block_docs.md) page
 
-`Authorization`: The request header should have Bearer JWT.Token signed with Student Public Key
+    `Authorization`: The request header should have Bearer JWT.Token signed with Student Public Key
 
 # Questions
 ## This all sound complicated!

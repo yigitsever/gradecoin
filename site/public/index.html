@@ -211,39 +211,44 @@ The server is programmed in <a href="https://www.service-architecture.com/articl
 <h1 id="coinbase">Coinbase</h1>
 <p>The first transactions of a block is called the <code>coinbase</code>. They are the <strong>author</strong> of the block proposal and if the block is accepted then they get compensated for their efforts with some Gradecoin.</p>
 <h1 id="public-key-signatures">Public Key Signatures</h1>
-<p>Gradecoin uses 2048 bit RSA keyspairs.</p>
+<p>Gradecoin uses 2048 bit RSA keypairs.</p>
 <h1 id="services">Services</h1>
 <h2 id="register">/register</h2>
+<p>-Create your own 2048 bit RSA <code>keypair</code></p>
 <ul>
-<li>Student creates their own 2048 bit RSA <code>keypair</code></li>
-<li>Downloads <code>Gradecoin</code>'s Public Key from <a href="https://odtuclass.metu.edu.tr/my/">Moodle</a></li>
-<li>Encrypts their <a href="https://www.json.org/json-en.html">JSON</a> wrapped <code>Public Key</code>, <code>Student ID</code> and one time <code>passwd</code> using Gradecoin's Public Key</li>
-<li>Their public key is now in our database and can be used to sign their JWT's during requests</li>
-<li>For more information, check our <a href="https://gradecoin.xyz/register-docs/">register</a> page.</li>
+<li>Download <code>Gradecoin</code>'s Public Key from <a href="https://odtuclass.metu.edu.tr/my/">Moodle</a></li>
+<li>Encrypt your <a href="https://www.json.org/json-en.html">JSON</a> wrapped <code>Public Key</code>, <code>Student ID</code> and one time <code>passwd</code> using Gradecoin's Public Key</li>
+<li>Your public key is now in our database and can be used to sign your JWT's during requests</li>
+<li>For more information, check the <a href="https://gradecoin.xyz/register-docs/">register</a> page</li>
 </ul>
 <h2 id="transaction">/transaction</h2>
 <ul>
-<li>You can offer a <a href="https://gradecoin.xyz/transaction-docs/">Transaction</a> - POST request
+<li>You can offer a <a href="https://gradecoin.xyz/transaction-docs/">Transaction</a> with a POST request
 <ul>
 <li>The request should have <code>Authorization</code></li>
 <li>The request header should be signed by the Public Key of the <code>by</code> field in the transaction</li>
 </ul>
 </li>
-<li>fetch the list of <code>Transaction</code>s - GET request</li>
-<li>For more information, check our <a href="https://gradecoin.xyz/transaction-docs/">transaction</a> page.</li>
+<li>Fetch the list of <code>Transaction</code>s with a GET request</li>
+<li>For more information, check our <a href="https://gradecoin.xyz/transaction-docs/">transaction</a> page</li>
 </ul>
 <h2 id="block">/block</h2>
 <ul>
-<li>offer a <a href="https://gradecoin.xyz/block-docs/">Block</a> - POST request
+<li>
+<p>Offer a <a href="https://gradecoin.xyz/block-docs/">Block</a> with a POST request</p>
 <ul>
 <li>The request should have <code>Authorization</code></li>
-<li>The [<code>schema::Block::transaction_list</code>] of the block should be a subset of [<code>schema::Db::pending_transactions</code>]</li>
+<li>The <code>transaction_list</code> of the block should be a subset of pending transactions, available on <a href="/transaction">/transaction</a></li>
 </ul>
 </li>
-<li>fetch the last accepted [<code>schema::Block</code>] - GET request</li>
-<li>For more information, check our <a href="https://gradecoin.xyz/block-docs/">block</a> page.</li>
-</ul>
+<li>
+<p>Fetch the last accepted <code>Block</code> with a GET request</p>
+</li>
+<li>
+<p>For more information, check our <a href="https://gradecoin.xyz/block-docs/">block</a> page</p>
 <p><code>Authorization</code>: The request header should have Bearer JWT.Token signed with Student Public Key</p>
+</li>
+</ul>
 <h1 id="questions">Questions</h1>
 <h2 id="this-all-sound-complicated">This all sound complicated!</h2>
 <ul>
