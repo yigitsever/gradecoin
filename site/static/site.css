@@ -1,0 +1,11 @@
+
+.content blockquote {
+    border-left: #689d6a 8px solid;
+
+}
+.content blockquote.tidbit {
+    border-left: #928f74 8px solid;
+    font-size: 12px;
+    color: #282828;
+}
+
