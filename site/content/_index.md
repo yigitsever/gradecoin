@@ -37,7 +37,7 @@ Gradecoin uses 2048 bit RSA keyspairs.
 ## /register
 - Student creates their own 2048 bit RSA `keypair`
 - Downloads `Gradecoin`'s Public Key from [Moodle](https://odtuclass.metu.edu.tr/my/)
-- Encrypts their JSON wrapped `Public Key`, `Student ID` and one time `passwd` using Gradecoin's Public Key
+- Encrypts their [JSON](https://www.json.org/json-en.html) wrapped `Public Key`, `Student ID` and one time `passwd` using Gradecoin's Public Key
 - Their public key is now in our database and can be used to sign their JWT's during requests
 
 ## /transaction
