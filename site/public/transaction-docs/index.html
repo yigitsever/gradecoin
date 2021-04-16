@@ -99,6 +99,11 @@
                 </div>
                 
                 
+                <div class="toc-item">
+                    <a class="subtext" href="https://gradecoin.xyz/transaction-docs/#bank">Bank</a>
+                </div>
+                
+                
             </div>
         </div>
         
@@ -121,8 +126,21 @@ target: Fingerprint
 amount: unsigned 16 bit integer
 timestamp: ISO 8601 &lt;date&gt;T&lt;time&gt;
 </span></code></pre><h1 id="hash">Hash</h1>
-<p><code>tha</code> field in <a href="/jwt">jwt documentation</a> in fact stands for &quot;The Hash&quot;, in the case of a post request for a transaction, you need the md5 hash of the serialized JSON representation of transaction. </p>
-
+<p><code>tha</code> field in <a href="https://gradecoin.xyz/jwt/">jwt documentation</a> in fact stands for &quot;The Hash&quot;, in the case of a post request for a transaction, you need the Md5 hash of the serialized JSON representation of transaction.</p>
+<h1 id="bank">Bank</h1>
+<p>There is a <code>bank</code> account with Fingerprint <code>31415926535897932384626433832795028841971693993751058209749445923</code></p>
+<blockquote class="tidbit">
+    <p>
+    First 64 digits of Pi
+    </p>
+</blockquote>
+<p>This is the only account that will let you <em>withdraw</em> from them.</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#545052;">by: this has to be your Fingerprint
+source: this can be either you or the bank
+target: this can be a valid fingerprint or yourself if source is the bank
+...
+</span></code></pre>
 
         </div>
 

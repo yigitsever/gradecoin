@@ -15,7 +15,6 @@ A HTTP `GET` request to [/transaction](/transaction) endpoint will return the cu
 
 A HTTP `POST` request with Authorization using JWT to [/transaction](/transactions) will allow you to propose your own transactions.
 
-
 # Fields
 ```
 by: Fingerprint
@@ -27,4 +26,22 @@ timestamp: ISO 8601 <date>T<time>
 
 # Hash
 
-```tha``` field in [jwt documentation](/jwt) in fact stands for "The Hash", in the case of a post request for a transaction, you need the md5 hash of the serialized JSON representation of transaction. 
+`tha` field in [jwt documentation](@/JWT.md) in fact stands for "The Hash", in the case of a post request for a transaction, you need the Md5 hash of the serialized JSON representation of transaction.
+
+# Bank
+
+There is a `bank` account with Fingerprint `31415926535897932384626433832795028841971693993751058209749445923`
+
+{% tidbit() %}
+First 64 digits of Pi
+{% end %}
+
+This is the only account that will let you _withdraw_ from them.
+
+```
+by: this has to be your Fingerprint
+source: this can be either you or the bank
+target: this can be a valid fingerprint or yourself if source is the bank
+...
+```
+
