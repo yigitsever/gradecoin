@@ -217,7 +217,7 @@ The server is programmed in <a href="https://www.service-architecture.com/articl
 <ul>
 <li>Student creates their own 2048 bit RSA <code>keypair</code></li>
 <li>Downloads <code>Gradecoin</code>'s Public Key from <a href="https://odtuclass.metu.edu.tr/my/">Moodle</a></li>
-<li>Encrypts their JSON wrapped <code>Public Key</code>, <code>Student ID</code> and one time <code>passwd</code> using Gradecoin's Public Key</li>
+<li>Encrypts their <a href="https://www.json.org/json-en.html">JSON</a> wrapped <code>Public Key</code>, <code>Student ID</code> and one time <code>passwd</code> using Gradecoin's Public Key</li>
 <li>Their public key is now in our database and can be used to sign their JWT's during requests</li>
 </ul>
 <h2 id="transaction">/transaction</h2>
