@@ -151,7 +151,7 @@ pub async fn authenticate_user(
 
             let res_json = warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
-                message: "Given IV has invalid length".to_owned(),
+                message: "Given IV has invalid length, use a 128 bit key".to_owned(),
             });
 
             return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
@@ -176,9 +176,8 @@ pub async fn authenticate_user(
         }
     };
 
-    println!(">>>{:?}<<<", auth_packet);
-
-    let auth_plaintext = match cipher.decrypt_vec(&auth_packet) {
+    let mut buf = auth_packet.to_vec();
+    let auth_plaintext = match cipher.decrypt(&mut buf) {
         Ok(p) => p,
         Err(err) => {
             println!(
@@ -195,7 +194,7 @@ pub async fn authenticate_user(
         }
     };
 
-    let utf8_auth_plaintext = match String::from_utf8(auth_plaintext.clone()) {
+    let utf8_auth_plaintext = match String::from_utf8(auth_plaintext.to_vec()) {
         Ok(text) => text,
         Err(err) => {
             debug!(
