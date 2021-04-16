@@ -332,6 +332,7 @@ pub async fn authorized_propose_block(
     db: Db,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     debug!("POST request to /block, authorized_propose_block");
+    println!("Hi");
 
     let users_store = db.users.upgradable_read();
 
@@ -625,6 +626,17 @@ pub async fn authorized_propose_transaction(
     debug!("clear for transaction proposal");
 
     let mut transactions = db.pending_transactions.write();
+
+    if transactions.contains_key(&*new_transaction.source.to_owned()) {
+        return Ok(warp::reply::with_status(
+            warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "This user already has another pending transaction".to_owned(),
+            }),
+            StatusCode::BAD_REQUEST,
+        ));
+    }
+
     transactions.insert(new_transaction.source.to_owned(), new_transaction);
     Ok(warp::reply::with_status(
         warp::reply::json(&GradeCoinResponse {
