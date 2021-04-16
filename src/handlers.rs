@@ -139,6 +139,7 @@ pub async fn authenticate_user(
         }
     };
 
+    // TODO: request iv is coming with base64 encoding <16-04-21, yigit> //
     let cipher = match Aes128Cbc::new_var(&temp_key, &request.iv.as_bytes()) {
         Ok(c) => c,
         Err(err) => {

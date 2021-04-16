@@ -1,6 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use gradecoin::schema::{create_database, AuthRequest, Block, Db, MetuId, Transaction, User};
+    use gradecoin::schema::{
+        create_database, AuthRequest, Block, Db, InitialAuthRequest, MetuId, Transaction, User,
+    };
 
     use gradecoin::routes::consensus_routes;
     use warp::http::StatusCode;
@@ -406,6 +408,21 @@ FQIDAQAB
     #[tokio::test]
     async fn user_authentication() {
         let db = mocked_db();
+        let filter = consensus_routes(db);
+
+        let res = warp::test::request()
+            .method("POST")
+            .json(&InitialAuthRequest {
+                c: "llqkPAX8oGxBLFHGMNzwrCAP2WmsGZlOcm3mCp7+ZnX9p7BPffRvGcYHpif4htwU5RyR3fLo/VWERXqddVQkxhfuum0dFn1cpPfYTokc2BHpi61i4SXCaCHlJDxCtCKnujfEzMnS5hAKMQSyrwq/DPBwOSQ/XQeeMB0YF+l+ZfVJ8e6sQ5FfSK9rSInv+TokA7az6vR7Ky5fGjQ0GxKkO+SKLd5eHuGKgQ19JUQrj3k19GJn1h1cmWW1PYqVKFDp/RfWFL9weG8VynRND6xGK5fQarjdG0uMAk8Cy8ItOCAeMnBhUv/P2a721u3tA7L496r4E3ZwdgsiHe4iYzFiAdvWDWsLRlxXS+6Q2vUYSLgcFVsv2jyQ28c/ay3F1hYAHaqN4HiDhKz6bFCiyow1Doya2V24VQm5eUGxXErjEnLY1FWE5sqRn6DUnES3FT8VJoMtnhCFtZhO4Jk0cjh15p9r+vK6uJv0PUCKOOYhghFi5bLL34OpmzoV7u7Fj6tSc/e9UujbCfYc3r9g0oUQ+QKxw6R5Fcqf21TbffxX/i1tKElIhkatfWCaZ+c0scLNL4Jg3KbNqbensOFqzErr12pXHFy7QKXH1usnCJyC+9D7NncxKZ9JuVFJL19Ayq90o/IYWhtVlkhZs/F5UPIhl3G7f8OQ1tUgfdCfiXZ5qgg=".to_owned(),
+                iv: "RbZzPxu1IL+f+PZ/SJzi/Q==".to_owned(),
+                key: "baz".to_owned(),
+            })
+            .path("/register")
+            .reply(&filter)
+            .await;
+
+        println!("{:?}", res);
+        assert_eq!(res.status(), StatusCode::CREATED);
     }
 }
 
