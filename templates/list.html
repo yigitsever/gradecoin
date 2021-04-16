@@ -1,0 +1,15 @@
+{% include "header.html" %}
+
+<table id="t01">
+    <tr>
+        <th>Fingerprint</td>
+        <th>Balance</td>
+    </tr>
+    {% for user in users %}
+    <tr>
+        <td>{{ user.fingerprint }}</td>
+        <td>{{ user.balance }}</td>
+        <?tr>
+        {% endfor %}
+</table>
+{% include "footer.html" %}

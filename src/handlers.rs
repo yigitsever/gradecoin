@@ -712,17 +712,28 @@ fn authorize_proposer(jwt_token: String, user_pem: &str) -> Result<TokenData<Cla
 }
 
 #[derive(Template)]
-#[template(path = "welcome.html")]
-struct WelcomeTemplate<'a> {
-    title: &'a str,
-    body: &'a str,
+#[template(path = "list.html")]
+struct UserTemplate<'a> {
+    users: &'a Vec<DisplayUsers>,
 }
 
-pub async fn welcome_handler() -> Result<impl warp::Reply, warp::Rejection> {
-    let template = WelcomeTemplate {
-        title: "Welcome",
-        body: "To The Bookstore!",
-    };
+struct DisplayUsers {
+    fingerprint: String,
+    balance: i32,
+}
+
+pub async fn user_list_handler(db: Db) -> Result<impl warp::Reply, warp::Rejection> {
+    let users = db.users.read();
+    let mut sane_users = Vec::new();
+
+    for (fingerprint, user) in users.iter() {
+        sane_users.push(DisplayUsers {
+            fingerprint: fingerprint.to_owned(),
+            balance: user.balance,
+        });
+    }
+
+    let template = UserTemplate { users: &sane_users };
     let res = template.render().unwrap();
     Ok(warp::reply::html(res))
 }

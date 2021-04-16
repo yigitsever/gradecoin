@@ -18,8 +18,17 @@ pub fn consensus_routes(db: Db) -> impl Filter<Extract = impl Reply, Error = Rej
         .or(register_user(db.clone()))
         .or(auth_transaction_propose(db.clone()))
         .or(auth_block_propose(db.clone()))
+        .or(list_users(db.clone()))
         .or(block_list(db))
         .or(static_route)
+}
+
+/// GET /user warp route
+pub fn list_users(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
+    warp::path!("user")
+        .and(warp::get())
+        .and(custom_filters::with_db(db))
+        .and_then(handlers::user_list_handler)
 }
 
 /// POST /register warp route
