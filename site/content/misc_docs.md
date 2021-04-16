@@ -1,7 +1,7 @@
 +++
-title = "Miscellaneous Concepts"
-description = "Miscellaneous Concepts"
-weight = 6
+title = "Misc"
+description = "Documentation about everything else"
+weight = 10
 +++
 
 We thought it might be good to explain some concepts you might have questions about.
@@ -10,7 +10,7 @@ We thought it might be good to explain some concepts you might have questions ab
 
 ## Definition
 
-A fingerprint is a 256 bit 64 character hexadecimal user idenfitier for users. Fingerprints are used in defining users in [transactions](@/transaction_docs.md) and [blocks](@block_docs.md).
+A fingerprint is a 256 bit 64 character hexadecimal user identifier for users. Fingerprints are used in defining users in [transactions](@/transaction_docs.md) and [blocks](@/block_docs.md).
 
 ## Fingerprint Generation
 
