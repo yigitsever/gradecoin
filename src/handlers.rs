@@ -139,8 +139,9 @@ pub async fn authenticate_user(
         }
     };
 
-    // TODO: request iv is coming with base64 encoding <16-04-21, yigit> //
-    let cipher = match Aes128Cbc::new_var(&temp_key, &request.iv.as_bytes()) {
+    let byte_iv = base64::decode(&request.iv).unwrap();
+
+    let cipher = match Aes128Cbc::new_var(&temp_key, &byte_iv) {
         Ok(c) => c,
         Err(err) => {
             debug!(
@@ -175,17 +176,19 @@ pub async fn authenticate_user(
         }
     };
 
+    println!(">>>{:?}<<<", auth_packet);
+
     let auth_plaintext = match cipher.decrypt_vec(&auth_packet) {
         Ok(p) => p,
         Err(err) => {
-            debug!(
+            println!(
                 "Base64 decoded auth request did not decrypt correctly {:?} {}",
                 &auth_packet, err
             );
 
             let res_json = warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
-                message: "The Bas64 decoded auth request did not decrypt correctly".to_owned(),
+                message: "The Base64 decoded auth request did not decrypt correctly".to_owned(),
             });
 
             return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
@@ -608,7 +611,8 @@ pub async fn authorized_propose_transaction(
     // this transaction was already checked for correctness at custom_filters, we can panic here if
     // it has been changed since
 
-    let hashed_transaction = Md5::digest((&serde_json::to_string(&new_transaction).unwrap()).as_ref());
+    let hashed_transaction =
+        Md5::digest((&serde_json::to_string(&new_transaction).unwrap()).as_ref());
     if token_payload.claims.tha != format!("{:x}", hashed_transaction) {
         println!(
             "the hash of the request {:x} did not match the hash given in jwt {:?}",

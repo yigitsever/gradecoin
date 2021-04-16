@@ -266,8 +266,6 @@ FQIDAQAB
         let db = mocked_db();
         let filter = consensus_routes(db.clone());
 
-
-
         let res = warp::test::request()
             .method("POST")
             .json(&Block {
@@ -447,9 +445,9 @@ FQIDAQAB
         let res = warp::test::request()
             .method("POST")
             .json(&InitialAuthRequest {
-                c: "llqkPAX8oGxBLFHGMNzwrCAP2WmsGZlOcm3mCp7+ZnX9p7BPffRvGcYHpif4htwU5RyR3fLo/VWERXqddVQkxhfuum0dFn1cpPfYTokc2BHpi61i4SXCaCHlJDxCtCKnujfEzMnS5hAKMQSyrwq/DPBwOSQ/XQeeMB0YF+l+ZfVJ8e6sQ5FfSK9rSInv+TokA7az6vR7Ky5fGjQ0GxKkO+SKLd5eHuGKgQ19JUQrj3k19GJn1h1cmWW1PYqVKFDp/RfWFL9weG8VynRND6xGK5fQarjdG0uMAk8Cy8ItOCAeMnBhUv/P2a721u3tA7L496r4E3ZwdgsiHe4iYzFiAdvWDWsLRlxXS+6Q2vUYSLgcFVsv2jyQ28c/ay3F1hYAHaqN4HiDhKz6bFCiyow1Doya2V24VQm5eUGxXErjEnLY1FWE5sqRn6DUnES3FT8VJoMtnhCFtZhO4Jk0cjh15p9r+vK6uJv0PUCKOOYhghFi5bLL34OpmzoV7u7Fj6tSc/e9UujbCfYc3r9g0oUQ+QKxw6R5Fcqf21TbffxX/i1tKElIhkatfWCaZ+c0scLNL4Jg3KbNqbensOFqzErr12pXHFy7QKXH1usnCJyC+9D7NncxKZ9JuVFJL19Ayq90o/IYWhtVlkhZs/F5UPIhl3G7f8OQ1tUgfdCfiXZ5qgg=".to_owned(),
-                iv: "RbZzPxu1IL+f+PZ/SJzi/Q==".to_owned(),
-                key: "baz".to_owned(),
+                c: "xsF0qqyokuvOZJ4CgnW4mzfLHaTZS3vLqr7y8LFx6pdKo0XKXBJ4+Ojx8Uz6CYrQZLPy39O485BZNtYtLzcfF/03MePBNgSRM6ccVuh6hJ8UUAjv9nf93gZlnGceMP0bLKEaYRHTsgyW+s0y0ki7/CfYn3vveLDd4NVkkgFUAebcmMuAJJt0OAzSLgsQ/kww6hOOsIcIlBNlLIi0dopCUxE5h7aPqV4WyrxA/PSvE8hM8LcfYiATTa7PyinfkjCRu7hzItM/N3+h/zubI+6ht8lY4V/19WB24HnMZJdP1odAPuKbSDiyZoMvq+P7jHfWnbJxJJI7hEYlbB45MNMnFenVhzwEtIqHu6JEGhi7umDoh2zUDAXzofERkd3qNgPtV6L3hxmDX94Y8FIJ9ZdDj/EG06PXj9P3kg0Gt4t+hi+J8h+RtV+g+Pwza1kFCLA6sXoPxxhTuEGyYCYi+DYtWCOCFo2loyReg+juIQQRpSZsZmu4Ml5eEcVpD24lUWZ6yO/AL/TjA9eSU+PgSrQzNBggMWg4Pd6MubILBTI+crt/rSCKwcGBu2IDEiVTIWLCqlMW/PHL6LkLyLnnvOuP6yHKwpnlWboV9h+TSDfzs4aur1AoUnW+UuEQXvYYfVNkSPJ+dsOGHwi1LyAql3H36jX4dtESGZSINUjeiYxR8fwZdnge1Eo+sOGT3cQ+wCL9".to_owned(),
+                iv: "bmV2ZXJtaW5kdGhlbmZ1aw==".to_owned(),
+                key: "s4cn9BSmuForX6PxJAa55Es4t2puXuDtdII1lxEArqVlP+uYd5jDKofFtn9PCAoY7jyTgBIhQW7Ah5MGCcufWTaKHAjFVfSZ+qGwbGbBcklbNGH/F7cJ0Pe7kOCddUpIvLG6WH6+mnvyPs8PwDyagsx1Jc2PSSOYLAwkECvPbjiUjQiBixguTRNsU2eKaqzLimPE0w2ztvdA+IgCv94UPhjQfQrnMGK+Ppn3oK7IfKQJ7v2DLVNuz4d/BpwuqD+lYYAu4B4qn3daNR32a/mqAAlPg/RbPlH69N44Qh/NYux90FOY0XKxUskEwsAUw8dHFzzdKPcGx4C0s5e4KSLGkw==".to_owned(),
             })
             .path("/register")
             .reply(&filter)
