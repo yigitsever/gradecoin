@@ -1,6 +1,6 @@
 [package]
 name = "gradecoin"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Yigit Sever <yigit@ceng.metu.edu.tr>"]
 edition = "2018"
 
