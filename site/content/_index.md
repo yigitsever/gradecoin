@@ -39,18 +39,22 @@ Gradecoin uses 2048 bit RSA keyspairs.
 - Downloads `Gradecoin`'s Public Key from [Moodle](https://odtuclass.metu.edu.tr/my/)
 - Encrypts their [JSON](https://www.json.org/json-en.html) wrapped `Public Key`, `Student ID` and one time `passwd` using Gradecoin's Public Key
 - Their public key is now in our database and can be used to sign their JWT's during requests
+- For more information, check our [register](@/register_docs.md) page.
 
 ## /transaction
-- You can offer a [Transaction](/transaction) - POST request
+- You can offer a [Transaction](@/transaction_docs.md) - POST request
     - The request should have `Authorization`
     - The request header should be signed by the Public Key of the `by` field in the transaction
 - fetch the list of `Transaction`s - GET request
+- For more information, check our [transaction](@/transaction_docs.md) page.
+
 
 ## /block
-- offer a [`schema::Block`] - POST request
+- offer a [Block](@/block_docs.md) - POST request
     - The request should have `Authorization`
     - The [`schema::Block::transaction_list`] of the block should be a subset of [`schema::Db::pending_transactions`]
 - fetch the last accepted [`schema::Block`] - GET request
+- For more information, check our [block](@/block_docs.md) page.
 
 `Authorization`: The request header should have Bearer JWT.Token signed with Student Public Key
 
@@ -60,6 +64,7 @@ Gradecoin uses 2048 bit RSA keyspairs.
 - Don't know where to start? Gradecoin uses RESTful API; simple `curl` commands or even your browser will work! [This website can help as well](https://curl.trillworks.com/).
 - [JWT Debugger](https://jwt.io) and the corresponding [RFC](https://tools.ietf.org/html/rfc7519)
 - Remember that you are absolutely encouraged to grab off-the-shelf implementations for every cryptography primitive you will use. You can start by finding a code snippet to generate a RSA keypair?
+- Check out [misc](@/misc_docs.md) for everything else you might be curious about.
 
 ## I found a bug!
 Thank you! Please [let me know](mailto:yigit@ceng.metu.edu.tr) so we can solve it.
