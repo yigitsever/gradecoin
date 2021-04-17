@@ -27,7 +27,7 @@ pub type Fingerprint = String;
 fn block_parser(path: String) -> u64 {
     let end_pos = path.find(".block").unwrap();
     let block_str = path[9..end_pos].to_string();
-    let block_u64 : u64 = block_str.parse().unwrap();
+    let block_u64: u64 = block_str.parse().unwrap();
     block_u64
 }
 
@@ -51,7 +51,6 @@ fn last_block_content() -> Option<String> {
         }
     }
     return Some(blocks[last_block_index].to_str().unwrap().parse().unwrap());
-
 }
 
 fn read_block_name() -> io::Result<Vec<PathBuf>> {
@@ -180,7 +179,7 @@ pub struct Transaction {
     pub by: Fingerprint,
     pub source: Fingerprint,
     pub target: Fingerprint,
-    pub amount: i32,
+    pub amount: u16,
     pub timestamp: NaiveDateTime,
 }
 
@@ -238,7 +237,7 @@ impl Default for Block {
 pub struct User {
     pub user_id: MetuId,
     pub public_key: String,
-    pub balance: i32,
+    pub balance: u16,
 }
 
 /// The values are hard coded in [`OUR_STUDENTS`] so MetuId::new() can accept/reject values based on that

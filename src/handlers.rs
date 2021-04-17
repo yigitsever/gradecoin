@@ -19,7 +19,8 @@ use warp::{http::StatusCode, reply};
 
 use crate::PRIVATE_KEY;
 const BLOCK_TRANSACTION_COUNT: u8 = 10;
-const BLOCK_REWARD: u8 = 3;
+const BLOCK_REWARD: u16 = 3;
+const TX_UPPER_LIMIT: u16 = 2;
 
 // Encryption primitive
 type Aes128Cbc = Cbc<Aes128, Pkcs7>;
@@ -341,7 +342,7 @@ pub async fn authorized_propose_block(
 
     warn!("{:?}", &new_block);
 
-    if new_block.transaction_list.is_empty() {
+    if new_block.transaction_list.len() != BLOCK_TRANSACTION_COUNT as usize {
         let res_json = warp::reply::json(&GradeCoinResponse {
             res: ResponseType::Error,
             message: format!(
@@ -480,7 +481,7 @@ pub async fn authorized_propose_block(
         }
 
         if let Some(coinbase_user) = users_store.get_mut(coinbase_fingerprint) {
-            coinbase_user.balance += BLOCK_REWARD as i32;
+            coinbase_user.balance += BLOCK_REWARD;
         }
     }
 
@@ -565,11 +566,10 @@ pub async fn authorized_propose_transaction(
                 StatusCode::BAD_REQUEST,
             ));
         }
-    } else if new_transaction.by == new_transaction.target
-        && new_transaction.source
-            != "31415926535897932384626433832795028841971693993751058209749445923"
-    {
-        // Propose to transact with the bank
+    }
+
+    // Is transaction amount within bounds
+    if new_transaction.amount > TX_UPPER_LIMIT {
         return Ok(warp::reply::with_status(
             warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
@@ -577,6 +577,36 @@ pub async fn authorized_propose_transaction(
             }),
             StatusCode::BAD_REQUEST,
         ));
+    }
+
+    if new_transaction.by == new_transaction.source {
+        // check if user can afford the transaction
+        if internal_user.balance < new_transaction.amount {
+            return Ok(warp::reply::with_status(
+                warp::reply::json(&GradeCoinResponse {
+                    res: ResponseType::Error,
+                    message:
+                        "User does not have enough balance in their account for this transaction"
+                            .to_owned(),
+                }),
+                StatusCode::BAD_REQUEST,
+            ));
+        }
+    } else if new_transaction.by == new_transaction.target {
+        // Only transactions FROM bank could appear here
+
+        if new_transaction.source
+            != "31415926535897932384626433832795028841971693993751058209749445923"
+        {
+            return Ok(warp::reply::with_status(
+                warp::reply::json(&GradeCoinResponse {
+                    res: ResponseType::Error,
+                    message: "Transactions cannot extort Gradecoin from unsuspecting users"
+                        .to_owned(),
+                }),
+                StatusCode::BAD_REQUEST,
+            ));
+        }
     } else {
         return Ok(warp::reply::with_status(
             warp::reply::json(&GradeCoinResponse {
@@ -719,7 +749,7 @@ struct UserTemplate<'a> {
 
 struct DisplayUsers {
     fingerprint: String,
-    balance: i32,
+    balance: u16,
 }
 
 pub async fn user_list_handler(db: Db) -> Result<impl warp::Reply, warp::Rejection> {

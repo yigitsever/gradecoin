@@ -80,7 +80,7 @@ FQIDAQAB
                 source: "31415926535897932384626433832795028841971693993751058209749445923"
                     .to_owned(),
                 target: "mock_transaction_source".to_owned(),
-                amount: 3,
+                amount: 2,
                 timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(20, 55, 30),
             },
         );
@@ -105,7 +105,7 @@ FQIDAQAB
             by: "mock_transaction_source".to_owned(),
             source: "mock_transaction_source".to_owned(),
             target: "mock_transaction_target".to_owned(),
-            amount: 25,
+            amount: 2,
             timestamp: chrono::NaiveDate::from_ymd(2021, 04, 09).and_hms(14, 30, 00),
         }
     }
@@ -114,11 +114,10 @@ FQIDAQAB
             by: "mock_transaction_source2".to_owned(),
             source: "mock_transaction_source2".to_owned(),
             target: "mock_transaction_target".to_owned(),
-            amount: 25,
+            amount: 2,
             timestamp: chrono::NaiveDate::from_ymd(2021, 04, 09).and_hms(14, 30, 00),
         }
     }
-    // r#"{"by":"mock_transaction_source","source":"mock_transaction_source","target":"mock_transaction_target","amount":25,"timestamp":"2021-04-09T14:30:00"}"#
 
     /// Test simple GET request to /transaction, an endpoint that exists
     /// https://tools.ietf.org/html/rfc7231#section-6.3.1
@@ -137,7 +136,7 @@ FQIDAQAB
 
         assert_eq!(res.status(), StatusCode::OK);
 
-        let expected_json_body = r#"{"mock_transaction_source":{"by":"mock_transaction_source","source":"31415926535897932384626433832795028841971693993751058209749445923","target":"mock_transaction_source","amount":3,"timestamp":"2021-04-13T20:55:30"}}"#;
+        let expected_json_body = r#"{"mock_transaction_source":{"by":"mock_transaction_source","source":"31415926535897932384626433832795028841971693993751058209749445923","target":"mock_transaction_source","amount":2,"timestamp":"2021-04-13T20:55:30"}}"#;
 
         assert_eq!(res.body(), expected_json_body);
     }
@@ -242,7 +241,6 @@ FQIDAQAB
     /// the block
     #[tokio::test]
     async fn post_block_auth_201() {
-        println!("Wtf");
         let db = mocked_db();
         let filter = consensus_routes(db.clone());
 
