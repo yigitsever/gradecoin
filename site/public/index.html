@@ -67,6 +67,7 @@
 
     <div class="hero">
         
+
 <section class="text-center">
     <h1 class="heading-text animate__animated animate__jackInTheBox" style="font-size: 50px">
         Mine your own grades
@@ -83,6 +84,7 @@
      onclick="document.getElementById('features').scrollIntoView({behavior: 'smooth'})">
     ⇩ Learn How ⇩
 </div>
+
 <style>
 
 .hero section {
@@ -197,8 +199,18 @@ footer {
 
         <div class="content text">
             
-            <div id="features" class="heading-text">Overview</div>
-            <h1 id="welcome-to-gradecoin">Welcome to Gradecoin!</h1>
+<div class="tcontainer">
+    <div class="ticker-wrap">
+        <div class="ticker-move">
+            <div class="ticker-item"><b>News:</b></div>
+            <div class="ticker-item">Gradecoin is in testnet mode, API is not stable, everything might reset at any time.</div>
+            <div class="ticker-item">Someone managed to authenticate themselves in less than 24 hours!</div>
+            <div class="ticker-item">Transactions now have saner amount limits.</div>
+            <div class="ticker-item">Blocks now properly require 10 transactions in them.</div>
+        </div>
+    </div>
+</div>
+<h1 id="welcome-to-gradecoin">Welcome to Gradecoin!</h1>
 <p>Blockchains are incredibly simple yet can appear very complicated, we will see how they work and practice programming <em>production</em> cryptography code.</p>
 <p>This server is the sandbox for the PA1, it's currently running the Gradecoin application. Gradecoin is the faux currency we will use to simulate a blockchain network. At the end of the simulation, the amount of Gradecoin you hold will be your PA1 grade.</p>
 <p><strong>A quick summary</strong>: authenticate yourself to the system using public key encryption.
@@ -299,7 +311,7 @@ The server is programmed in <a href="https://www.service-architecture.com/articl
 <li><a href="https://xkcd.com/2314/">Built</a>, <a href="https://lofi.cafe/">with</a> <a href="https://xkcd.com/2418/">Rust</a></li>
 </ul>
 
-            
+
         </div>
 
         
