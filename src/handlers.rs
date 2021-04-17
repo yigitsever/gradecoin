@@ -84,7 +84,7 @@ pub async fn authenticate_user(
     request: InitialAuthRequest,
     db: Db,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    debug!("POST request to /register, authenticate_user");
+    debug!("POST /register, authenticate_user() is handling");
 
     // In essence PEM files are just base64 encoded versions of the DER encoded data.
     // ~tls.mbed.org
@@ -277,6 +277,8 @@ pub async fn authenticate_user(
         balance: 0,
     };
 
+    debug!("New user authenticated themselves! {:?}", &new_user);
+
     let user_at_rest_json = serde_json::to_string(&UserAtRest {
         user: User {
             user_id: new_user.user_id.clone(),
@@ -296,7 +298,7 @@ pub async fn authenticate_user(
     let res_json = warp::reply::json(&GradeCoinResponse {
         res: ResponseType::Success,
         message: format!(
-            "User authenticated to use Gradecoin with identifier {}",
+            "You have authenticated to use Gradecoin with identifier {}",
             fingerprint
         ),
     });
@@ -308,11 +310,10 @@ pub async fn authenticate_user(
 /// Returns JSON array of transactions
 /// Cannot fail
 pub async fn list_transactions(db: Db) -> Result<impl warp::Reply, Infallible> {
-    debug!("GET request to /transaction, list_transactions");
+    debug!("GET /transaction, list_transactions() is handling");
     let mut result = HashMap::new();
 
     let transactions = db.pending_transactions.read();
-    // let transactions = transactions.clone().into_iter().collect();
 
     for (fp, tx) in transactions.iter() {
         result.insert(fp, tx);
@@ -330,17 +331,16 @@ pub async fn list_transactions(db: Db) -> Result<impl warp::Reply, Infallible> {
 /// This is the analogue of `coinbase` in Bitcoin works
 ///
 /// The `coinbase` transaction also gets something for their efforts.
-pub async fn authorized_propose_block(
+pub async fn propose_block(
     new_block: Block,
     token: String,
     db: Db,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    debug!("POST request to /block, authorized_propose_block");
-    println!("Hi");
+    debug!("POST /block, propose_block() is handling");
 
     let users_store = db.users.upgradable_read();
 
-    warn!("{:?}", &new_block);
+    warn!("New block proposal: {:?}", &new_block);
 
     if new_block.transaction_list.len() != BLOCK_TRANSACTION_COUNT as usize {
         let res_json = warp::reply::json(&GradeCoinResponse {
@@ -457,8 +457,9 @@ pub async fn authorized_propose_block(
     }
 
     // All clear, block accepted!
-    debug!("We have a new block!");
+    debug!("We have a new block! {:?}", new_block);
 
+    // Scope the pending_transactions
     {
         let pending_transactions = db.pending_transactions.read();
         let mut users_store = RwLockUpgradableReadGuard::upgrade(users_store);
@@ -521,12 +522,12 @@ pub async fn authorized_propose_block(
 /// * `token` - An Authorization header value such as `Bearer aaa.bbb.ccc`
 /// * `db` - Global [`Db`] instance
 ///
-pub async fn authorized_propose_transaction(
+pub async fn propose_transaction(
     new_transaction: Transaction,
     token: String,
     db: Db,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    debug!("POST request to /transaction, authorized_propose_transaction");
+    debug!("POST /transaction, authorized_propose_transaction() is handling");
 
     let users_store = db.users.read();
 
@@ -552,16 +553,14 @@ pub async fn authorized_propose_transaction(
 
     // `internal_user` is an authenticated student, can propose
 
-    // check if user can afford the transaction
-    if new_transaction.by == new_transaction.source {
-        // Propose to transact with another user
-        if internal_user.balance < new_transaction.amount {
+    // Does this user have a pending transaction?
+    {
+        let transactions = db.pending_transactions.read();
+        if transactions.contains_key(&*new_transaction.source.to_owned()) {
             return Ok(warp::reply::with_status(
                 warp::reply::json(&GradeCoinResponse {
                     res: ResponseType::Error,
-                    message:
-                        "User does not have enough balance in their account for this transaction"
-                            .to_owned(),
+                    message: "This user already has another pending transaction".to_owned(),
                 }),
                 StatusCode::BAD_REQUEST,
             ));
@@ -573,7 +572,7 @@ pub async fn authorized_propose_transaction(
         return Ok(warp::reply::with_status(
             warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
-                message: "Transactions cannot extort Gradecoin from unsuspecting users".to_owned(),
+                message: format!("Transaction amount cannot exceed {}", TX_UPPER_LIMIT),
             }),
             StatusCode::BAD_REQUEST,
         ));
@@ -656,21 +655,12 @@ pub async fn authorized_propose_transaction(
         ));
     }
 
-    debug!("clear for transaction proposal");
+    warn!("NEW TRANSACTION {:?}", new_transaction);
 
     let mut transactions = db.pending_transactions.write();
 
-    if transactions.contains_key(&*new_transaction.source.to_owned()) {
-        return Ok(warp::reply::with_status(
-            warp::reply::json(&GradeCoinResponse {
-                res: ResponseType::Error,
-                message: "This user already has another pending transaction".to_owned(),
-            }),
-            StatusCode::BAD_REQUEST,
-        ));
-    }
-
     transactions.insert(new_transaction.source.to_owned(), new_transaction);
+
     Ok(warp::reply::with_status(
         warp::reply::json(&GradeCoinResponse {
             res: ResponseType::Success,
@@ -685,7 +675,7 @@ pub async fn authorized_propose_transaction(
 /// Cannot fail
 /// Mostly around for debug purposes
 pub async fn list_blocks(db: Db) -> Result<impl warp::Reply, Infallible> {
-    debug!("GET request to /block, list_blocks");
+    debug!("GET /block, list_blocks() is handling");
 
     let block = db.blockchain.read();
 

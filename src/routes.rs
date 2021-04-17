@@ -65,7 +65,7 @@ pub fn auth_transaction_propose(
         .and(custom_filters::transaction_json_body())
         .and(custom_filters::auth_header())
         .and(custom_filters::with_db(db))
-        .and_then(handlers::authorized_propose_transaction)
+        .and_then(handlers::propose_transaction)
 }
 
 /// POST /block warp route
@@ -75,5 +75,5 @@ pub fn auth_block_propose(db: Db) -> impl Filter<Extract = impl Reply, Error = R
         .and(custom_filters::block_json_body())
         .and(custom_filters::auth_header())
         .and(custom_filters::with_db(db))
-        .and_then(handlers::authorized_propose_block)
+        .and_then(handlers::propose_block)
 }
