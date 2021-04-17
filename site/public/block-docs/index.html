@@ -95,6 +95,11 @@
                 
                 
                 <div class="toc-item">
+                    <a class="subtext" href="https://gradecoin.xyz/block-docs/#mining">Mining</a>
+                </div>
+                
+                
+                <div class="toc-item">
                     <a class="subtext" href="https://gradecoin.xyz/block-docs/#hash">Hash</a>
                 </div>
                 
@@ -110,7 +115,7 @@
 <p>A block that was proposed to commit Transactions in <code>transaction_list</code> to the
 ledger with a nonce that made <code>hash</code> valid; 6 zeroes at the left hand side of the
 hash (24 bytes).</p>
-<p>We are <em>mining</em> using <a href="https://www.blake2.net/">blake2s</a> algorithm, which produces 256 bit hashes. Hash/second is roughly 20x10^3 on my machine, a new block can be mined in around 4-6 minutes.</p>
+<p>We are <em>mining</em> using <a href="https://www.blake2.net/">blake2s</a> algorithm, which produces 256 bit hashes. Hash/second is roughly 20x10<sup>3</sup> on my machine, a new block can be mined in around 4-6 minutes.</p>
 <h1 id="requests">Requests</h1>
 <h2 id="get">GET</h2>
 <p>A HTTP <code>GET</code> request to <a href="/block">/block</a> endpoint will return the latest mined block.</p>
@@ -122,8 +127,16 @@ hash (24 bytes).</p>
 nonce: unsigned 32-bit integer
 timestamp: ISO 8601 &lt;date&gt;T&lt;time&gt;
 hash: String
-</span></code></pre><h1 id="hash">Hash</h1>
-<p><code>tha</code> field in <a href="/jwt">jwt documentation</a> in fact stands for &quot;The Hash&quot;, in the case of a post request for a block, you need to use hash field of the block. </p>
+</span></code></pre><h1 id="mining">Mining</h1>
+<p>The <em>mining</em> process for the hash involves;</p>
+<ul>
+<li>Creating a temporary JSON object with <code>transaction_list</code>, <code>timestamp</code> and <code>nonce</code> values</li>
+<li>Serializing it</li>
+<li>Calculating blake2s hash of the serialized string</li>
+</ul>
+<p>If the resulting hash is valid, then you can create a <code>Block</code> JSON object with the found <code>nonce</code> and <code>hash</code>.</p>
+<h1 id="hash">Hash</h1>
+<p><code>tha</code> field in <a href="/jwt">jwt documentation</a> in fact stands for &quot;The Hash&quot;, in the case of a post request for a block, you need to use hash field of the block.</p>
 <p><a href="https://en.wikipedia.org/wiki/ISO_8601#Combined_date_and_time_representations">ISO 8601 Reference</a></p>
 
 

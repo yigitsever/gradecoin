@@ -57,13 +57,22 @@ Gradecoin uses 2048 bit RSA keypairs.
 
     `Authorization`: The request header should have Bearer JWT.Token signed with Student Public Key
 
+## /user
+- Meant to be used in the browser, you can see the current list of users and their balance here
+
 # Questions
 ## This all sound complicated!
 - I've drawn inspiration from [actual Bitcoin transactions](https://explorer.bitcoin.com/btc) and [warp](https://github.com/seanmonstar/warp/blob/master/examples/todos.rs). The simplicity of the system is how little interfaces it has.
 - Don't know where to start? Gradecoin uses RESTful API; simple `curl` commands or even your browser will work! [This website can help as well](https://curl.trillworks.com/).
-- [JWT Debugger](https://jwt.io) and the corresponding [RFC](https://tools.ietf.org/html/rfc7519)
+- [JWT Debugger](https://jwt.io) and the corresponding [RFC](https://tools.ietf.org/html/rfc7519).
 - Remember that you are absolutely encouraged to grab off-the-shelf implementations for every cryptography primitive you will use. You can start by finding a code snippet to generate a RSA keypair?
 - Check out [misc](@/misc_docs.md) for everything else you might be curious about.
+
+## How do you actually earn Gradecoin?
+- Register yourself to at [/register](@/register_docs.md)
+- Create transactions at [/transaction](@/transaction_docs.md)
+- Create blocks to commit transactions at [/block](@/block_docs.md)
+- See how everyone is doing and find people to trade with at [/user](/user)
 
 ## I found a bug!
 Thank you! Please [let me know](mailto:yigit@ceng.metu.edu.tr) so we can solve it.

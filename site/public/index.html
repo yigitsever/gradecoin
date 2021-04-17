@@ -149,6 +149,10 @@ footer {
                     <a class="subtext" href="https://gradecoin.xyz/#block"><small>- &#x2F;block</small></a>
                 </div>
                 
+                <div class="toc-item-child">
+                    <a class="subtext" href="https://gradecoin.xyz/#user"><small>- &#x2F;user</small></a>
+                </div>
+                
                 
                 
                 <div class="toc-item">
@@ -158,6 +162,10 @@ footer {
                 
                 <div class="toc-item-child">
                     <a class="subtext" href="https://gradecoin.xyz/#this-all-sound-complicated"><small>- This all sound complicated!</small></a>
+                </div>
+                
+                <div class="toc-item-child">
+                    <a class="subtext" href="https://gradecoin.xyz/#how-do-you-actually-earn-gradecoin"><small>- How do you actually earn Gradecoin?</small></a>
                 </div>
                 
                 <div class="toc-item-child">
@@ -249,14 +257,25 @@ The server is programmed in <a href="https://www.service-architecture.com/articl
 <p><code>Authorization</code>: The request header should have Bearer JWT.Token signed with Student Public Key</p>
 </li>
 </ul>
+<h2 id="user">/user</h2>
+<ul>
+<li>Meant to be used in the browser, you can see the current list of users and their balance here</li>
+</ul>
 <h1 id="questions">Questions</h1>
 <h2 id="this-all-sound-complicated">This all sound complicated!</h2>
 <ul>
 <li>I've drawn inspiration from <a href="https://explorer.bitcoin.com/btc">actual Bitcoin transactions</a> and <a href="https://github.com/seanmonstar/warp/blob/master/examples/todos.rs">warp</a>. The simplicity of the system is how little interfaces it has.</li>
 <li>Don't know where to start? Gradecoin uses RESTful API; simple <code>curl</code> commands or even your browser will work! <a href="https://curl.trillworks.com/">This website can help as well</a>.</li>
-<li><a href="https://jwt.io">JWT Debugger</a> and the corresponding <a href="https://tools.ietf.org/html/rfc7519">RFC</a></li>
+<li><a href="https://jwt.io">JWT Debugger</a> and the corresponding <a href="https://tools.ietf.org/html/rfc7519">RFC</a>.</li>
 <li>Remember that you are absolutely encouraged to grab off-the-shelf implementations for every cryptography primitive you will use. You can start by finding a code snippet to generate a RSA keypair?</li>
 <li>Check out <a href="https://gradecoin.xyz/misc-docs/">misc</a> for everything else you might be curious about.</li>
+</ul>
+<h2 id="how-do-you-actually-earn-gradecoin">How do you actually earn Gradecoin?</h2>
+<ul>
+<li>Register yourself to at <a href="https://gradecoin.xyz/register-docs/">/register</a></li>
+<li>Create transactions at <a href="https://gradecoin.xyz/transaction-docs/">/transaction</a></li>
+<li>Create blocks to commit transactions at <a href="https://gradecoin.xyz/block-docs/">/block</a></li>
+<li>See how everyone is doing and find people to trade with at <a href="/user">/user</a></li>
 </ul>
 <h2 id="i-found-a-bug">I found a bug!</h2>
 <p>Thank you! Please <a href="mailto:yigit@ceng.metu.edu.tr">let me know</a> so we can solve it.</p>
