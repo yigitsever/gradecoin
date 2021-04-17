@@ -1,35 +1,15 @@
 # TODO
 
-## Office Hour/Recitation
-- [ ] Should give a little pointers but not too much, I think at first this is going to seem hard to many students but it should become fairly easy after some little pointers
-
-## Docs
-- [x] Make a better explanation of authorization schema
-- [x] register: give the register message schema(passwd is missing)
-- [ ] how to bank works
-- [x] register should have AuthRequest in the explanation
-- [x] link all types in schema.rs to the docs, they need to understand why we have them
-- [x] explain hash type(MD5 is missing in Claims)
-- [x] Initial auth request needs more explanation
-- [x] Explain JSON Wrapped
-- [x] how to start(possibly some pointers and links -- blockchain, rest, jwt, rsa, public key)
-- [x] There is todo at handlers::authorized_propose_transaction, fix that
-- [x] gradecoin: give narrative explanation
-- [x] bank public key
-- [X] delete CONSTANTS
-
-### Authorization
-- [x] Pointer to JWT
-- [x] Pointer to Public Key Sign
-
 ## Tests
 - [ ] Route Tests
     - [ ] Malformed JSON bodies
     - [ ] Valid JSON with missing fields
     - [ ] Valid JSON with extra fields
+- [ ] Transaction with bank test
 
 ## Testnet
 - [ ] CHAOS MODE, 3 different coins, combine them to make 1 gradecoin
+- [ ] NICE MODE, transactions move the amount, then award some to the sender, everyone starts with 10 gradecoins
 - [ ] [SQLite](https://unixsheikh.com/articles/sqlite-the-only-database-you-will-ever-need-in-most-cases.html), not PostgreSQL
 
 ## Done & Brag
