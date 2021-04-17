@@ -32,7 +32,7 @@ appenders:
 
 loggers:
   gradecoin:
-    level: info
+    level: trace
     appenders:
       - stdout
       - gradecoin
