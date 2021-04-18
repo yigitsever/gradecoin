@@ -659,7 +659,7 @@ pub async fn propose_transaction(
 
     let mut transactions = db.pending_transactions.write();
 
-    transactions.insert(new_transaction.source.to_owned(), new_transaction);
+    transactions.insert(new_transaction.by.to_owned(), new_transaction);
 
     Ok(warp::reply::with_status(
         warp::reply::json(&GradeCoinResponse {
