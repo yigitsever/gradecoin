@@ -723,7 +723,7 @@ fn authorize_proposer(jwt_token: String, user_pem: &str) -> Result<TokenData<Cla
                 }
                 _ => {
                     warn!("AN UNSPECIFIED ERROR: {:?}", err);
-                    return Err(String::from("Unspecified error"));
+                    return Err(format!("JWT Error: {}", err));
                 }
             },
         };
