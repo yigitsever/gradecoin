@@ -527,7 +527,7 @@ pub async fn propose_transaction(
     token: String,
     db: Db,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    debug!("POST /transaction, authorized_propose_transaction() is handling");
+    debug!("POST /transaction, propose_transaction() is handling");
 
     let users_store = db.users.read();
 
@@ -659,10 +659,11 @@ pub async fn propose_transaction(
     let hashed_transaction =
         Md5::digest((&serde_json::to_string(&new_transaction).unwrap()).as_ref());
     if token_payload.claims.tha != format!("{:x}", hashed_transaction) {
+        debug!("The hash of the transaction did not match with the hash given in JWT");
         return Ok(warp::reply::with_status(
             warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
-                message: "The hash of the block did not match the hash given in JWT".to_owned(),
+                message: "The hash of the transaction did not match the hash given in JWT".to_owned(),
             }),
             StatusCode::BAD_REQUEST,
         ));
