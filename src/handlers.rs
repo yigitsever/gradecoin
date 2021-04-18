@@ -18,7 +18,7 @@ use std::fs;
 use warp::{http::StatusCode, reply};
 
 use crate::PRIVATE_KEY;
-const BLOCK_TRANSACTION_COUNT: u8 = 10;
+const BLOCK_TRANSACTION_COUNT: u8 = 5;
 const BLOCK_REWARD: u16 = 3;
 const TX_UPPER_LIMIT: u16 = 2;
 
