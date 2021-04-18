@@ -556,7 +556,8 @@ pub async fn propose_transaction(
     // Does this user have a pending transaction?
     {
         let transactions = db.pending_transactions.read();
-        if transactions.contains_key(&*new_transaction.source.to_owned()) {
+        if transactions.contains_key(&*new_transaction.by.to_owned()) {
+            debug!("{:?} already has a pending transaction", new_transaction.by);
             return Ok(warp::reply::with_status(
                 warp::reply::json(&GradeCoinResponse {
                     res: ResponseType::Error,
@@ -569,6 +570,10 @@ pub async fn propose_transaction(
 
     // Is transaction amount within bounds
     if new_transaction.amount > TX_UPPER_LIMIT {
+        debug!(
+            "Transaction amount cannot exceed {}, was {}",
+            TX_UPPER_LIMIT, new_transaction.amount
+        );
         return Ok(warp::reply::with_status(
             warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
@@ -581,6 +586,10 @@ pub async fn propose_transaction(
     if new_transaction.by == new_transaction.source {
         // check if user can afford the transaction
         if internal_user.balance < new_transaction.amount {
+            debug!(
+                "User does not have enough balance ({}) for this TX {}",
+                internal_user.balance, new_transaction.amount
+            );
             return Ok(warp::reply::with_status(
                 warp::reply::json(&GradeCoinResponse {
                     res: ResponseType::Error,
@@ -597,6 +606,10 @@ pub async fn propose_transaction(
         if new_transaction.source
             != "31415926535897932384626433832795028841971693993751058209749445923"
         {
+            debug!(
+                "Extortion attempt - between {} and {}",
+                new_transaction.source, new_transaction.target
+            );
             return Ok(warp::reply::with_status(
                 warp::reply::json(&GradeCoinResponse {
                     res: ResponseType::Error,
@@ -607,10 +620,14 @@ pub async fn propose_transaction(
             ));
         }
     } else {
+        debug!(
+            "Attempt to transact between two unrelated parties - {} and {}",
+            new_transaction.source, new_transaction.target
+        );
         return Ok(warp::reply::with_status(
             warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
-                message: "Transactions cannot be proposed between two unrelated parties".to_owned(),
+                message: "Transactions cannot be proposed on behalf of  someone else".to_owned(),
             }),
             StatusCode::BAD_REQUEST,
         ));
@@ -623,7 +640,7 @@ pub async fn propose_transaction(
     let token_payload = match authorize_proposer(token, &proposer_public_key) {
         Ok(data) => data,
         Err(below) => {
-            debug!("Something went wrong below {:?}", below);
+            debug!("Something went wrong at JWT {:?}", below);
             return Ok(warp::reply::with_status(
                 warp::reply::json(&GradeCoinResponse {
                     res: ResponseType::Error,
@@ -642,10 +659,6 @@ pub async fn propose_transaction(
     let hashed_transaction =
         Md5::digest((&serde_json::to_string(&new_transaction).unwrap()).as_ref());
     if token_payload.claims.tha != format!("{:x}", hashed_transaction) {
-        println!(
-            "the hash of the request {:x} did not match the hash given in jwt {:?}",
-            hashed_transaction, token_payload.claims.tha
-        );
         return Ok(warp::reply::with_status(
             warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
@@ -690,7 +703,6 @@ pub async fn list_blocks(db: Db) -> Result<impl warp::Reply, Infallible> {
 fn authorize_proposer(jwt_token: String, user_pem: &str) -> Result<TokenData<Claims>, String> {
     // Throw away the "Bearer " part
     let raw_jwt = jwt_token.trim_start_matches(BEARER).to_owned();
-    debug!("raw_jwt: {:?}", raw_jwt);
 
     // Extract a jsonwebtoken compatible decoding_key from user's public key
     let decoding_key = match DecodingKey::from_rsa_pem(user_pem.as_bytes()) {
