@@ -126,7 +126,11 @@ target: Fingerprint
 amount: unsigned 16 bit integer
 timestamp: ISO 8601 &lt;date&gt;T&lt;time&gt;
 </span></code></pre><h1 id="hash">Hash</h1>
-<p><code>tha</code> field in <a href="https://gradecoin.xyz/jwt/">jwt documentation</a> in fact stands for &quot;The Hash&quot;, in the case of a post request for a transaction, you need the Md5 hash of the serialized JSON representation of transaction.</p>
+<p><code>tha</code> field in <a href="https://gradecoin.xyz/jwt/">jwt documentation</a> in fact stands for &quot;The Hash&quot;, in the case of a post request for a transaction, you need the Md5 hash of the serialized JSON representation of transaction. The resulting JSON string should look something like;</p>
+<pre style="background-color:#ffffff;">
+<code><span style="color:#545052;">{&quot;by&quot;:&quot;foo&quot;,&quot;source&quot;:&quot;bar&quot;,&quot;target&quot;:&quot;baz&quot;,&quot;amount&quot;:2,&quot;timestamp&quot;:&quot;2021-04-18T21:49:00&quot;}
+</span></code></pre>
+<p>Or; without any whitespace, separated with <code>:</code> and <code>,</code>.</p>
 <h1 id="bank">Bank</h1>
 <p>There is a <code>bank</code> account with Fingerprint <code>31415926535897932384626433832795028841971693993751058209749445923</code></p>
 <blockquote class="tidbit">

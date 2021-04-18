@@ -10,25 +10,7 @@ mod tests {
         let db = Db::new();
 
         db.users.write().insert(
-            "mock_transaction_source".to_owned(),
-            User {
-                user_id: MetuId::new("e254275".to_owned(), "DtNX1qk4YF4saRH".to_owned()).unwrap(),
-                public_key: "-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5yWTMeFqr2nvOC9oR5Wq
-/nzcNlwCIaziojt7rJ4BBvuwkT0tERDz8AgvUsaewiB+Fz5OXTeb3WAB1FEXnBXG
-ekrGzvC8jHQMKHyNoWzUlpQJ9UMtdQIWPOCuMyLpc+rNPL3428U8UpldjbTHHyq2
-/ef6abkdj+XWg/slYtrFeOf3ktc1l50R4k8VO8L6kQuh2+YIjXGPLShRaqnUQPtH
-8LFPX4bO9lJ9mAoMZFec6XVwumn/uqu9jyWQL6qh6gtwQHgN+A9wGvzVvltJ9h8s
-shSHWWtBD0M19ilbXhKyBsHSSZkpx+TAvFhfQ8JURw7KqahUPVlCwJ5OIKccJ/6F
-FQIDAQAB
------END PUBLIC KEY-----"
-                    .to_owned(),
-                balance: 30,
-            },
-        );
-
-        db.users.write().insert(
-            "mock_transaction_source2".to_owned(),
+            "fingerprint_of_some_guy".to_owned(),
             User {
                 user_id: MetuId::new("e254275".to_owned(), "DtNX1qk4YF4saRH".to_owned()).unwrap(),
                 public_key: "-----BEGIN PUBLIC KEY-----
@@ -109,13 +91,14 @@ FQIDAQAB
             timestamp: chrono::NaiveDate::from_ymd(2021, 04, 09).and_hms(14, 30, 00),
         }
     }
+
     fn mocked_transaction2() -> Transaction {
         Transaction {
-            by: "mock_transaction_source2".to_owned(),
-            source: "mock_transaction_source2".to_owned(),
-            target: "mock_transaction_target".to_owned(),
+            by: "fingerprint_of_some_guy".to_owned(),
+            source: "31415926535897932384626433832795028841971693993751058209749445923".to_owned(),
+            target: "fingerprint_of_some_guy".to_owned(),
             amount: 2,
-            timestamp: chrono::NaiveDate::from_ymd(2021, 04, 09).and_hms(14, 30, 00),
+            timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(20, 55, 30),
         }
     }
 
@@ -194,7 +177,7 @@ FQIDAQAB
         let res = warp::test::request()
             .method("POST")
             .json(&mocked_transaction2())
-            .header("Authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aGEiOiI2NDNmOGYzMjkxNTMzNTMzOTcwMDZmNjVmOWQ1ZmViMyIsImlhdCI6MTUxNjIzOTAyMiwiZXhwIjoyMDE2MjM5MDIyfQ.yNca1RJOkSEKoF7S4PSF4iB8zmnj13ujcfsdVRcJMcQNN4CxP-pJwbUBdRgR8kNwdfLP3nLo0UBwevP42TBoujMKx7oaIl-JXsO37x7Y9GWMAHYBxEOoq1EsBeaxv9pCdyZvuVeJYIMrOpzW7oTcF4tHHvmvySD2ITnQTWu_ioCXEFdX21QQIvsqpRn7XumfCMvWfUy_C2XTFIQEAGdakPmkZ2Xt66k9zhT9hazJgAwELv5VyMV54iF8vyvvmnLkiODwTt_8VdqC6fr6jPwYaP1mzgd58r0fM76Wu0g9tIXVU83rcFMRsm_faXGbsrDJIQ06-fAO_D1sh74fhndK_g")
+            .header("Authorization", "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aGEiOiJiODI4ZmYwNzM5NjFmMDA2YjU3ZmNkZWMwNmEwZTY1YSIsImV4cCI6MjAwMDAwMDAwMCwiaWF0IjoyNTE2MjM5MDIyfQ.Zwr2BPYzxvdAy8ZjCWSA3dp96KKVHjRDu9imHKCJ0NUeD5fM4D678B6pRZk9ev8PvbEI88MgYVW9akj_IsFwrsho7Tpsh7ym593ZOMwtSWSxxzxuKuGhAuKHDiQlXMFfv6kl8-eXIxa7xbV_0m81vAz6_vYQnVnlhjRQ26LogJRixWpUKV7-mPdRHhrK6dUxi9CwVuc9fdYhd6n2FMKT2AlAnk472fDa3G1oPsFLkp56eJ6_rKWrALHFWItfNvY4zFvwXXyNjMu-0EYJiaQIXFVNnipsy5Sy2HckdY3UiYS2lFUwHIczNrdrLM7NQhJQmbJLD6XRAMifH6bA1ZxH8A")
             .path("/transaction")
             .reply(&filter)
             .await;
@@ -247,7 +230,7 @@ FQIDAQAB
         let res = warp::test::request()
             .method("POST")
             .json(&Block {
-            transaction_list: vec!["mock_transaction_source".to_owned()],
+            transaction_list: vec!["fingerprint_of_some_guy".to_owned(),"mock_transaction_source2".to_owned(), "mock_transaction_source3".to_owned(), "mock_transaction_source".to_owned(), "mock_transaction_source".to_owned()],
             nonce: 2686215,
             timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(23, 38, 00),
             hash: "0000007c52e4486359f62b2d19781fafaf059bd691bc6d835b666f6eac1d01d9".to_owned(),

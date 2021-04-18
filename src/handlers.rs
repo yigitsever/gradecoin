@@ -656,14 +656,17 @@ pub async fn propose_transaction(
     // this transaction was already checked for correctness at custom_filters, we can panic here if
     // it has been changed since
 
-    let hashed_transaction =
-        Md5::digest((&serde_json::to_string(&new_transaction).unwrap()).as_ref());
+    let serd_tx = serde_json::to_string(&new_transaction).unwrap();
+
+    debug!("Taking the hash of {}", serd_tx);
+
+    let hashed_transaction = Md5::digest(&serd_tx.as_bytes());
     if token_payload.claims.tha != format!("{:x}", hashed_transaction) {
-        debug!("The hash of the transaction did not match with the hash given in JWT");
         return Ok(warp::reply::with_status(
             warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
-                message: "The hash of the transaction did not match the hash given in JWT".to_owned(),
+                message: "The hash of the transaction did not match the hash given in JWT"
+                    .to_owned(),
             }),
             StatusCode::BAD_REQUEST,
         ));

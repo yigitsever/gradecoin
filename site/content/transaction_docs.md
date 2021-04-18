@@ -26,7 +26,13 @@ timestamp: ISO 8601 <date>T<time>
 
 # Hash
 
-`tha` field in [jwt documentation](@/JWT.md) in fact stands for "The Hash", in the case of a post request for a transaction, you need the Md5 hash of the serialized JSON representation of transaction.
+`tha` field in [jwt documentation](@/JWT.md) in fact stands for "The Hash", in the case of a post request for a transaction, you need the Md5 hash of the serialized JSON representation of transaction. The resulting JSON string should look something like;
+
+```
+{"by":"foo","source":"bar","target":"baz","amount":2,"timestamp":"2021-04-18T21:49:00"}
+```
+
+Or; without any whitespace, separated with `:` and `,`.
 
 # Bank
 
@@ -44,4 +50,3 @@ source: this can be either you or the bank
 target: this can be a valid fingerprint or yourself if source is the bank
 ...
 ```
-
