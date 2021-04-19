@@ -1,5 +1,12 @@
 # TODO
 
+## Issues
+- [ ] Students can authenticate twice
+
+## Good ideas
+- [ ] Add the hash of previous block to the next block
+
+
 ## Tests
 - [ ] Route Tests
     - [ ] Malformed JSON bodies
@@ -7,12 +14,12 @@
     - [ ] Valid JSON with extra fields
 - [ ] Transaction with bank test
 
-## Testnet
+## Someday, Maybe?
 - [ ] CHAOS MODE, 3 different coins, combine them to make 1 gradecoin
 - [ ] NICE MODE, transactions move the amount, then award some to the sender, everyone starts with 10 gradecoins
 - [ ] [SQLite](https://unixsheikh.com/articles/sqlite-the-only-database-you-will-ever-need-in-most-cases.html), not PostgreSQL
 
-## Done & Brag
+# Done & Brag
 - [x] Switch to RwLock (parking_lot) (done at 2021-04-07 03:43, two possible schemes to represent inner Db (ledger) in code)
 - [x] We need our own representation of students and their grades, "there is no blockchain" (done at 2021-04-12 00:05)
 - [x] pick a block proposal scheme (= pick hash function) [list of hash functions](https://en.bitcoinwiki.org/wiki/List_of_hash_functions) (done at 2021-04-12 05:30)
