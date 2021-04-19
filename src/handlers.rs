@@ -1,5 +1,5 @@
-use aes::Aes128;
 /// API handlers, the ends of each filter chain
+use aes::Aes128;
 use askama::Template;
 use blake2::{Blake2s, Digest};
 use block_modes::block_padding::Pkcs7;
@@ -12,7 +12,7 @@ use parking_lot::RwLockUpgradableReadGuard;
 use rsa::{PaddingScheme, RSAPrivateKey};
 use serde::Serialize;
 use sha2::Sha256;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::convert::Infallible;
 use std::fs;
 use warp::{http::StatusCode, reply};
@@ -404,6 +404,26 @@ pub async fn propose_block(
         return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
     }
 
+    // scope the HashSet
+    {
+        let mut proposed_transactions = HashSet::new();
+        for tx in new_block.transaction_list.iter() {
+            proposed_transactions.insert(tx);
+        }
+
+        if proposed_transactions.len() != BLOCK_TRANSACTION_COUNT as usize {
+            let res_json = warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: format!(
+                    "Block cannot contain less than {} unique transactions.",
+                    BLOCK_TRANSACTION_COUNT
+                ),
+            });
+
+            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+        }
+    }
+
     // Scope the RwLocks, there are hashing stuff below
     {
         let pending_transactions = db.pending_transactions.read();
@@ -457,7 +477,7 @@ pub async fn propose_block(
     }
 
     // All clear, block accepted!
-    debug!("We have a new block! {:?}", new_block);
+    warn!("ACCEPTED BLOCK {:?}", new_block);
 
     // Scope the pending_transactions
     {
@@ -528,6 +548,8 @@ pub async fn propose_transaction(
     db: Db,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     debug!("POST /transaction, propose_transaction() is handling");
+
+    warn!("New transaction proposal: {:?}", &new_transaction);
 
     let users_store = db.users.read();
 
@@ -672,7 +694,7 @@ pub async fn propose_transaction(
         ));
     }
 
-    warn!("NEW TRANSACTION {:?}", new_transaction);
+    warn!("ACCEPTED TRANSACTION {:?}", new_transaction);
 
     let mut transactions = db.pending_transactions.write();
 
