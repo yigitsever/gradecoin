@@ -253,6 +253,12 @@ pub struct MetuId {
     passwd: String,
 }
 
+impl MetuId {
+    pub fn quick_equal(&self, other: &str) -> bool {
+        self.id == other
+    }
+}
+
 /// The plaintext of the initial user authentication request
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct AuthRequest {

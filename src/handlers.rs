@@ -229,8 +229,6 @@ pub async fn authenticate_user(
         }
     };
 
-    let provided_id = request.student_id.clone();
-
     let privileged_student_id = match MetuId::new(request.student_id, request.passwd) {
         Some(id) => id,
         None => {
@@ -243,18 +241,20 @@ pub async fn authenticate_user(
         }
     };
 
+    // Students should be able to authenticate once
     {
         let userlist = db.users.read();
 
-        if userlist.contains_key(&provided_id) {
-            let res_json = warp::reply::json(&GradeCoinResponse {
+        for (_, user) in userlist.iter() {
+            if user.user_id == privileged_student_id {
+                let res_json = warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
                 message:
                     "This user is already authenticated, do you think this is a mistake? Contact me"
                         .to_owned(),
             });
-
-            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+                return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+            }
         }
     }
 
