@@ -34,7 +34,7 @@ fn block_parser(path: String) -> u64 {
 fn last_block_content() -> Option<String> {
     let blocks = read_block_name().unwrap();
 
-    if blocks.len() == 0 {
+    if blocks.is_empty() {
         return None;
     }
 
@@ -170,6 +170,12 @@ impl Db {
             pending_transactions: Arc::new(RwLock::new(HashMap::new())),
             users: Arc::new(RwLock::new(users)),
         }
+    }
+}
+
+impl Default for Db {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
