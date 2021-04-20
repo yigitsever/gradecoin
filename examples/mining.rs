@@ -20,7 +20,7 @@ pub fn main() {
         let counter = Arc::clone(&counter);
         threads.push(thread::spawn(move || {
             let mut b = NakedBlock {
-                transaction_list: vec!["e254275".to_owned()],
+                transaction_list: vec!["fingerprint_of_some_guy".to_owned()],
                 nonce: 0,
                 timestamp: NaiveDate::from_ymd(2021, 04, 13).and_hms(23, 38, 00),
             };

@@ -27,41 +27,52 @@ FQIDAQAB
             },
         );
 
-        /*-----BEGIN RSA PRIVATE KEY-----
-        MIIEpAIBAAKCAQEA5yWTMeFqr2nvOC9oR5Wq/nzcNlwCIaziojt7rJ4BBvuwkT0t
-        ERDz8AgvUsaewiB+Fz5OXTeb3WAB1FEXnBXGekrGzvC8jHQMKHyNoWzUlpQJ9UMt
-        dQIWPOCuMyLpc+rNPL3428U8UpldjbTHHyq2/ef6abkdj+XWg/slYtrFeOf3ktc1
-        l50R4k8VO8L6kQuh2+YIjXGPLShRaqnUQPtH8LFPX4bO9lJ9mAoMZFec6XVwumn/
-        uqu9jyWQL6qh6gtwQHgN+A9wGvzVvltJ9h8sshSHWWtBD0M19ilbXhKyBsHSSZkp
-        x+TAvFhfQ8JURw7KqahUPVlCwJ5OIKccJ/6FFQIDAQABAoIBADTZGnZlG4dPqSon
-        bKgxSA83bQHgt3wLkyWUhApLdeCq2wvZ+NvWDG/s7yT11IZ991ZJIJGfjTtoIALz
-        J3rAX8jGH/5gfDuArOb000z9HP3wivZQjawa9gqlNC7s5INkQ9iHdsaIqeoYtpMX
-        qg8uLPiQeWiCsoeb/Rff7ARWEKA7udoZ2uZcZFMHTKx+mBpk8IiepQAJPBRVwmXk
-        x/3LTaezi6Tkvp/k/gf4IeSICiRGFRmm2Vxciduj11/CrdTHPQLz/Rh5/IN8Bkry
-        xdQdQxxhwxF/ap6OJIJyguq7gximn2uK0jbHY3nRmrF8SsEtIT+Gd7I46L/goR8c
-        jQOQRmECgYEA9RJSOBUkZMLoUcC2LGJBZOAnJZ7WToCVdu3LrPceRYtQHwcznW4O
-        NAHF+blQRzqvbMi11ap8NVpkDDu0ki/Yi2VdSVjQmlaOcpAXjN6T5ZrKoz61xj4g
-        2T2/K6d6ypkZRKPhKCC1iI419rq/APVEZHYCl7jZp4iD2izHiegZYccCgYEA8XRK
-        rfVuPiYsaB07eJrRKKjuoM1Jcr19jZyXY8sbALRcExaTX2CRaPA7binVeDBXayQ1
-        I0+kA1nV1EI+ROegV+b6gs2YaUmMJzI1yLqMqGDgHFxFvhkDsZaI+/V+G9eOLEt4
-        5ic5tImfZITLE/GSC8b+C16gxMGUN4t9gHq2okMCgYAKyNedaDDFzl3y2wwpP9mo
-        2sReP3Mm2Tm6lhRUdDt8y/impOZ8kw9E8p8HskP6HncBzoNR98KnhmbIswfrNvfM
-        ipVkWOg1IoH6QKUIqfLQM9OfA290Xd+ML89t2Fzq9XnLL3sFDQtwCvIM/YLSQ/jS
-        gu7yRkwttzA2NapCQ1h6mQKBgQClwBwn8Qyd01y2mCKkNzsP+2/cqTAbeSNAXFe8
-        pMfDowx1+hBu7/7CF+/kPwmQuTa5kSB9PgWsWzYjwNm4OX1j+mbL9lEDLf7tRVWQ
-        lydJyz7tmRYzWj6j4V/l/u90M3QgyiqTbCf73GG0AkjaRwHn3dG1gl9A0lZqDvK3
-        iQXouwKBgQCrx6SCnEkhLISSZpzdDehtWmyCQJIwcdlRQlAmFLVn+TJHTXR7xUm2
-        VpTrPTfaYWx83OQUn/OZqY5gIQ+jlfwqnVg+PDQQ/P09/4xygRCLvjL6NCSvtkj1
-        MRArEl4y68+jZLRu74TVG0lXi6ht6KhNHF6GiWKU9FHZ4B+btLicsg==
-        -----END RSA PRIVATE KEY-----*/
+        db.users.write().insert(
+            "fingerprint_of_foo".to_owned(),
+            User {
+                user_id: MetuId::new("e223715".to_owned(), "1H5QuOYI1b2r9ET".to_owned()).unwrap(),
+                public_key: "NOT_USED_FOR_THIS_USER".to_owned(),
+                balance: 0,
+            },
+        );
+
+        /*
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEA5yWTMeFqr2nvOC9oR5Wq/nzcNlwCIaziojt7rJ4BBvuwkT0t
+ERDz8AgvUsaewiB+Fz5OXTeb3WAB1FEXnBXGekrGzvC8jHQMKHyNoWzUlpQJ9UMt
+dQIWPOCuMyLpc+rNPL3428U8UpldjbTHHyq2/ef6abkdj+XWg/slYtrFeOf3ktc1
+l50R4k8VO8L6kQuh2+YIjXGPLShRaqnUQPtH8LFPX4bO9lJ9mAoMZFec6XVwumn/
+uqu9jyWQL6qh6gtwQHgN+A9wGvzVvltJ9h8sshSHWWtBD0M19ilbXhKyBsHSSZkp
+x+TAvFhfQ8JURw7KqahUPVlCwJ5OIKccJ/6FFQIDAQABAoIBADTZGnZlG4dPqSon
+bKgxSA83bQHgt3wLkyWUhApLdeCq2wvZ+NvWDG/s7yT11IZ991ZJIJGfjTtoIALz
+J3rAX8jGH/5gfDuArOb000z9HP3wivZQjawa9gqlNC7s5INkQ9iHdsaIqeoYtpMX
+qg8uLPiQeWiCsoeb/Rff7ARWEKA7udoZ2uZcZFMHTKx+mBpk8IiepQAJPBRVwmXk
+x/3LTaezi6Tkvp/k/gf4IeSICiRGFRmm2Vxciduj11/CrdTHPQLz/Rh5/IN8Bkry
+xdQdQxxhwxF/ap6OJIJyguq7gximn2uK0jbHY3nRmrF8SsEtIT+Gd7I46L/goR8c
+jQOQRmECgYEA9RJSOBUkZMLoUcC2LGJBZOAnJZ7WToCVdu3LrPceRYtQHwcznW4O
+NAHF+blQRzqvbMi11ap8NVpkDDu0ki/Yi2VdSVjQmlaOcpAXjN6T5ZrKoz61xj4g
+2T2/K6d6ypkZRKPhKCC1iI419rq/APVEZHYCl7jZp4iD2izHiegZYccCgYEA8XRK
+rfVuPiYsaB07eJrRKKjuoM1Jcr19jZyXY8sbALRcExaTX2CRaPA7binVeDBXayQ1
+I0+kA1nV1EI+ROegV+b6gs2YaUmMJzI1yLqMqGDgHFxFvhkDsZaI+/V+G9eOLEt4
+5ic5tImfZITLE/GSC8b+C16gxMGUN4t9gHq2okMCgYAKyNedaDDFzl3y2wwpP9mo
+2sReP3Mm2Tm6lhRUdDt8y/impOZ8kw9E8p8HskP6HncBzoNR98KnhmbIswfrNvfM
+ipVkWOg1IoH6QKUIqfLQM9OfA290Xd+ML89t2Fzq9XnLL3sFDQtwCvIM/YLSQ/jS
+gu7yRkwttzA2NapCQ1h6mQKBgQClwBwn8Qyd01y2mCKkNzsP+2/cqTAbeSNAXFe8
+pMfDowx1+hBu7/7CF+/kPwmQuTa5kSB9PgWsWzYjwNm4OX1j+mbL9lEDLf7tRVWQ
+lydJyz7tmRYzWj6j4V/l/u90M3QgyiqTbCf73GG0AkjaRwHn3dG1gl9A0lZqDvK3
+iQXouwKBgQCrx6SCnEkhLISSZpzdDehtWmyCQJIwcdlRQlAmFLVn+TJHTXR7xUm2
+VpTrPTfaYWx83OQUn/OZqY5gIQ+jlfwqnVg+PDQQ/P09/4xygRCLvjL6NCSvtkj1
+MRArEl4y68+jZLRu74TVG0lXi6ht6KhNHF6GiWKU9FHZ4B+btLicsg==
+-----END RSA PRIVATE KEY-----
+*/
 
         db.pending_transactions.write().insert(
-            "mock_transaction_source".to_owned(),
+            "fingerprint_of_foo".to_owned(),
             Transaction {
-                by: "mock_transaction_source".to_owned(),
+                by: "fingerprint_of_foo".to_owned(),
                 source: "31415926535897932384626433832795028841971693993751058209749445923"
                     .to_owned(),
-                target: "mock_transaction_source".to_owned(),
+                target: "fingerprint_of_foo".to_owned(),
                 amount: 2,
                 timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(20, 55, 30),
             },
@@ -81,27 +92,6 @@ FQIDAQAB
         db
     }
 
-    /// Create a mock transaction to be used in tests
-    fn mocked_transaction() -> Transaction {
-        Transaction {
-            by: "mock_transaction_source".to_owned(),
-            source: "mock_transaction_source".to_owned(),
-            target: "mock_transaction_target".to_owned(),
-            amount: 2,
-            timestamp: chrono::NaiveDate::from_ymd(2021, 04, 09).and_hms(14, 30, 00),
-        }
-    }
-
-    fn mocked_transaction2() -> Transaction {
-        Transaction {
-            by: "fingerprint_of_some_guy".to_owned(),
-            source: "31415926535897932384626433832795028841971693993751058209749445923".to_owned(),
-            target: "fingerprint_of_some_guy".to_owned(),
-            amount: 2,
-            timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(20, 55, 30),
-        }
-    }
-
     /// Test simple GET request to /transaction, an endpoint that exists
     /// https://tools.ietf.org/html/rfc7231#section-6.3.1
     /// We should get the only pending transaction available in the database as json
@@ -119,7 +109,7 @@ FQIDAQAB
 
         assert_eq!(res.status(), StatusCode::OK);
 
-        let expected_json_body = r#"{"mock_transaction_source":{"by":"mock_transaction_source","source":"31415926535897932384626433832795028841971693993751058209749445923","target":"mock_transaction_source","amount":2,"timestamp":"2021-04-13T20:55:30"}}"#;
+        let expected_json_body = r#"{"fingerprint_of_foo":{"by":"fingerprint_of_foo","source":"31415926535897932384626433832795028841971693993751058209749445923","target":"fingerprint_of_foo","amount":2,"timestamp":"2021-04-13T20:55:30"}}"#;
 
         assert_eq!(res.body(), expected_json_body);
     }
@@ -176,7 +166,13 @@ FQIDAQAB
 
         let res = warp::test::request()
             .method("POST")
-            .json(&mocked_transaction2())
+            .json(&Transaction {
+            by: "fingerprint_of_some_guy".to_owned(),
+            source: "31415926535897932384626433832795028841971693993751058209749445923".to_owned(),
+            target: "fingerprint_of_some_guy".to_owned(),
+            amount: 2,
+            timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(20, 55, 30),
+        })
             .header("Authorization", "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aGEiOiJiODI4ZmYwNzM5NjFmMDA2YjU3ZmNkZWMwNmEwZTY1YSIsImV4cCI6MjAwMDAwMDAwMCwiaWF0IjoyNTE2MjM5MDIyfQ.Zwr2BPYzxvdAy8ZjCWSA3dp96KKVHjRDu9imHKCJ0NUeD5fM4D678B6pRZk9ev8PvbEI88MgYVW9akj_IsFwrsho7Tpsh7ym593ZOMwtSWSxxzxuKuGhAuKHDiQlXMFfv6kl8-eXIxa7xbV_0m81vAz6_vYQnVnlhjRQ26LogJRixWpUKV7-mPdRHhrK6dUxi9CwVuc9fdYhd6n2FMKT2AlAnk472fDa3G1oPsFLkp56eJ6_rKWrALHFWItfNvY4zFvwXXyNjMu-0EYJiaQIXFVNnipsy5Sy2HckdY3UiYS2lFUwHIczNrdrLM7NQhJQmbJLD6XRAMifH6bA1ZxH8A")
             .path("/transaction")
             .reply(&filter)
@@ -203,7 +199,13 @@ FQIDAQAB
 
         let res = warp::test::request()
             .method("POST")
-            .json(&mocked_transaction())
+            .json(&Transaction {
+                by: "some_fingerprint".to_owned(),
+                source: "some_fingerprint".to_owned(),
+                target: "some_other_fingerprint".to_owned(),
+                amount: 2,
+                timestamp: chrono::NaiveDate::from_ymd(2021, 04, 09).and_hms(14, 30, 00),
+            })
             .header(
                 "Authorization",
                 "Bearer aaaaaaaasdlkjaldkasljdaskjlaaaaaaaaaaaaaa",
@@ -227,25 +229,37 @@ FQIDAQAB
         let db = mocked_db();
         let filter = consensus_routes(db.clone());
 
+        db.pending_transactions.write().insert(
+            "fingerprint_of_some_guy".to_owned(),
+            Transaction {
+                by: "fingerprint_of_some_guy".to_owned(),
+                source: "31415926535897932384626433832795028841971693993751058209749445923"
+                    .to_owned(),
+                target: "fingerprint_of_some_guy".to_owned(),
+                amount: 2,
+                timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(20, 55, 30),
+            },
+        );
+
         let res = warp::test::request()
             .method("POST")
             .json(&Block {
-            transaction_list: vec!["fingerprint_of_some_guy".to_owned(),"mock_transaction_source2".to_owned(), "mock_transaction_source3".to_owned(), "mock_transaction_source".to_owned(), "mock_transaction_source".to_owned()],
-            nonce: 2686215,
-            timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(23, 38, 00),
-            hash: "0000007c52e4486359f62b2d19781fafaf059bd691bc6d835b666f6eac1d01d9".to_owned(),
-        } )
-            .header("Authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aGEiOiIwMDAwMDA3YzUyZTQ0ODYzNTlmNjJiMmQxOTc4MWZhZmFmMDU5YmQ2OTFiYzZkODM1YjY2NmY2ZWFjMWQwMWQ5IiwiaWF0IjoxMDAwMDAwMDAwMCwiZXhwIjoxMDkwMDAwMDAwMH0.JrzYlamBnT3qcjttzLTLXpiO5qfBu1e2HjQWueJ8l__aas6I1xq77UO8kCWn2Sm-zwUOI_155Pbd4xAqL6pokjLHZSFnAi9ZJ8cpqgw4ZXdI-Z3tDpZMUSiI018CGMZQZ_BwdGDIBbjEy0P-MX590DW9ofLVZckJKoXU5fFYi47OBegh4-8cchco_Z4wDPVamyhZXo8YmIN_ioSQNBQT2gNJnWsVvsXAQ7IdX9fhwS19t1kdnyk_WlezGbkrQ5xW-XAs4qMCgybbW9ErRwIruxI0PLlILFw2-m-UtH7fGdSIAaG-q6gKy79rPQLEE2kI9I39SVdIfMTadfnu6bduag")
+                transaction_list: vec!["fingerprint_of_some_guy".to_owned()],
+                nonce: 3222170950,
+                timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(23, 38, 00),
+                hash: "0000002149b72e0b348c32ac442a50ced4efbd1df7d48b377733d55dfe4f3577".to_owned(),
+            } )
+        .header("Authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0aGEiOiIwMDAwMDAyMTQ5YjcyZTBiMzQ4YzMyYWM0NDJhNTBjZWQ0ZWZiZDFkZjdkNDhiMzc3NzMzZDU1ZGZlNGYzNTc3IiwiZXhwIjoxMDAwMDAwMDAwMCwiaWF0IjoxNTE2MjM5MDAyMn0.2hZkIZiOJ9DpHwzL_rTCHGkTxs0S_-KD58a2bXuICogjrW6Z3o9LaJ95d8kpXSrAUCaFWN_-TNbk26LczDFSAhtTxpPh6ELXyLN82wAOCjsp8qLgXJQCnqNY7VFZdRUW0HDwHBLY2PVH40wprPkF7mLLonUPKcJUg9TLnmqHGriSECgv2-XZt2mD9XdTkofqIR-JRR3qoErb4G4xemMNYlWMuJK8I66Vj8kNytSt4wSCzkrWfmk5yyi7q1N3beo4nkP0DKzVstXZzWjn_qMZNZulfOdrNiKwHpwqX_bL66LB0rVpKcI5f6N6w5GZBKsdeUly7dCtKbxwYX3mV-7I_g")
             .path("/block")
             .reply(&filter)
             .await;
 
-        println!("ISSUE: {:?}", res.body());
+        println!("RESPONSE: {:?}", res.body());
 
         // should be reflectled on the db as well
         assert_eq!(
             db.blockchain.read().hash,
-            "0000007c52e4486359f62b2d19781fafaf059bd691bc6d835b666f6eac1d01d9".to_owned()
+            "0000002149b72e0b348c32ac442a50ced4efbd1df7d48b377733d55dfe4f3577".to_owned()
         );
         assert_eq!(res.status(), StatusCode::CREATED);
     }

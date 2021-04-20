@@ -18,7 +18,7 @@ use std::fs;
 use warp::{http::StatusCode, reply};
 
 use crate::PRIVATE_KEY;
-const BLOCK_TRANSACTION_COUNT: u8 = 5;
+const BLOCK_TRANSACTION_COUNT: u8 = 1;
 const BLOCK_REWARD: u16 = 3;
 const TX_UPPER_LIMIT: u16 = 2;
 
@@ -181,7 +181,7 @@ pub async fn authenticate_user(
     let auth_plaintext = match cipher.decrypt(&mut buf) {
         Ok(p) => p,
         Err(err) => {
-            println!(
+            debug!(
                 "Base64 decoded auth request did not decrypt correctly {:?} {}",
                 &auth_packet, err
             );
@@ -342,11 +342,12 @@ pub async fn propose_block(
 
     warn!("New block proposal: {:?}", &new_block);
 
-    if new_block.transaction_list.len() != BLOCK_TRANSACTION_COUNT as usize {
+    if new_block.transaction_list.len() < BLOCK_TRANSACTION_COUNT as usize {
+        debug!("{} transactions offered, needed {}", new_block.transaction_list.len(), BLOCK_TRANSACTION_COUNT);
         let res_json = warp::reply::json(&GradeCoinResponse {
             res: ResponseType::Error,
             message: format!(
-                "There should be {} transactions in the block",
+                "There should be at least {} transaction in the block",
                 BLOCK_TRANSACTION_COUNT
             ),
         });
@@ -411,11 +412,11 @@ pub async fn propose_block(
             proposed_transactions.insert(tx);
         }
 
-        if proposed_transactions.len() != BLOCK_TRANSACTION_COUNT as usize {
+        if proposed_transactions.len() < BLOCK_TRANSACTION_COUNT as usize {
             let res_json = warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
                 message: format!(
-                    "Block cannot contain less than {} unique transactions.",
+                    "Block cannot contain less than {} unique transaction(s).",
                     BLOCK_TRANSACTION_COUNT
                 ),
             });
