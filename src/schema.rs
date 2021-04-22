@@ -306,6 +306,7 @@ lazy_static! {
             ("e231060", "VJgziofQQPCoisH"),
             ("e223795", "pmcTCKox99NFsqp"),
             ("e223715", "1H5QuOYI1b2r9ET"),
+            ("e181932", "THANKYOUHAVEFUN"),
             ("bank", "P7oxDm30g1jeIId"),
         ]
         .iter()
