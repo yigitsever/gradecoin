@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
     use gradecoin::schema::{Block, Db, InitialAuthRequest, MetuId, Transaction, User};
+    use pretty_assertions::assert_eq;
 
     use gradecoin::routes::consensus_routes;
     use warp::http::StatusCode;
@@ -24,6 +25,7 @@ FQIDAQAB
 -----END PUBLIC KEY-----"
                     .to_owned(),
                 balance: 30,
+                is_bot: false,
             },
         );
 
@@ -33,45 +35,44 @@ FQIDAQAB
                 user_id: MetuId::new("e223715".to_owned(), "1H5QuOYI1b2r9ET".to_owned()).unwrap(),
                 public_key: "NOT_USED_FOR_THIS_USER".to_owned(),
                 balance: 0,
+                is_bot: false,
             },
         );
 
         /*
------BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEA5yWTMeFqr2nvOC9oR5Wq/nzcNlwCIaziojt7rJ4BBvuwkT0t
-ERDz8AgvUsaewiB+Fz5OXTeb3WAB1FEXnBXGekrGzvC8jHQMKHyNoWzUlpQJ9UMt
-dQIWPOCuMyLpc+rNPL3428U8UpldjbTHHyq2/ef6abkdj+XWg/slYtrFeOf3ktc1
-l50R4k8VO8L6kQuh2+YIjXGPLShRaqnUQPtH8LFPX4bO9lJ9mAoMZFec6XVwumn/
-uqu9jyWQL6qh6gtwQHgN+A9wGvzVvltJ9h8sshSHWWtBD0M19ilbXhKyBsHSSZkp
-x+TAvFhfQ8JURw7KqahUPVlCwJ5OIKccJ/6FFQIDAQABAoIBADTZGnZlG4dPqSon
-bKgxSA83bQHgt3wLkyWUhApLdeCq2wvZ+NvWDG/s7yT11IZ991ZJIJGfjTtoIALz
-J3rAX8jGH/5gfDuArOb000z9HP3wivZQjawa9gqlNC7s5INkQ9iHdsaIqeoYtpMX
-qg8uLPiQeWiCsoeb/Rff7ARWEKA7udoZ2uZcZFMHTKx+mBpk8IiepQAJPBRVwmXk
-x/3LTaezi6Tkvp/k/gf4IeSICiRGFRmm2Vxciduj11/CrdTHPQLz/Rh5/IN8Bkry
-xdQdQxxhwxF/ap6OJIJyguq7gximn2uK0jbHY3nRmrF8SsEtIT+Gd7I46L/goR8c
-jQOQRmECgYEA9RJSOBUkZMLoUcC2LGJBZOAnJZ7WToCVdu3LrPceRYtQHwcznW4O
-NAHF+blQRzqvbMi11ap8NVpkDDu0ki/Yi2VdSVjQmlaOcpAXjN6T5ZrKoz61xj4g
-2T2/K6d6ypkZRKPhKCC1iI419rq/APVEZHYCl7jZp4iD2izHiegZYccCgYEA8XRK
-rfVuPiYsaB07eJrRKKjuoM1Jcr19jZyXY8sbALRcExaTX2CRaPA7binVeDBXayQ1
-I0+kA1nV1EI+ROegV+b6gs2YaUmMJzI1yLqMqGDgHFxFvhkDsZaI+/V+G9eOLEt4
-5ic5tImfZITLE/GSC8b+C16gxMGUN4t9gHq2okMCgYAKyNedaDDFzl3y2wwpP9mo
-2sReP3Mm2Tm6lhRUdDt8y/impOZ8kw9E8p8HskP6HncBzoNR98KnhmbIswfrNvfM
-ipVkWOg1IoH6QKUIqfLQM9OfA290Xd+ML89t2Fzq9XnLL3sFDQtwCvIM/YLSQ/jS
-gu7yRkwttzA2NapCQ1h6mQKBgQClwBwn8Qyd01y2mCKkNzsP+2/cqTAbeSNAXFe8
-pMfDowx1+hBu7/7CF+/kPwmQuTa5kSB9PgWsWzYjwNm4OX1j+mbL9lEDLf7tRVWQ
-lydJyz7tmRYzWj6j4V/l/u90M3QgyiqTbCf73GG0AkjaRwHn3dG1gl9A0lZqDvK3
-iQXouwKBgQCrx6SCnEkhLISSZpzdDehtWmyCQJIwcdlRQlAmFLVn+TJHTXR7xUm2
-VpTrPTfaYWx83OQUn/OZqY5gIQ+jlfwqnVg+PDQQ/P09/4xygRCLvjL6NCSvtkj1
-MRArEl4y68+jZLRu74TVG0lXi6ht6KhNHF6GiWKU9FHZ4B+btLicsg==
------END RSA PRIVATE KEY-----
-*/
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEpAIBAAKCAQEA5yWTMeFqr2nvOC9oR5Wq/nzcNlwCIaziojt7rJ4BBvuwkT0t
+        ERDz8AgvUsaewiB+Fz5OXTeb3WAB1FEXnBXGekrGzvC8jHQMKHyNoWzUlpQJ9UMt
+        dQIWPOCuMyLpc+rNPL3428U8UpldjbTHHyq2/ef6abkdj+XWg/slYtrFeOf3ktc1
+        l50R4k8VO8L6kQuh2+YIjXGPLShRaqnUQPtH8LFPX4bO9lJ9mAoMZFec6XVwumn/
+        uqu9jyWQL6qh6gtwQHgN+A9wGvzVvltJ9h8sshSHWWtBD0M19ilbXhKyBsHSSZkp
+        x+TAvFhfQ8JURw7KqahUPVlCwJ5OIKccJ/6FFQIDAQABAoIBADTZGnZlG4dPqSon
+        bKgxSA83bQHgt3wLkyWUhApLdeCq2wvZ+NvWDG/s7yT11IZ991ZJIJGfjTtoIALz
+        J3rAX8jGH/5gfDuArOb000z9HP3wivZQjawa9gqlNC7s5INkQ9iHdsaIqeoYtpMX
+        qg8uLPiQeWiCsoeb/Rff7ARWEKA7udoZ2uZcZFMHTKx+mBpk8IiepQAJPBRVwmXk
+        x/3LTaezi6Tkvp/k/gf4IeSICiRGFRmm2Vxciduj11/CrdTHPQLz/Rh5/IN8Bkry
+        xdQdQxxhwxF/ap6OJIJyguq7gximn2uK0jbHY3nRmrF8SsEtIT+Gd7I46L/goR8c
+        jQOQRmECgYEA9RJSOBUkZMLoUcC2LGJBZOAnJZ7WToCVdu3LrPceRYtQHwcznW4O
+        NAHF+blQRzqvbMi11ap8NVpkDDu0ki/Yi2VdSVjQmlaOcpAXjN6T5ZrKoz61xj4g
+        2T2/K6d6ypkZRKPhKCC1iI419rq/APVEZHYCl7jZp4iD2izHiegZYccCgYEA8XRK
+        rfVuPiYsaB07eJrRKKjuoM1Jcr19jZyXY8sbALRcExaTX2CRaPA7binVeDBXayQ1
+        I0+kA1nV1EI+ROegV+b6gs2YaUmMJzI1yLqMqGDgHFxFvhkDsZaI+/V+G9eOLEt4
+        5ic5tImfZITLE/GSC8b+C16gxMGUN4t9gHq2okMCgYAKyNedaDDFzl3y2wwpP9mo
+        2sReP3Mm2Tm6lhRUdDt8y/impOZ8kw9E8p8HskP6HncBzoNR98KnhmbIswfrNvfM
+        ipVkWOg1IoH6QKUIqfLQM9OfA290Xd+ML89t2Fzq9XnLL3sFDQtwCvIM/YLSQ/jS
+        gu7yRkwttzA2NapCQ1h6mQKBgQClwBwn8Qyd01y2mCKkNzsP+2/cqTAbeSNAXFe8
+        pMfDowx1+hBu7/7CF+/kPwmQuTa5kSB9PgWsWzYjwNm4OX1j+mbL9lEDLf7tRVWQ
+        lydJyz7tmRYzWj6j4V/l/u90M3QgyiqTbCf73GG0AkjaRwHn3dG1gl9A0lZqDvK3
+        iQXouwKBgQCrx6SCnEkhLISSZpzdDehtWmyCQJIwcdlRQlAmFLVn+TJHTXR7xUm2
+        VpTrPTfaYWx83OQUn/OZqY5gIQ+jlfwqnVg+PDQQ/P09/4xygRCLvjL6NCSvtkj1
+        MRArEl4y68+jZLRu74TVG0lXi6ht6KhNHF6GiWKU9FHZ4B+btLicsg==
+        -----END RSA PRIVATE KEY-----
+        */
 
         db.pending_transactions.write().insert(
             "fingerprint_of_foo".to_owned(),
             Transaction {
-                by: "fingerprint_of_foo".to_owned(),
-                source: "31415926535897932384626433832795028841971693993751058209749445923"
-                    .to_owned(),
+                source: "fingerprint_of_foo".to_owned(),
                 target: "fingerprint_of_foo".to_owned(),
                 amount: 2,
                 timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(20, 55, 30),
@@ -109,7 +110,7 @@ MRArEl4y68+jZLRu74TVG0lXi6ht6KhNHF6GiWKU9FHZ4B+btLicsg==
 
         assert_eq!(res.status(), StatusCode::OK);
 
-        let expected_json_body = r#"{"fingerprint_of_foo":{"by":"fingerprint_of_foo","source":"31415926535897932384626433832795028841971693993751058209749445923","target":"fingerprint_of_foo","amount":2,"timestamp":"2021-04-13T20:55:30"}}"#;
+        let expected_json_body = r#"{"fingerprint_of_foo":{"source":"fingerprint_of_foo","target":"fingerprint_of_foo","amount":2,"timestamp":"2021-04-13T20:55:30"}}"#;
 
         assert_eq!(res.body(), expected_json_body);
     }
@@ -167,9 +168,8 @@ MRArEl4y68+jZLRu74TVG0lXi6ht6KhNHF6GiWKU9FHZ4B+btLicsg==
         let res = warp::test::request()
             .method("POST")
             .json(&Transaction {
-            by: "fingerprint_of_some_guy".to_owned(),
-            source: "31415926535897932384626433832795028841971693993751058209749445923".to_owned(),
-            target: "fingerprint_of_some_guy".to_owned(),
+            source: "fingerprint_of_some_guy".to_owned(),
+            target: "31415926535897932384626433832795028841971693993751058209749445923".to_owned(),
             amount: 2,
             timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(20, 55, 30),
         })
@@ -200,7 +200,6 @@ MRArEl4y68+jZLRu74TVG0lXi6ht6KhNHF6GiWKU9FHZ4B+btLicsg==
         let res = warp::test::request()
             .method("POST")
             .json(&Transaction {
-                by: "some_fingerprint".to_owned(),
                 source: "some_fingerprint".to_owned(),
                 target: "some_other_fingerprint".to_owned(),
                 amount: 2,
@@ -232,10 +231,9 @@ MRArEl4y68+jZLRu74TVG0lXi6ht6KhNHF6GiWKU9FHZ4B+btLicsg==
         db.pending_transactions.write().insert(
             "fingerprint_of_some_guy".to_owned(),
             Transaction {
-                by: "fingerprint_of_some_guy".to_owned(),
-                source: "31415926535897932384626433832795028841971693993751058209749445923"
+                source: "fingerprint_of_some_guy".to_owned(),
+                target: "31415926535897932384626433832795028841971693993751058209749445923"
                     .to_owned(),
-                target: "fingerprint_of_some_guy".to_owned(),
                 amount: 2,
                 timestamp: chrono::NaiveDate::from_ymd(2021, 04, 13).and_hms(20, 55, 30),
             },
@@ -422,7 +420,7 @@ MRArEl4y68+jZLRu74TVG0lXi6ht6KhNHF6GiWKU9FHZ4B+btLicsg==
             .json(&InitialAuthRequest {
                 c: "D9OKSp4XD+niltqhoiTEyz3pTxGm5ZKYVNFPofW40M6Km7wE7FgIpfTkurBZ6tQsG/rYPRsd6C/Qo+o3HrgOYC8BDprwpnYb7UnJdL2pe44ZMEsPAmDAdwTP9WozY0lr+bjEjtTM1mVQnIdfknychFek/FNi3l8MrapeFTxFaTMGxWuS1+wEuAkcz4AR4+jooaXVAEpKrPiSXqbywF9OQ41tk0kRiXn234dj40ndND+GlfMgghITuBJrJx6tzLppAZNIIGwUjQDt5Oib5dEGrPOe+rran1D26YNhZOtrfYEGyUSN+/58HbItQlLrgFhL6zRT7ojw/Eg4jYXndK0xNgYGyhAn5UI/qnI2NPpZU7Wd3sJKlWc7HfrjNnKVKlcrhHtYy3FXfN/hLg7SFmuSfXqqvVbNVT6pEDU6Y5NahOYaE/vkL0no7F7lz0UjAlgQCmn5yN7mKs3yLSnlx6hmsK/fVoqGBcOIbYY5gzYMlAQ3E+lq0p2MPEoWC8NYxStSeo9M8uLYT6Jl3hYVf8aLgd1l0HEiCyT+kWxvcR5hw42I7gqaoUcnr53Zm1mYK30/fvZ6lxsrb4FphldgQC5fx6nwEgjaLUeB4n0oZTSRLbrd9ZXCjUG4FNmM+sOklhIXyTYUj4VcBSwZuAvJZEFf2em68e7ySJs/ysz+TGu3eVeRc+voAvI9mGLxWnSEjWx64po7PO61uG6ikadHZH+wIw==".to_owned(),
                 iv: "bmV2ZXJtaW5kdGhlbmZ1aw==".to_owned(),
-                key: "s4cn9BSmuForX6PxJAa55Es4t2puXuDtdII1lxEArqVlP+uYd5jDKofFtn9PCAoY7jyTgBIhQW7Ah5MGCcufWTaKHAjFVfSZ+qGwbGbBcklbNGH/F7cJ0Pe7kOCddUpIvLG6WH6+mnvyPs8PwDyagsx1Jc2PSSOYLAwkECvPbjiUjQiBixguTRNsU2eKaqzLimPE0w2ztvdA+IgCv94UPhjQfQrnMGK+Ppn3oK7IfKQJ7v2DLVNuz4d/BpwuqD+lYYAu4B4qn3daNR32a/mqAAlPg/RbPlH69N44Qh/NYux90FOY0XKxUskEwsAUw8dHFzzdKPcGx4C0s5e4KSLGkw==".to_owned(),
+                key: "Xd6/VSuFKqayNHspcFJSm+PAHNoTmcR4SsMijSyuyEh6PS5rdvO4W98AhxW4VBrRO1ljfEMeFq835NEDame511D2pim00Xv0HPIYSDW6pIJA1hy+Np/WyC7PCxvKy0hPzTmHMpFmM+aF43BknJdYlPUhY4cww/xScU6WxuKIsEQNORRhQds8CHOO0EGcOjHVvR2xqnOda1g/rI7mfNMATHj9ZRsB9GH6QG5WTUbo9/71cDAILF+28TG40jSKvY2KzO9vr668tgqoMV2vLnXQa1AD9ZWmdHHdjiXuiH3X0uXxHrfjH7HeXi/HOj/pgCX12jKsEsRwkBTGL4koObH6pQ==".to_owned(),
             })
             .path("/register")
             .reply(&filter)

@@ -30,3 +30,4 @@ askama = "0.10.5"
 
 [dev-dependencies]
 serde_test = "1.0.117"
+pretty_assertions = "0.7.2"

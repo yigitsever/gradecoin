@@ -1,11 +1,7 @@
 # TODO
 
 ## Issues
-- [ ] Students can authenticate twice
-
-## Good ideas
-- [ ] Add the hash of previous block to the next block
-
+- [X] Students can authenticate twice
 
 ## Tests
 - [ ] Route Tests

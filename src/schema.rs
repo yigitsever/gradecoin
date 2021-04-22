@@ -20,9 +20,9 @@ use std::path::PathBuf;
 use std::string::String;
 use std::sync::Arc;
 use std::vec::Vec;
-// use crate::validators;
 
 pub type Fingerprint = String;
+pub type Id = String;
 
 fn block_parser(path: String) -> u64 {
     let end_pos = path.find(".block").unwrap();
@@ -146,7 +146,7 @@ pub struct Claims {
 #[derive(Debug, Clone)]
 pub struct Db {
     pub blockchain: Arc<RwLock<Block>>,
-    pub pending_transactions: Arc<RwLock<HashMap<Fingerprint, Transaction>>>,
+    pub pending_transactions: Arc<RwLock<HashMap<Id, Transaction>>>,
     pub users: Arc<RwLock<HashMap<Fingerprint, User>>>,
 }
 
@@ -154,14 +154,51 @@ impl Db {
     pub fn new() -> Self {
         let mut users: HashMap<Fingerprint, User> = HashMap::new();
 
-        let bank_acc = MetuId::new("bank".to_owned(), "P7oxDm30g1jeIId".to_owned()).unwrap();
+        let friendly_1 = MetuId::new("friend_1".to_owned(), "not_used".to_owned()).unwrap();
 
         users.insert(
-            "31415926535897932384626433832795028841971693993751058209749445923".to_owned(),
+            "cde48537ca2c28084ff560826d0e6388b7c57a51497a6cb56f397289e52ff41b".to_owned(),
             User {
-                user_id: bank_acc,
-                public_key: "null".to_owned(),
-                balance: 27 * 80,
+                user_id: friendly_1,
+                public_key: "not_used".to_owned(),
+                balance: 0,
+                is_bot: true,
+            },
+        );
+
+        let friendly_2 = MetuId::new("friend_2".to_owned(), "not_used".to_owned()).unwrap();
+
+        users.insert(
+            "a1a38b5bae5866d7d998a9834229ec2f9db7a4fc8fb6f58b1115a96a446875ff".to_owned(),
+            User {
+                user_id: friendly_2,
+                public_key: "not_used".to_owned(),
+                balance: 0,
+                is_bot: true,
+            },
+        );
+
+        let friendly_3 = MetuId::new("friend_4".to_owned(), "not_used".to_owned()).unwrap();
+
+        users.insert(
+            "4e048fd2a62f1307866086e803e9be43f78a702d5df10831fbf434e7663ae0e7".to_owned(),
+            User {
+                user_id: friendly_3,
+                public_key: "not_used".to_owned(),
+                balance: 0,
+                is_bot: true,
+            },
+        );
+
+        let friendly_4 = MetuId::new("friend_4".to_owned(), "not_used".to_owned()).unwrap();
+
+        users.insert(
+            "60e77101e76950a9b1830fa107fd2f8fc545255b3e0f14b6a7797cf9ee005f07".to_owned(),
+            User {
+                user_id: friendly_4,
+                public_key: "not_used".to_owned(),
+                balance: 0,
+                is_bot: true,
             },
         );
 
@@ -182,7 +219,6 @@ impl Default for Db {
 /// A transaction between `source` and `target` that moves `amount`
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Transaction {
-    pub by: Fingerprint,
     pub source: Fingerprint,
     pub target: Fingerprint,
     pub amount: u16,
@@ -244,6 +280,8 @@ pub struct User {
     pub user_id: MetuId,
     pub public_key: String,
     pub balance: u16,
+    #[serde(skip, default = "bool::default")]
+    pub is_bot: bool,
 }
 
 /// The values are hard coded in [`OUR_STUDENTS`] so MetuId::new() can accept/reject values based on that
@@ -308,6 +346,10 @@ lazy_static! {
             ("e223715", "1H5QuOYI1b2r9ET"),
             ("e181932", "THANKYOUHAVEFUN"),
             ("bank", "P7oxDm30g1jeIId"),
+            ("friend_1", "not_used"),
+            ("friend_2", "not_used"),
+            ("friend_3", "not_used"),
+            ("friend_4", "not_used"),
         ]
         .iter()
         .cloned()

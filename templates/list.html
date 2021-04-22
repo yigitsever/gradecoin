@@ -7,9 +7,9 @@
     </tr>
     {% for user in users %}
     <tr>
-        <td>{{ user.fingerprint }}</td>
+        <td>{{ user.fingerprint }} {% if user.is_bot %} <span title="I'm a bot!">👋🤖</span> {% endif %}</td>
         <td>{{ user.balance }}</td>
     </tr>
-        {% endfor %}
+    {% endfor %}
 </table>
 {% include "footer.html" %}
