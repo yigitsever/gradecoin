@@ -116,7 +116,10 @@ pub async fn authenticate_user(
 
             let res_json = warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
-                message: "The ciphertext of the key was not base64 encoded {}, {}".to_owned(),
+                message: format!(
+                    "The ciphertext of the key was not base64 encoded: {}",
+                    request.key
+                ),
             });
 
             return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
@@ -133,7 +136,10 @@ pub async fn authenticate_user(
 
             let res_json = warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
-                message: "Failed to decrypt the ciphertext of the temporary key".to_owned(),
+                message: format!(
+                    "Failed to decrypt the ciphertext of the temporary key: {:?}",
+                    &key_ciphertext
+                ),
             });
 
             return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
@@ -152,7 +158,7 @@ pub async fn authenticate_user(
 
             let res_json = warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
-                message: "Given IV has invalid length, use a 128 bit key".to_owned(),
+                message: "Given IV has invalid length, use a 128 bit IV".to_owned(),
             });
 
             return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
@@ -188,7 +194,7 @@ pub async fn authenticate_user(
 
             let res_json = warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
-                message: "The Base64 decoded auth request did not decrypt correctly".to_owned(),
+                message: "The base64 decoded auth request did not decrypt correctly".to_owned(),
             });
 
             return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
@@ -205,7 +211,7 @@ pub async fn authenticate_user(
 
             let res_json = warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
-                message: "Auth plaintext couldn't get converted to UTF-8".to_owned(),
+                message: "Auth plaintext could not get converted to UTF-8".to_owned(),
             });
 
             return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
@@ -343,7 +349,11 @@ pub async fn propose_block(
     warn!("New block proposal: {:?}", &new_block);
 
     if new_block.transaction_list.len() < BLOCK_TRANSACTION_COUNT as usize {
-        debug!("{} transactions offered, needed {}", new_block.transaction_list.len(), BLOCK_TRANSACTION_COUNT);
+        debug!(
+            "{} transactions offered, needed {}",
+            new_block.transaction_list.len(),
+            BLOCK_TRANSACTION_COUNT
+        );
         let res_json = warp::reply::json(&GradeCoinResponse {
             res: ResponseType::Error,
             message: format!(
