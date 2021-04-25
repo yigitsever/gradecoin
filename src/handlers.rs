@@ -22,7 +22,7 @@ use warp::{http::StatusCode, reply};
 use crate::PRIVATE_KEY;
 
 // Valid blocks should have this many transactions
-const BLOCK_TRANSACTION_COUNT: u8 = 5;
+const BLOCK_TRANSACTION_COUNT: u8 = 10;
 // Inital registration bonus
 const REGISTER_BONUS: u16 = 40;
 // Coinbase reward
