@@ -646,6 +646,18 @@ pub async fn propose_transaction(
         }
     };
 
+    if internal_user.is_bot {
+        debug!("Someone tried to send as the bot");
+
+        return Ok(warp::reply::with_status(
+            warp::reply::json(&GradeCoinResponse {
+                res: ResponseType::Error,
+                message: "Don's send transactions on behalf of bots".to_owned(),
+            }),
+            StatusCode::BAD_REQUEST,
+        ));
+    }
+
     // `internal_user` is an authenticated student, can propose
 
     // This public key was already written to the database, we can panic if it's not valid at
