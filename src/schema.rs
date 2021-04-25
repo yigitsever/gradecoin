@@ -161,7 +161,7 @@ impl Db {
             User {
                 user_id: friendly_1,
                 public_key: "not_used".to_owned(),
-                balance: 0,
+                balance: 70,
                 is_bot: true,
             },
         );
@@ -173,7 +173,7 @@ impl Db {
             User {
                 user_id: friendly_2,
                 public_key: "not_used".to_owned(),
-                balance: 0,
+                balance: 20,
                 is_bot: true,
             },
         );
@@ -185,7 +185,7 @@ impl Db {
             User {
                 user_id: friendly_3,
                 public_key: "not_used".to_owned(),
-                balance: 0,
+                balance: 120,
                 is_bot: true,
             },
         );
@@ -197,7 +197,7 @@ impl Db {
             User {
                 user_id: friendly_4,
                 public_key: "not_used".to_owned(),
-                balance: 0,
+                balance: 40,
                 is_bot: true,
             },
         );
