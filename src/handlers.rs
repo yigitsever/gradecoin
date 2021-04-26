@@ -547,6 +547,13 @@ pub async fn propose_block(
         let mut pending_transactions = RwLockUpgradableReadGuard::upgrade(pending_transactions);
         let mut users_store = RwLockUpgradableReadGuard::upgrade(users_store);
 
+        // Reward the block proposer
+        let coinbase_fingerprint = new_block.transaction_list.get(0).unwrap();
+
+        if let Some(coinbase_user) = users_store.get_mut(coinbase_fingerprint) {
+            coinbase_user.balance += BLOCK_REWARD;
+        }
+
         // Play out the transactions
         for fingerprint in new_block.transaction_list.iter() {
             if let Some(transaction) = pending_transactions.remove(fingerprint) {
@@ -576,13 +583,6 @@ pub async fn propose_block(
                     );
                 }
             }
-        }
-
-        // Reward the block proposer
-        let coinbase_fingerprint = new_block.transaction_list.get(0).unwrap();
-
-        if let Some(coinbase_user) = users_store.get_mut(coinbase_fingerprint) {
-            coinbase_user.balance += BLOCK_REWARD;
         }
     }
 
