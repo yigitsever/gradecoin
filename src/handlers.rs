@@ -29,6 +29,7 @@ const REGISTER_BONUS: u16 = 40;
 const BLOCK_REWARD: u16 = 3;
 // Transaction amount limit
 const TX_UPPER_LIMIT: u16 = 2;
+const TX_LOWER_LIMIT: u16 = 1;
 // Transaction traffic reward
 const TX_TRAFFIC_REWARD: u16 = 1;
 
@@ -755,15 +756,18 @@ pub async fn propose_transaction(
     }
 
     // Is transaction amount within bounds
-    if new_transaction.amount > TX_UPPER_LIMIT {
+    if new_transaction.amount > TX_UPPER_LIMIT || new_transaction.amount < TX_LOWER_LIMIT {
         debug!(
-            "Transaction amount cannot exceed {}, was {}",
-            TX_UPPER_LIMIT, new_transaction.amount
+            "Transaction amount is not between {} and {}, was {}",
+            TX_LOWER_LIMIT, TX_UPPER_LIMIT, new_transaction.amount
         );
         return Ok(warp::reply::with_status(
             warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
-                message: format!("Transaction amount cannot exceed {}", TX_UPPER_LIMIT),
+                message: format!(
+                    "Transaction amount should be between {} and {}",
+                    TX_LOWER_LIMIT, TX_UPPER_LIMIT
+                ),
             }),
             StatusCode::BAD_REQUEST,
         ));
