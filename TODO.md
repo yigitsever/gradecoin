@@ -1,8 +1,5 @@
 # TODO
 
-## Issues
-- [X] Students can authenticate twice
-
 ## Tests
 - [ ] Route Tests
     - [ ] Malformed JSON bodies
@@ -10,9 +7,11 @@
     - [ ] Valid JSON with extra fields
 - [ ] Transaction with bank test
 
+- https://crates.io/crates/lazy_static
+
 ## Someday, Maybe?
 - [ ] CHAOS MODE, 3 different coins, combine them to make 1 gradecoin
-- [ ] NICE MODE, transactions move the amount, then award some to the sender, everyone starts with 10 gradecoins
+- [X] NICE MODE, transactions move the amount, then award some to the sender, everyone starts with 10 gradecoins
 - [ ] [SQLite](https://unixsheikh.com/articles/sqlite-the-only-database-you-will-ever-need-in-most-cases.html), not PostgreSQL
 
 # Done & Brag
