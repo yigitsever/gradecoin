@@ -275,6 +275,8 @@ impl Default for Block {
 /// * [`user_id`]: Can only be one of the repopulated
 /// * [`public_key`]: A PEM format public key "---- BEGIN" and all
 /// * [`balance`]: User's current Gradecoin amount
+///
+/// This should ideally include the fingerprint as well?
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct User {
     pub user_id: MetuId,

@@ -400,7 +400,7 @@ pub async fn propose_block(
         let res_json = warp::reply::json(&GradeCoinResponse {
             res: ResponseType::Error,
             message: format!(
-                "There should be at least {} transaction in the block",
+                "There should be at least {} transactions in the block",
                 BLOCK_TRANSACTION_COUNT
             ),
         });
@@ -411,17 +411,18 @@ pub async fn propose_block(
     // proposer (first transaction fingerprint) checks
     let pending_transactions = db.pending_transactions.upgradable_read();
 
+    // we get the proposers fingerprint by finding the transaction (id) then extracting the source
     let internal_user_fingerprint = match pending_transactions.get(&new_block.transaction_list[0]) {
         Some(coinbase) => &coinbase.source,
         None => {
             debug!(
-                "Block proposer with public key signature {:?} is not found in the database",
+                "Transaction with id {} is not found in the pending_transactions",
                 new_block.transaction_list[0]
             );
 
             let res_json = warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
-                message: "Proposer of the first transaction is not found in the system".to_owned(),
+                message: "First transaction in the block is not found in the system".to_owned(),
             });
 
             return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
@@ -584,6 +585,23 @@ pub async fn propose_block(
                 }
             }
         }
+
+        // just update everyone's .guy file
+        for (fp, guy) in users_store.iter() {
+            if !guy.is_bot {
+                let user_at_rest_json = serde_json::to_string(&UserAtRest {
+                    fingerprint: fp.clone(),
+                    user: User {
+                        user_id: guy.user_id.clone(),
+                        public_key: guy.public_key.clone(),
+                        balance: guy.balance,
+                        is_bot: false,
+                    },
+                })
+                .unwrap();
+                fs::write(format!("users/{}.guy", guy.user_id), user_at_rest_json).unwrap();
+            }
+        }
     }
 
     let block_json = serde_json::to_string(&new_block).unwrap();
@@ -658,7 +676,7 @@ pub async fn propose_transaction(
         ));
     }
 
-    // `internal_user` is an authenticated student, can propose
+    // `internal_user` is an authenticated student and not a bot, can propose
 
     // This public key was already written to the database, we can panic if it's not valid at
     // *this* point
@@ -827,8 +845,8 @@ fn authorize_proposer(jwt_token: String, user_pem: &str) -> Result<TokenData<Cla
         Ok(key) => key,
         Err(j) => {
             warn!(
-                "user has invalid RSA key we should crash and burn here {:?}",
-                j
+                "given RSA key {} is invalid, we should crash and burn here {:?}",
+                user_pem, j
             );
             return Err(String::from("This User's RSA key is invalid"));
         }
@@ -852,7 +870,7 @@ fn authorize_proposer(jwt_token: String, user_pem: &str) -> Result<TokenData<Cla
                     return Err(String::from("This token has expired"));
                 }
                 _ => {
-                    warn!("AN UNSPECIFIED ERROR: {:?}", err);
+                    warn!("AN UNSPECIFIED ERROR: {:?} key was {}", err, user_pem);
                     return Err(format!("JWT Error: {}", err));
                 }
             },
