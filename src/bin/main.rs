@@ -1,5 +1,4 @@
 use std::env;
-use warp::Filter;
 
 // use gradecoin::error;
 use gradecoin::routes::consensus_routes;
@@ -19,9 +18,9 @@ async fn main() {
 
     let api = consensus_routes(db);
 
-    let routes = api.with(warp::log("gradecoin"));
+    // let routes = api.with(warp::log("gradecoin"));
 
     // Start the server
     let point = ([127, 0, 0, 1], 8080);
-    warp::serve(routes).run(point).await;
+    warp::serve(api).run(point).await;
 }
