@@ -22,13 +22,13 @@ use warp::{http::StatusCode, reply};
 use crate::PRIVATE_KEY;
 
 // Valid blocks should have this many transactions
-const BLOCK_TRANSACTION_COUNT: u8 = 10;
+const BLOCK_TRANSACTION_COUNT: u8 = 8;
 // Inital registration bonus
 const REGISTER_BONUS: u16 = 40;
 // Coinbase reward
 const BLOCK_REWARD: u16 = 3;
 // Transaction amount limit
-const TX_UPPER_LIMIT: u16 = 2;
+const TX_UPPER_LIMIT: u16 = 10;
 const TX_LOWER_LIMIT: u16 = 1;
 // Transaction traffic reward
 const TX_TRAFFIC_REWARD: u16 = 1;
@@ -563,11 +563,11 @@ pub async fn propose_block(
                 let target = &transaction.target;
 
                 if let Some(from) = users_store.get_mut(source) {
-                    from.balance -= transaction.amount;
+                    from.balance -= transaction.amount - TX_TRAFFIC_REWARD;
                 }
 
                 if let Some(to) = users_store.get_mut(target) {
-                    to.balance += transaction.amount + TX_TRAFFIC_REWARD;
+                    to.balance += transaction.amount;
                 }
 
                 // if the receiver is a bot, they will reciprocate
