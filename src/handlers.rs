@@ -877,7 +877,7 @@ fn authorize_proposer(jwt_token: String, user_pem: &str) -> Result<TokenData<Cla
                     return Err(String::from("This token has expired"));
                 }
                 _ => {
-                    warn!("AN UNSPECIFIED ERROR: {:?} key was {}", err, user_pem);
+                    warn!("AN UNSPECIFIED ERROR from token: {}\nerr: {:?} key was {}", jwt_token, err, user_pem);
                     return Err(format!("JWT Error: {}", err));
                 }
             },
