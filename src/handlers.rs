@@ -189,7 +189,10 @@ pub async fn authenticate_user(
 
             let res_json = warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
-                message: "Given IV has invalid length, use a 128 bit IV".to_owned(),
+                message: format!(
+                    "Could not create a cipher from given 'temp_key': {:?} and 'IV': {}",
+                    &temp_key, &request.iv
+                ),
             });
 
             return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
