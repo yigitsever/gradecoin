@@ -559,6 +559,8 @@ pub async fn propose_block(
             coinbase_user.balance += BLOCK_REWARD;
         }
 
+        let holding: HashMap<String, Transaction> = HashMap::new();
+
         // Play out the transactions
         for fingerprint in new_block.transaction_list.iter() {
             if let Some(transaction) = pending_transactions.remove(fingerprint) {
@@ -588,6 +590,10 @@ pub async fn propose_block(
                     );
                 }
             }
+        }
+
+        for (fp, tx) in holding.iter() {
+            pending_transactions.insert(fp.to_owned(), tx.to_owned());
         }
 
         // just update everyone's .guy file
@@ -877,7 +883,10 @@ fn authorize_proposer(jwt_token: String, user_pem: &str) -> Result<TokenData<Cla
                     return Err(String::from("This token has expired"));
                 }
                 _ => {
-                    warn!("AN UNSPECIFIED ERROR from token: {}\nerr: {:?} key was {}", jwt_token, err, user_pem);
+                    warn!(
+                        "AN UNSPECIFIED ERROR from token: {}\nerr: {:?} key was {}",
+                        jwt_token, err, user_pem
+                    );
                     return Err(format!("JWT Error: {}", err));
                 }
             },
