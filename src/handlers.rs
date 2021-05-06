@@ -885,7 +885,7 @@ fn authorize_proposer(jwt_token: String, user_pem: &str) -> Result<TokenData<Cla
                 _ => {
                     warn!(
                         "AN UNSPECIFIED ERROR from token: {}\nerr: {:?} key was {}",
-                        jwt_token, err, user_pem
+                        raw_jwt, err, user_pem
                     );
                     return Err(format!("JWT Error: {}", err));
                 }
