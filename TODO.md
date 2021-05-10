@@ -5,9 +5,6 @@
     - [ ] Malformed JSON bodies
     - [ ] Valid JSON with missing fields
     - [ ] Valid JSON with extra fields
-- [ ] Transaction with bank test
-
-- https://crates.io/crates/lazy_static
 
 ## Someday, Maybe?
 - [ ] CHAOS MODE, 3 different coins, combine them to make 1 gradecoin
