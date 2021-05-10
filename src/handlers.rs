@@ -7,6 +7,7 @@ use block_modes::{BlockMode, Cbc};
 use chrono::Utc;
 use jsonwebtoken::errors::ErrorKind;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, TokenData, Validation};
+use lazy_static::lazy_static;
 use log::{debug, warn};
 use md5::Md5;
 use parking_lot::RwLockUpgradableReadGuard;
@@ -55,6 +56,21 @@ use crate::schema::{
 
 const BEARER: &str = "Bearer ";
 
+lazy_static! {
+    static ref DER_ENCODED: String = PRIVATE_KEY
+        .lines()
+        .filter(|line| !line.starts_with('-'))
+        .fold(String::new(), |mut data, line| {
+            data.push_str(&line);
+            data
+        });
+
+    // base64(der(pem))
+    // Our private key is saved in PEM (base64) format
+    static ref DER_BYTES: Vec<u8> = base64::decode(&*DER_ENCODED).expect("failed to decode base64 content");
+    static ref GRADECOIN_PRIVATE_KEY: RSAPrivateKey = RSAPrivateKey::from_pkcs1(&DER_BYTES).expect("failed to parse key");
+}
+
 /// POST request to /register endpoint
 ///
 /// Lets a [`User`] (=student) to authenticate themselves to the system
@@ -100,21 +116,6 @@ pub async fn authenticate_user(
     // In essence PEM files are just base64 encoded versions of the DER encoded data.
     // ~tls.mbed.org
 
-    // TODO: lazyload or something <14-04-21, yigit> //
-    // Load our RSA Private Key as DER
-    let der_encoded = PRIVATE_KEY
-        .lines()
-        .filter(|line| !line.starts_with('-'))
-        .fold(String::new(), |mut data, line| {
-            data.push_str(&line);
-            data
-        });
-
-    // base64(der(pem))
-    // Our private key is saved in PEM (base64) format
-    let der_bytes = base64::decode(&der_encoded).expect("failed to decode base64 content");
-    let gradecoin_private_key = RSAPrivateKey::from_pkcs1(&der_bytes).expect("failed to parse key");
-
     let padding = PaddingScheme::new_oaep::<sha2::Sha256>();
 
     // Peel away the base64 layer from "key" field
@@ -139,7 +140,7 @@ pub async fn authenticate_user(
     };
 
     // Decrypt the "key" field using Gradecoin's private key
-    let temp_key = match gradecoin_private_key.decrypt(padding, &key_ciphertext) {
+    let temp_key = match GRADECOIN_PRIVATE_KEY.decrypt(padding, &key_ciphertext) {
         Ok(k) => k,
         Err(err) => {
             debug!(

@@ -315,6 +315,7 @@ pub struct InitialAuthRequest {
     pub key: String,
 }
 
+// Students who are authorized to have Gradecoin accounts
 lazy_static! {
     static ref OUR_STUDENTS: HashSet<(&'static str, &'static str)> = {
         [
