@@ -1,6 +1,6 @@
 # Gradecoin
 
-This will sit behind nginx reverse proxy so running at 127.0.0.1:8080 or not using https is not a problem.
+This is designed to sit behind nginx reverse proxy so running at 127.0.0.1:8080 or not using https is not a problem.
 
 It's currently live over at https://gradecoin.xyz.
 
@@ -12,7 +12,9 @@ $ cargo test
 $ cargo doc --open
 ```
 
-# Big Thank List
+The executable `main` needs the `/templates`, `users` and `blocks` folders. It also expects a `secrets/gradecoin.pem` file with the private key of the system.
+
+# References
 - https://github.com/blurbyte/restful-rust
 - https://github.com/zupzup/warp-postgres-example
 - https://blog.logrocket.com/create-an-async-crud-web-service-in-rust-with-warp/
