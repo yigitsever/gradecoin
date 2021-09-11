@@ -23,4 +23,5 @@ The executable `main` needs the `/templates`, `users` and `blocks` folders. It a
 - https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
 - https://tools.ietf.org/html/rfc7231
 
+It's not Golf With Your Friends if it's just the four of us.
 
