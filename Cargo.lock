@@ -474,7 +474,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "gradecoin"
+name = "drocoin"
 version = "0.2.0"
 dependencies = [
  "aes",

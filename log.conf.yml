@@ -9,9 +9,9 @@ appenders:
       pattern: "[{d(%Y-%m-%d %H:%M:%S)} {h({l})}] - {m}\n"
 
   # And this guy writes to file, also rolls the files (when they get too large)
-  gradecoin:
+  drocoin:
     kind: rolling_file
-    path: "log/gradecoin.log"
+    path: "log/drocoin.log"
     append: true
     encoder:
       kind: pattern
@@ -26,16 +26,16 @@ appenders:
 
       roller:
         kind: fixed_window
-        pattern: "log/gradecoin.{}.old.log"
+        pattern: "log/drocoin.{}.old.log"
         count: 5
         base: 1
 
 loggers:
-  gradecoin:
+  drocoin:
     level: trace
     appenders:
       - stdout
-      - gradecoin
+      - drocoin
     additive: false
 
 

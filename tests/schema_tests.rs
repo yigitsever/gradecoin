@@ -1,6 +1,6 @@
 // #[cfg(test)]
 // mod tests {
-//     use gradecoin::schema::*;
+//     use drocoin::schema::*;
 //     use serde_test::{assert_tokens, Token};
 //     use chrono::NaiveDate;
 

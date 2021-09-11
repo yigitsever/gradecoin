@@ -78,11 +78,11 @@ lazy_static! {
 ///
 /// Lets a [`User`] (=student) to authenticate themselves to the system
 /// This `request` can be rejected if the payload is malformed (=not authenticated properly) or if
-/// the [`AuthRequest.user_id`] of the `request` is not in the list of users that can hold a Gradecoin account
+/// the [`AuthRequest.user_id`] of the `request` is not in the list of users that can hold a Drocoin account
 ///
 /// # Authentication Process
-/// - Gradecoin's Public Key (`gradecoin_public_key`) is listed on moodle.
-/// - Gradecoin's Private Key (`gradecoin_private_key`) is loaded here
+/// - Drocoin's Public Key (`drocoin_public_key`) is listed on moodle.
+/// - Drocoin's Private Key (`drocoin_private_key`) is loaded here
 ///
 /// - Student picks a short temporary key (`k_temp`)
 /// - Creates a JSON object (`auth_plaintext`) with their `metu_id` and `public key` in base64 (PEM) format (`S_PK`):
@@ -94,16 +94,16 @@ lazy_static! {
 ///
 /// - Encrypts the serialized string of `auth_plaintext` with 128 bit block AES in CBC mode with Pkcs7 padding using the temporary key (`k_temp`), the result is `auth_ciphertext`
 /// - The temporary key student has picked `k_temp` is encrypted using RSA with OAEP padding scheme
-/// using sha256 with `gradecoin_public_key`, giving us `key_ciphertext`
+/// using sha256 with `drocoin_public_key`, giving us `key_ciphertext`
 /// - The payload JSON object (`auth_request`) can be JSON serialized now:
 /// {
 ///     c: "auth_ciphertext"
 ///     key: "key_ciphertext"
 /// }
 ///
-/// ## Gradecoin Side
+/// ## Drocoin Side
 ///
-/// - Upon receiving, we first RSA decrypt with OAEP padding scheme using SHA256 with `gradecoin_private_key` as the key and auth_request.key `key` as the ciphertext, receiving `temp_key` (this is the temporary key chosen by student)
+/// - Upon receiving, we first RSA decrypt with OAEP padding scheme using SHA256 with `drocoin_private_key` as the key and auth_request.key `key` as the ciphertext, receiving `temp_key` (this is the temporary key chosen by student)
 /// - With `temp_key`, we can AES 128 Cbc Pkcs7 decrypt the `auth_request.c`, giving us
 /// auth_plaintext
 /// - The `auth_plaintext` String can be deserialized to [`AuthRequest`]
@@ -142,12 +142,12 @@ pub async fn authenticate_user(
         }
     };
 
-    // Decrypt the "key" field using Gradecoin's private key
+    // Decrypt the "key" field using Drocoin's private key
     let temp_key = match GRADECOIN_PRIVATE_KEY.decrypt(padding, &key_ciphertext) {
         Ok(k) => k,
         Err(err) => {
             debug!(
-                "Failed to decrypt ciphertext of the key with Gradecoin's public key: {}. Key was {:?}",
+                "Failed to decrypt ciphertext of the key with Drocoin's public key: {}. Key was {:?}",
                 err, &key_ciphertext
             );
 
@@ -294,7 +294,7 @@ pub async fn authenticate_user(
                 let res_json = warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
                 message:
-                    "The credentials given ('student_id', 'passwd') cannot hold a Gradecoin account"
+                    "The credentials given ('student_id', 'passwd') cannot hold a Drocoin account"
                         .to_owned(),
             });
 
@@ -360,7 +360,7 @@ pub async fn authenticate_user(
     let res_json = warp::reply::json(&GradeCoinResponse {
         res: ResponseType::Success,
         message: format!(
-            "You have authenticated to use Gradecoin with identifier {}",
+            "You have authenticated to use Drocoin with identifier {}",
             fingerprint
         ),
     });

@@ -7,8 +7,8 @@
     - [ ] Valid JSON with extra fields
 
 ## Someday, Maybe?
-- [ ] CHAOS MODE, 3 different coins, combine them to make 1 gradecoin
-- [X] NICE MODE, transactions move the amount, then award some to the sender, everyone starts with 10 gradecoins
+- [ ] CHAOS MODE, 3 different coins, combine them to make 1 drocoin
+- [X] NICE MODE, transactions move the amount, then award some to the sender, everyone starts with 10 drocoins
 - [ ] [SQLite](https://unixsheikh.com/articles/sqlite-the-only-database-you-will-ever-need-in-most-cases.html), not PostgreSQL
 
 # Done & Brag

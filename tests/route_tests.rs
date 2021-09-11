@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use gradecoin::schema::{Block, Db, InitialAuthRequest, MetuId, Transaction, User};
+    use drocoin::schema::{Block, Db, InitialAuthRequest, MetuId, Transaction, User};
     use pretty_assertions::assert_eq;
 
-    use gradecoin::routes::consensus_routes;
+    use drocoin::routes::consensus_routes;
     use warp::http::StatusCode;
 
     /// Create a mock database to be used in tests

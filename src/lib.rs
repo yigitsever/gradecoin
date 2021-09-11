@@ -1,10 +1,10 @@
-//! # Gradecoin
+//! # Drocoin
 //!
 //! ## Services
 //! ### /register
 //! - Student creates their own 2048 bit RSA `keypair`
-//! - Downloads `Gradecoin`'s Public Key from Moodle
-//! - Encrypts their JSON wrapped `Public Key` and `Student ID` using Gradecoin's Public Key
+//! - Downloads `Drocoin`'s Public Key from Moodle
+//! - Encrypts their JSON wrapped `Public Key` and `Student ID` using Drocoin's Public Key
 //! - Their public key is now in our Db under [`schema::User::public_key`] and can be used to sign their JWT's during requests
 //!
 //! ### /transaction
@@ -31,5 +31,5 @@ use std::fs;
 
 lazy_static! {
     static ref PRIVATE_KEY: String =
-        fs::read_to_string("secrets/gradecoin.pem").expect("error reading 'secrets/gradecoin.pem'");
+        fs::read_to_string("secrets/drocoin.pem").expect("error reading 'secrets/drocoin.pem'");
 }

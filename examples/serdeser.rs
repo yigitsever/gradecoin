@@ -1,4 +1,4 @@
-use gradecoin::schema::Transaction;
+use drocoin::schema::Transaction;
 use serde_json;
 
 pub fn main() {

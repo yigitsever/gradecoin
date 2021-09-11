@@ -142,7 +142,7 @@ pub struct Claims {
 /// user can have only one outstanding transaction at any given time.
 ///
 /// [`Db::users`] is the in memory representation of the users, with their public keys, metu_ids and
-/// gradecoin balances.
+/// drocoin balances.
 #[derive(Debug, Clone)]
 pub struct Db {
     pub blockchain: Arc<RwLock<Block>>,
@@ -256,7 +256,7 @@ impl Block {
     /// Genesis block
     pub fn new() -> Block {
         Block {
-            transaction_list: vec!["gradecoin_bank".to_owned()],
+            transaction_list: vec!["drocoin_bank".to_owned()],
             nonce: 0,
             timestamp: NaiveDate::from_ymd(2021, 4, 11).and_hms(20, 45, 00),
             hash: String::from("not_actually_mined"),
@@ -274,7 +274,7 @@ impl Default for Block {
 ///
 /// * [`user_id`]: Can only be one of the repopulated
 /// * [`public_key`]: A PEM format public key "---- BEGIN" and all
-/// * [`balance`]: User's current Gradecoin amount
+/// * [`balance`]: User's current Drocoin amount
 ///
 /// This should ideally include the fingerprint as well?
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -315,7 +315,7 @@ pub struct InitialAuthRequest {
     pub key: String,
 }
 
-// Students who are authorized to have Gradecoin accounts
+// Students who are authorized to have Drocoin accounts
 lazy_static! {
     static ref OUR_STUDENTS: HashSet<(&'static str, &'static str)> = {
         [
