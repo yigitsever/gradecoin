@@ -1,5 +1,6 @@
-/// Functions that extracts Structs to be used in warp routines
-use crate::schema::{Block, Db, InitialAuthRequest, Transaction};
+//! # Functions that extracts Structs to be used in warp routines
+use crate::block::{Block, InitialAuthRequest, Transaction};
+use crate::Db;
 use std::convert::Infallible;
 use warp::{Filter, Rejection};
 

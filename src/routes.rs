@@ -1,12 +1,12 @@
-/// Endpoints and their construction
+//! # Endpoints and their construction
+//
 use warp::{Filter, Rejection, Reply};
-
 use crate::custom_filters;
 use crate::handlers;
-use crate::schema::Db;
+use crate::Db;
 
 /// Every route combined
-pub fn consensus_routes(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
+pub fn application(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
     // Remember when we wanted to implement templating
     // Why would we? Just put a staic webpage under /public (next to Cargo.toml) and place it and
     // the end of the filter chain
