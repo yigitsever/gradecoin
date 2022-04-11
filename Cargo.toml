@@ -27,7 +27,6 @@ sha2 = "0.9.3"
 block-modes = "0.7.0"
 aes = "0.6.0"
 askama = "0.10.5"
-libmath = "0.2.1"
 
 [dev-dependencies]
 serde_test = "1.0.117"

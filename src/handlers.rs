@@ -37,8 +37,6 @@ const TX_UPPER_LIMIT: u16 = 10;
 const TX_LOWER_LIMIT: u16 = 1;
 // Transaction traffic reward
 const TX_TRAFFIC_REWARD: u16 = 1;
-// Staking reward
-const STAKING_REWARD: f64 = 0.1; // Percentage
 
 // Encryption primitive
 type Aes128Cbc = Cbc<Aes128, Pkcs7>;
@@ -564,7 +562,6 @@ pub async fn propose_block(
             if let Some(transaction) = pending_transactions.remove(fingerprint) {
                 let source = &transaction.source;
                 let target = &transaction.target;
-                let is_source_bot = users_store.get(source).unwrap().is_bot;
 
                 if let Some(from) = users_store.get_mut(source) {
                     from.balance -= transaction.amount - TX_TRAFFIC_REWARD;
@@ -572,12 +569,6 @@ pub async fn propose_block(
 
                 if let Some(to) = users_store.get_mut(target) {
                     to.balance += transaction.amount;
-                    if is_source_bot {
-                        // Add staking reward
-                        to.balance +=
-                            math::round::ceil((f64::from(transaction.amount)) * STAKING_REWARD, 0)
-                                as u16;
-                    }
                 }
 
                 // if the receiver is a bot, they will reciprocate
