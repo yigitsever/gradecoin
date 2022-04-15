@@ -26,6 +26,7 @@ pub struct User {
 }
 
 /// The values are hard coded in [`static@OUR_STUDENTS`] so `MetuId::new`() can accept/reject values based on that
+/// TODO update the statement above
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct MetuId {
     id: String,
@@ -46,10 +47,14 @@ impl MetuId {
             None
         }
     }
+
+    // TODO: replace the function above with this <15-04-22, yigit> //
+    pub fn _new(id: String, passwd: String) -> Self {
+        MetuId  { id, passwd }
+    }
 }
 
 // TODO: remove this, read from a yaml or something, then MetuId::new gets a self <11-04-22, yigit> //
-
 // Students who are authorized to have Gradecoin accounts
 lazy_static! {
     static ref OUR_STUDENTS: HashSet<(&'static str, &'static str)> = {

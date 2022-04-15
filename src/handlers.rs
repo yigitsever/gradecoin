@@ -27,13 +27,13 @@ use warp::{http::StatusCode, reply};
 use crate::PRIVATE_KEY;
 
 // Valid blocks should have this many transactions
-const BLOCK_TRANSACTION_COUNT: u8 = 8;
+const BLOCK_TRANSACTION_COUNT: u8 = 4;
 // Inital registration bonus
-const REGISTER_BONUS: u16 = 40;
+const REGISTER_BONUS: u16 = 20;
 // Coinbase reward
-const BLOCK_REWARD: u16 = 3;
+const BLOCK_REWARD: u16 = 2;
 // Transaction amount limit
-const TX_UPPER_LIMIT: u16 = 10;
+const TX_UPPER_LIMIT: u16 = 4;
 const TX_LOWER_LIMIT: u16 = 1;
 // Transaction traffic reward
 const TX_TRAFFIC_REWARD: u16 = 1;
@@ -278,6 +278,7 @@ pub async fn authenticate_user(
     };
 
     // is the student in AuthRequest privileged?
+    // TODO: this is the only check for 'if metuid is approved' <15-04-22, yigit> //
     let privileged_student_id =
         if let Some(id) = MetuId::new(request.student_id.clone(), request.passwd.clone()) {
             id

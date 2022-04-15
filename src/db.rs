@@ -19,6 +19,7 @@ pub struct Db {
     pub blockchain: Arc<RwLock<Block>>,
     pub pending_transactions: Arc<RwLock<HashMap<Id, Transaction>>>,
     pub users: Arc<RwLock<HashMap<Fingerprint, User>>>,
+    approved_users: Vec<MetuId>,
     // TODO: metu_ids or approved_users or something, metu_id struct <11-04-22, yigit> //
 }
 
@@ -36,11 +37,13 @@ impl Db {
         }
 
         let users: HashMap<Fingerprint, User> = get_friendly_users();
+        let approved_users = read_approved_users();
 
         Db {
             blockchain: Arc::new(RwLock::new(Block::default())),
             pending_transactions: Arc::new(RwLock::new(HashMap::new())),
             users: Arc::new(RwLock::new(users)),
+            approved_users,
         }
     }
 
@@ -156,4 +159,15 @@ fn get_friendly_users() -> HashMap<Fingerprint, User> {
         },
     );
     users
+}
+
+fn read_approved_users() -> Vec<MetuId> {
+    let mut approved_students: Vec<MetuId> = Vec::new();
+    let contents = fs::read_to_string("students.csv").unwrap();
+    let mut reader = csv::Reader::from_reader(contents.as_bytes());
+    for student in reader.records() {
+        let student = student.unwrap();
+        approved_students.push(MetuId::_new(student[0].to_owned(), student[1].to_owned()));
+    }
+    approved_students
 }
