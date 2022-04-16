@@ -220,7 +220,7 @@ pub async fn authenticate_user(
     };
 
     // c field was properly base64 encoded, now available in auth_packet
-    // decryptor was setup properly, with the correct lenght key
+    // decryptor was setup properly, with the correct length key
     let mut buf = auth_packet;
     let auth_plaintext = match cipher.decrypt(&mut buf) {
         Ok(p) => p,
@@ -278,24 +278,22 @@ pub async fn authenticate_user(
     };
 
     // is the student in AuthRequest privileged?
-    // TODO: this is the only check for 'if metuid is approved' <15-04-22, yigit> //
-    let privileged_student_id =
-        if let Some(id) = MetuId::new(request.student_id.clone(), request.passwd.clone()) {
-            id
-        } else {
-            debug!(
-                "Someone tried to auth with invalid credentials: {} {}",
-                &request.student_id, &request.passwd
-            );
-            let res_json = warp::reply::json(&GradeCoinResponse {
-                res: ResponseType::Error,
-                message:
-                    "The credentials given ('student_id', 'passwd') cannot hold a Gradecoin account"
-                        .to_owned(),
-            });
+    let privileged_student_id = if db.is_user_preapproved(&request.student_id, &request.passwd) {
+        MetuId::new(request.student_id.clone(), request.passwd.clone())
+    } else {
+        debug!(
+            "Someone tried to auth with invalid credentials: {} {}",
+            &request.student_id, &request.passwd
+        );
+        let res_json = warp::reply::json(&GradeCoinResponse {
+            res: ResponseType::Error,
+            message:
+                "The credentials given ('student_id', 'passwd') cannot hold a Gradecoin account"
+                    .to_owned(),
+        });
 
-            return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
-        };
+        return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
+    };
 
     // Students should be able to authenticate once
     {
@@ -382,7 +380,7 @@ pub async fn list_transactions(db: Db) -> Result<impl warp::Reply, Infallible> {
 /// Proposes a new block for the next round.
 /// Can reject the block
 ///
-/// The proposer has to put their transaction as the first transaction of the transaction_list.
+/// The proposer has to put their transaction as the first transaction of the `Block::transaction_list`.
 /// This is the analogue of `coinbase` in Bitcoin works
 ///
 /// The `coinbase` transaction also gets something for their efforts.

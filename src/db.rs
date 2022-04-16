@@ -14,13 +14,14 @@ use log::debug;
 use parking_lot::RwLock;
 use std::{collections::HashMap, fs, io, path::PathBuf, sync::Arc};
 
+const PREAPPROVED_STU_FILENAME: &str = "students.csv";
+
 #[derive(Debug, Clone, Default)]
 pub struct Db {
     pub blockchain: Arc<RwLock<Block>>,
     pub pending_transactions: Arc<RwLock<HashMap<Id, Transaction>>>,
     pub users: Arc<RwLock<HashMap<Fingerprint, User>>>,
-    approved_users: Vec<MetuId>,
-    // TODO: metu_ids or approved_users or something, metu_id struct <11-04-22, yigit> //
+    preapproved_users: Vec<MetuId>,
 }
 
 impl Db {
@@ -37,13 +38,13 @@ impl Db {
         }
 
         let users: HashMap<Fingerprint, User> = get_friendly_users();
-        let approved_users = read_approved_users();
+        let preapproved_users = read_approved_users();
 
         Db {
             blockchain: Arc::new(RwLock::new(Block::default())),
             pending_transactions: Arc::new(RwLock::new(HashMap::new())),
             users: Arc::new(RwLock::new(users)),
-            approved_users,
+            preapproved_users,
         }
     }
 
@@ -68,6 +69,16 @@ impl Db {
                     .insert(user_at_rest.fingerprint, user_at_rest.user);
             }
         }
+    }
+
+    pub fn is_user_preapproved(&self, id: &Id, passwd: &String) -> bool {
+        for user in &self.preapproved_users {
+            if *user.get_id() == *id && *user.get_passwd() == *passwd {
+                return true;
+            }
+        }
+
+        false
     }
 }
 
@@ -122,7 +133,7 @@ fn get_friendly_users() -> HashMap<Fingerprint, User> {
     users.insert(
         "cde48537ca2c28084ff560826d0e6388b7c57a51497a6cb56f397289e52ff41b".to_owned(),
         User {
-            user_id: MetuId::new("friend_1".to_owned(), "not_used".to_owned()).unwrap(),
+            user_id: MetuId::new("friend_1".to_owned(), "not_used".to_owned()),
             public_key: "not_used".to_owned(),
             balance: 70,
             is_bot: true,
@@ -132,7 +143,7 @@ fn get_friendly_users() -> HashMap<Fingerprint, User> {
     users.insert(
         "a1a38b5bae5866d7d998a9834229ec2f9db7a4fc8fb6f58b1115a96a446875ff".to_owned(),
         User {
-            user_id: MetuId::new("friend_2".to_owned(), "not_used".to_owned()).unwrap(),
+            user_id: MetuId::new("friend_2".to_owned(), "not_used".to_owned()),
             public_key: "not_used".to_owned(),
             balance: 20,
             is_bot: true,
@@ -142,7 +153,7 @@ fn get_friendly_users() -> HashMap<Fingerprint, User> {
     users.insert(
         "4e048fd2a62f1307866086e803e9be43f78a702d5df10831fbf434e7663ae0e7".to_owned(),
         User {
-            user_id: MetuId::new("friend_4".to_owned(), "not_used".to_owned()).unwrap(),
+            user_id: MetuId::new("friend_4".to_owned(), "not_used".to_owned()),
             public_key: "not_used".to_owned(),
             balance: 120,
             is_bot: true,
@@ -152,7 +163,7 @@ fn get_friendly_users() -> HashMap<Fingerprint, User> {
     users.insert(
         "60e77101e76950a9b1830fa107fd2f8fc545255b3e0f14b6a7797cf9ee005f07".to_owned(),
         User {
-            user_id: MetuId::new("friend_4".to_owned(), "not_used".to_owned()).unwrap(),
+            user_id: MetuId::new("friend_4".to_owned(), "not_used".to_owned()),
             public_key: "not_used".to_owned(),
             balance: 40,
             is_bot: true,
@@ -163,11 +174,19 @@ fn get_friendly_users() -> HashMap<Fingerprint, User> {
 
 fn read_approved_users() -> Vec<MetuId> {
     let mut approved_students: Vec<MetuId> = Vec::new();
-    let contents = fs::read_to_string("students.csv").unwrap();
+    let contents = fs::read_to_string(PREAPPROVED_STU_FILENAME).unwrap_or_else(|_| {
+        panic!(
+            "{}",
+            format!(
+                "Expected {} to load preapproved students",
+                PREAPPROVED_STU_FILENAME
+            )
+        )
+    });
     let mut reader = csv::Reader::from_reader(contents.as_bytes());
     for student in reader.records() {
         let student = student.unwrap();
-        approved_students.push(MetuId::_new(student[0].to_owned(), student[1].to_owned()));
+        approved_students.push(MetuId::new(student[0].to_owned(), student[1].to_owned()));
     }
     approved_students
 }
