@@ -1,14 +1,15 @@
 //! # Endpoints and their construction
 //
-use warp::{Filter, Rejection, Reply};
 use crate::custom_filters;
 use crate::handlers;
 use crate::Db;
+use warp::{Filter, Rejection, Reply};
 
 /// Every route combined
 pub fn application(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
     // gradecoin-site (zola) outputs a public/, we serve it here
     let static_route = warp::any().and(warp::fs::dir("public"));
+    let error_page = warp::any().and(warp::fs::file("public/404.html"));
 
     transaction_list(db.clone())
         .or(register_user(db.clone()))
@@ -17,6 +18,7 @@ pub fn application(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejectio
         .or(list_users(db.clone()))
         .or(block_list(db))
         .or(static_route)
+        .or(error_page)
 }
 
 /// GET /user warp route
