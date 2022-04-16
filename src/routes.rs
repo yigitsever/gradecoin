@@ -7,11 +7,7 @@ use crate::Db;
 
 /// Every route combined
 pub fn application(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
-    // Remember when we wanted to implement templating
-    // Why would we? Just put a staic webpage under /public (next to Cargo.toml) and place it and
-    // the end of the filter chain
-
-    // Fully fledged website support, phew!
+    // gradecoin-site (zola) outputs a public/, we serve it here
     let static_route = warp::any().and(warp::fs::dir("public"));
 
     transaction_list(db.clone())

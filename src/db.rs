@@ -178,7 +178,7 @@ fn read_approved_users() -> Vec<MetuId> {
         panic!(
             "{}",
             format!(
-                "Expected {} to load preapproved students",
+                "Expected {} in place to load preapproved students",
                 PREAPPROVED_STU_FILENAME
             )
         )
