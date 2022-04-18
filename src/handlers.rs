@@ -573,7 +573,7 @@ pub async fn propose_block(
                 // if the receiver is a bot, they will reciprocate
                 if users_store.get(target).unwrap().is_bot {
                     let transaction_id = calculate_transaction_id(target, source);
-                    pending_transactions.insert(
+                    holding.insert(
                         transaction_id,
                         Transaction {
                             source: target.clone(),
