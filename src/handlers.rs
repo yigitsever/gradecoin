@@ -554,7 +554,7 @@ pub async fn propose_block(
             coinbase_user.balance += BLOCK_REWARD;
         }
 
-        let holding: HashMap<String, Transaction> = HashMap::new();
+        let mut holding: HashMap<String, Transaction> = HashMap::new();
 
         // Play out the transactions
         for fingerprint in &new_block.transaction_list {
