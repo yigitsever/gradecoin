@@ -548,11 +548,11 @@ pub async fn propose_block(
         let mut users_store = RwLockUpgradableReadGuard::upgrade(users_store);
 
         // Reward the block proposer
-        let coinbase_fingerprint = new_block.transaction_list.get(0).unwrap();
-
-        if let Some(coinbase_user) = users_store.get_mut(coinbase_fingerprint) {
-            coinbase_user.balance += BLOCK_REWARD;
-        }
+        // All unwrap calls here are guaranteed to succeed because they are already checked above
+        // See: internal_user_fingerprint, internal_user
+        let coinbase = pending_transactions.get(&new_block.transaction_list[0]).unwrap();
+        let mut coinbase_user = users_store.get_mut(&coinbase.source).unwrap();
+        coinbase_user.balance += BLOCK_REWARD;
 
         let mut holding: HashMap<String, Transaction> = HashMap::new();
 
