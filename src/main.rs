@@ -35,12 +35,21 @@ pub use block::{Fingerprint, Id};
 use db::Db;
 use lazy_static::lazy_static;
 use std::fs;
+use crate::config::Config;
 
 #[tokio::main]
 async fn main() {
     log4rs::init_file("log.conf.yml", log4rs::config::Deserializers::default()).unwrap();
 
-    let api = routes::application(Db::new());
+    let config = match Config::read("config.yaml") {
+        Some(c) => c,
+        None => {
+            println!("Could not read config file, exiting.");
+            return;
+        },
+    };
+
+    let api = routes::application(Db::new(config));
 
     // Start the server
     let point = ([127, 0, 0, 1], 8080);

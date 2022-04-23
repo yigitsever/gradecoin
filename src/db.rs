@@ -27,7 +27,7 @@ pub struct Db {
 }
 
 impl Db {
-    pub fn new() -> Self {
+    pub fn new(config: Config) -> Self {
         fs::create_dir_all("blocks").unwrap();
         fs::create_dir_all("users").unwrap();
         let mut db = Db::default();
@@ -46,14 +46,7 @@ impl Db {
             blockchain: Arc::new(RwLock::new(Block::default())),
             pending_transactions: Arc::new(RwLock::new(HashMap::new())),
             users: Arc::new(RwLock::new(users)),
-            config: Config {
-                block_transaction_count: 4,
-                register_bonus: 100,
-                block_reward: 4,
-                tx_upper_limit: 4,
-                tx_lower_limit: 1,
-                tx_traffic_reward: 1,
-            },
+            config,
             preapproved_users,
         }
     }
