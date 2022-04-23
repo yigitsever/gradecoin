@@ -15,8 +15,6 @@ use log::debug;
 use parking_lot::RwLock;
 use std::{collections::HashMap, fs, io, path::PathBuf, sync::Arc};
 
-const PREAPPROVED_STU_FILENAME: &str = "students.csv";
-
 #[derive(Debug, Clone, Default)]
 pub struct Db {
     pub blockchain: Arc<RwLock<Block>>,
@@ -35,7 +33,7 @@ impl Db {
         let users: HashMap<Fingerprint, User> = get_friendly_users();
 
         // Read the list of users who can register
-        let preapproved_users = read_approved_users();
+        let preapproved_users = read_approved_users(&config.preapproved_users);
 
         let mut db = Db {
             blockchain: Arc::new(RwLock::new(Block::default())),
@@ -184,14 +182,14 @@ fn get_friendly_users() -> HashMap<Fingerprint, User> {
     users
 }
 
-fn read_approved_users() -> Vec<MetuId> {
+fn read_approved_users(filename: &str) -> Vec<MetuId> {
     let mut approved_students: Vec<MetuId> = Vec::new();
-    let contents = fs::read_to_string(PREAPPROVED_STU_FILENAME).unwrap_or_else(|_| {
+    let contents = fs::read_to_string(filename).unwrap_or_else(|_| {
         panic!(
             "{}",
             format!(
                 "Expected {} in place to load preapproved students",
-                PREAPPROVED_STU_FILENAME
+                filename
             )
         )
     });

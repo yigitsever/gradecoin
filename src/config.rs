@@ -11,6 +11,8 @@ pub struct Config {
     pub name: String,
     // URL prefix for this network, can be empty
     pub url_prefix: String,
+    // CSV file that contains the list of users who can register
+    pub preapproved_users: String,
     // Valid blocks should have this many transactions
     pub block_transaction_count: u8,
     // Inital registration bonus
