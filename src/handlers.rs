@@ -333,7 +333,10 @@ pub async fn authenticate_user(
     })
     .unwrap();
 
-    fs::write(format!("users/{}.guy", new_user.user_id), user_at_rest_json).unwrap();
+    fs::write(
+        format!("users/{}/{}.guy", db.config.name, new_user.user_id),
+        user_at_rest_json
+    ).unwrap();
 
     let mut userlist = db.users.write();
     userlist.insert(fingerprint.clone(), new_user);
@@ -601,7 +604,7 @@ pub async fn propose_block(
     let block_json = serde_json::to_string(&new_block).unwrap();
 
     fs::write(
-        format!("blocks/{}.block", new_block.timestamp.timestamp()),
+        format!("blocks/{}/{}.block", db.config.name, new_block.timestamp.timestamp()),
         block_json,
     )
     .unwrap();

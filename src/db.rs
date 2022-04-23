@@ -28,14 +28,14 @@ pub struct Db {
 
 impl Db {
     pub fn new(config: Config) -> Self {
-        fs::create_dir_all("blocks").unwrap();
-        fs::create_dir_all("users").unwrap();
+        fs::create_dir_all(format!("blocks/{}", config.name)).unwrap();
+        fs::create_dir_all(format!("users/{}", config.name)).unwrap();
         let mut db = Db::default();
-        if let Some(block_path) = last_block_content() {
+        if let Some(block_path) = last_block_content(&config.name) {
             db.populate_with_last_block(block_path);
         }
 
-        if let Ok(users_path) = read_users() {
+        if let Ok(users_path) = read_users(&config.name) {
             db.populate_with_users(users_path);
         }
 
@@ -85,8 +85,8 @@ impl Db {
     }
 }
 
-fn last_block_content() -> Option<String> {
-    let blocks = read_block_name().unwrap();
+fn last_block_content(config_name: &str) -> Option<String> {
+    let blocks = read_block_name(config_name).unwrap();
 
     if blocks.is_empty() {
         return None;
@@ -107,8 +107,9 @@ fn last_block_content() -> Option<String> {
     return Some(blocks[last_block_index].to_str().unwrap().parse().unwrap());
 }
 
-fn read_block_name() -> io::Result<Vec<PathBuf>> {
-    let entries = fs::read_dir("./blocks")?
+fn read_block_name(config_name: &str) -> io::Result<Vec<PathBuf>> {
+    let path = format!("./blocks/{}", config_name);
+    let entries = fs::read_dir(path)?
         .map(|res| res.map(|e| e.path()))
         .collect::<Result<Vec<_>, io::Error>>()?;
 
@@ -122,8 +123,9 @@ fn parse_block(path: &str) -> u64 {
     block_u64
 }
 
-fn read_users() -> io::Result<Vec<PathBuf>> {
-    let entries = fs::read_dir("./users")?
+fn read_users(config_name: &str) -> io::Result<Vec<PathBuf>> {
+    let path = format!("./users/{}", config_name);
+    let entries = fs::read_dir(path)?
         .map(|res| res.map(|e| e.path()))
         .collect::<Result<Vec<_>, io::Error>>()?;
 
