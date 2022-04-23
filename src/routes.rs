@@ -8,14 +8,20 @@ use warp::{Filter, filters::BoxedFilter, Rejection, Reply};
 /// Every route combined for a single network
 pub fn network(db: Db) -> BoxedFilter<(impl Reply,)> {
     let url_prefix = db.config.url_prefix.clone();
-    warp::path(url_prefix)
-        .and(
-            transaction_list(db.clone())
-            .or(register_user(db.clone()))
-            .or(auth_transaction_propose(db.clone()))
-            .or(auth_block_propose(db.clone()))
-            .or(list_users(db.clone()))
-            .or(block_list(db))
+    let root = if url_prefix.is_empty() {
+        // warp::path does not like empty url_prefix
+        // We need to handle this case separately
+        warp::any().boxed()
+    } else {
+        warp::path(url_prefix).boxed()
+    };
+    root.and(
+        transaction_list(db.clone())
+        .or(register_user(db.clone()))
+        .or(auth_transaction_propose(db.clone()))
+        .or(auth_block_propose(db.clone()))
+        .or(list_users(db.clone()))
+        .or(block_list(db))
         )
         .boxed()
 }
