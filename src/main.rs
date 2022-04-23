@@ -1,25 +1,48 @@
-//! # Gradecoin
+//! # Services
 //!
-//! ## Services
-//! ### /register
+//! All of these endpoints will be served with the URL prefix of a given network.
+//! For example, if URL prefix is `testnet`, `/register` is found at `/testnet/register`.
+//!
+//! ## /register
 //! - Student creates their own 2048 bit RSA `keypair`
 //! - Downloads `Gradecoin`'s Public Key from Moodle
 //! - Encrypts their JSON wrapped `Public Key` and `Student ID` using Gradecoin's Public Key
 //! - Their public key is now in our Db under [`block::User::public_key`] and can be used to sign their JWT's during requests
 //!
-//! ### /transaction
+//! ## /transaction
 //! - offer a [`block::Transaction`] - POST request
 //!     - The request should have `Authorization`
 //!     - The request header should be signed by the Public Key of the `by` field in the transaction
 //! - fetch the list of `Transaction`s - GET request
 //!
-//! ### /block
+//! ## /block
 //! - offer a [`block::Block`] - POST request
 //!     - The request should have `Authorization`
 //!     - The [`block::Block::transaction_list`] of the block should be a subset of [`block::Db::pending_transactions`]
 //! - fetch the last accepted [`block::Block`] - GET request
 //!
 //! `Authorization`: The request header should have Bearer JWT.Token signed with Student Public Key
+//!
+//! ## /config
+//! - Get the current [`config::Config`] as JSON - GET request
+//!
+//! # Configuration
+//!
+//! The default configuration file if `config.yaml`, which will run if no command line arguments are given.
+//!
+//! You can give one or more configuration files as command line arguments.
+//! This will run all of them at the same time.
+//! Make sure that the names and URL prefixes don't clash, otherwise it will lead to undefined behavior.
+//!
+//! Example:
+//! ```sh
+//! # Run both the main network (at /) and testnet (at /testnet)
+//! # For example, register for main network at `localhost:8080/register`,
+//! # testnet network at `localhost:8080/testnet/register`
+//! $ cargo run config.yaml testnet.yaml
+//! ```
+//!
+//! See [`config::Config`] struct for more information about the configurable fields.
 #![warn(clippy::all, clippy::pedantic)]
 #![allow(clippy::unused_async)]
 
