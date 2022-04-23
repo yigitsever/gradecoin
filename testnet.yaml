@@ -1,0 +1,22 @@
+# Testnet playground
+name: testnet
+# URL Prefix for this network
+# This will be served at "gradecoin.xyz/testnet"
+url_prefix: "testnet"
+# List of users who can register
+# CSV file: userID,password
+# First line is ignored
+preapproved_users: "students.csv"
+# Valid blocks should have this many transactions
+block_transaction_count: 3
+# How many zero hexadecimal characters should a correct hash start with?
+hash_zeros: 4
+# Bonus awarded after registration
+register_bonus: 42
+# Coinbase reward
+block_reward: 3
+# Transaction limits
+tx_upper_limit: 5
+tx_lower_limit: 1
+# Transaction traffic reward
+tx_traffic_reward: 1
