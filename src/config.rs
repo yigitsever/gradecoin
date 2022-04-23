@@ -7,6 +7,10 @@ use log::{error, info};
 /// Configuration for a single network
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Config {
+    // Name of the network
+    pub name: String,
+    // URL prefix for this network, can be empty
+    pub url_prefix: String,
     // Valid blocks should have this many transactions
     pub block_transaction_count: u8,
     // Inital registration bonus
