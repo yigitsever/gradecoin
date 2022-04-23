@@ -43,11 +43,17 @@ use log::{error};
 async fn main() {
     log4rs::init_file("log.conf.yml", log4rs::config::Deserializers::default()).unwrap();
 
-    let configs = vec!["config.yaml"];
+    let mut args: Vec<String> = std::env::args().collect();
 
-    let combined_routes = configs.into_iter()
+    if args.len() == 1 {
+        // config.yaml is the default configuration file
+        args.push("config.yaml".to_string());
+    }
+
+    let combined_routes = args.into_iter()
+        .skip(1) // Skip the program name
         .filter_map(|filename| {
-            match Config::read(filename) {
+            match Config::read(&filename) {
                 Some(config) => Some(routes::network(Db::new(config))),
                 None => None,
             }
