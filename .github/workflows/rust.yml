@@ -1,5 +1,4 @@
-name: Check and Lint
-
+name: ci
 on:
   pull_request:
   push:
@@ -11,11 +10,13 @@ env:
 
 jobs:
   check:
-    name: Check
+    name: check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
@@ -24,17 +25,35 @@ jobs:
         with:
           command: check
   fmt:
-    name: Rustfmt
+    name: rustfmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
           toolchain: stable
+          profile: minimal
           override: true
-      - run: rustup component add rustfmt
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+          components: rustfmt
+    - name: Check formatting
+      run: |
+        cargo fmt --all -- --check
+  clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+          toolchain: stable
+          components: clippy
+          override: true
+    - name: Lint \w Clippy
+      uses: actions-rs/clippy-check@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+          
