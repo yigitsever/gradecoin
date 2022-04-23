@@ -1,4 +1,5 @@
 # Gradecoin
+[![ci](https://github.com/yigitsever/gradecoin/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/yigitsever/gradecoin/actions/workflows/rust.yml)
 
 Gradecoin is a undergraduate level cryptography simulation/game that masquerades as a cryptocurrency.
 
