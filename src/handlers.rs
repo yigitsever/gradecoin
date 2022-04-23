@@ -553,6 +553,7 @@ pub async fn propose_block(
         let coinbase = pending_transactions.get(&new_block.transaction_list[0]).unwrap();
         let mut coinbase_user = users_store.get_mut(&coinbase.source).unwrap();
         coinbase_user.balance += BLOCK_REWARD;
+        debug!("{} block reward went to {:?} for mining the block", BLOCK_REWARD, coinbase_user);
 
         let mut holding: HashMap<String, Transaction> = HashMap::new();
 

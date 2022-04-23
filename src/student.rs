@@ -24,6 +24,12 @@ pub struct User {
     pub is_bot: bool,
 }
 
+impl fmt::Display for User {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.user_id)
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct MetuId {
     id: Id,
