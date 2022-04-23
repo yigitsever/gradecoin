@@ -6,14 +6,12 @@ use log::{error, info};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-
 /// Configuration struct for a single bot
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct BotConfig {
     /// The initial balance of this bot.
     pub starting_balance: u16,
 }
-
 
 /// Configuration for a single network
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

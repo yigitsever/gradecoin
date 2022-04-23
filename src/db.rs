@@ -142,15 +142,19 @@ fn read_users(config_name: &str) -> io::Result<Vec<PathBuf>> {
 fn get_bots(bot_configs: &HashMap<Fingerprint, BotConfig>) -> HashMap<Fingerprint, User> {
     let mut index = 0;
 
-    bot_configs.iter()
+    bot_configs
+        .iter()
         .map(|(fingerprint, config)| {
             index += 1;
-            (fingerprint.to_string(), User {
-                user_id: MetuId::new(format!("friend_{}", index), "not_used".to_owned()),
-                public_key: "not_used".to_owned(),
-                balance: config.starting_balance,
-                is_bot: true,
-            })
+            (
+                fingerprint.to_string(),
+                User {
+                    user_id: MetuId::new(format!("friend_{}", index), "not_used".to_owned()),
+                    public_key: "not_used".to_owned(),
+                    balance: config.starting_balance,
+                    is_bot: true,
+                },
+            )
         })
         .collect()
 }
