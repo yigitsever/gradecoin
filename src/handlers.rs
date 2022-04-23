@@ -26,18 +26,6 @@ use warp::{http::StatusCode, reply};
 
 use crate::PRIVATE_KEY;
 
-// Valid blocks should have this many transactions
-const BLOCK_TRANSACTION_COUNT: u8 = 4;
-// Inital registration bonus
-const REGISTER_BONUS: u16 = 20;
-// Coinbase reward
-const BLOCK_REWARD: u16 = 2;
-// Transaction amount limit
-const TX_UPPER_LIMIT: u16 = 4;
-const TX_LOWER_LIMIT: u16 = 1;
-// Transaction traffic reward
-const TX_TRAFFIC_REWARD: u16 = 1;
-
 // Encryption primitive
 type Aes128Cbc = Cbc<Aes128, Pkcs7>;
 
@@ -327,7 +315,7 @@ pub async fn authenticate_user(
     let new_user = User {
         user_id: privileged_student_id,
         public_key: request.public_key,
-        balance: REGISTER_BONUS,
+        balance: db.config.register_bonus,
         is_bot: false,
     };
 
@@ -392,17 +380,18 @@ pub async fn propose_block(
     warn!("New block proposal: {:?}", &new_block);
 
     // Check if there are enough transactions in the block
-    if new_block.transaction_list.len() < BLOCK_TRANSACTION_COUNT as usize {
+    let block_transaction_count = db.config.block_transaction_count;
+    if new_block.transaction_list.len() < block_transaction_count as usize {
         debug!(
             "{} transactions offered, needed {}",
             new_block.transaction_list.len(),
-            BLOCK_TRANSACTION_COUNT
+            block_transaction_count
         );
         let res_json = warp::reply::json(&GradeCoinResponse {
             res: ResponseType::Error,
             message: format!(
                 "There should be at least {} transactions in the block",
-                BLOCK_TRANSACTION_COUNT
+                block_transaction_count
             ),
         });
 
@@ -552,8 +541,8 @@ pub async fn propose_block(
         // See: internal_user_fingerprint, internal_user
         let coinbase = pending_transactions.get(&new_block.transaction_list[0]).unwrap();
         let mut coinbase_user = users_store.get_mut(&coinbase.source).unwrap();
-        coinbase_user.balance += BLOCK_REWARD;
-        debug!("{} block reward went to {:?} for mining the block", BLOCK_REWARD, coinbase_user);
+        coinbase_user.balance += db.config.block_reward;
+        debug!("{} block reward went to {:?} for mining the block", db.config.block_reward, coinbase_user);
 
         let mut holding: HashMap<String, Transaction> = HashMap::new();
 
@@ -564,7 +553,7 @@ pub async fn propose_block(
                 let target = &transaction.target;
 
                 if let Some(from) = users_store.get_mut(source) {
-                    from.balance -= transaction.amount - TX_TRAFFIC_REWARD;
+                    from.balance -= transaction.amount - db.config.tx_traffic_reward;
                 }
 
                 if let Some(to) = users_store.get_mut(target) {
@@ -758,17 +747,19 @@ pub async fn propose_transaction(
     }
 
     // Is transaction amount within bounds
-    if new_transaction.amount > TX_UPPER_LIMIT || new_transaction.amount < TX_LOWER_LIMIT {
+    let tx_upper_limit = db.config.tx_upper_limit;
+    let tx_lower_limit = db.config.tx_lower_limit;
+    if new_transaction.amount > tx_upper_limit || new_transaction.amount < tx_lower_limit {
         debug!(
             "Transaction amount is not between {} and {}, was {}",
-            TX_LOWER_LIMIT, TX_UPPER_LIMIT, new_transaction.amount
+            tx_lower_limit, tx_upper_limit, new_transaction.amount
         );
         return Ok(warp::reply::with_status(
             warp::reply::json(&GradeCoinResponse {
                 res: ResponseType::Error,
                 message: format!(
                     "Transaction amount should be between {} and {}",
-                    TX_LOWER_LIMIT, TX_UPPER_LIMIT
+                    tx_lower_limit, tx_upper_limit
                 ),
             }),
             StatusCode::BAD_REQUEST,
