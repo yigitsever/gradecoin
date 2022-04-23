@@ -386,7 +386,7 @@ pub async fn propose_block(
     token: String,
     db: Db,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    warn!("New block proposal: {:?}", &new_block);
+    warn!("[{}] New block proposal: {:?}", db.config.name, &new_block);
 
     // Check if there are enough transactions in the block
     let block_transaction_count = db.config.block_transaction_count;
@@ -543,7 +543,7 @@ pub async fn propose_block(
     }
 
     // All clear, block accepted!
-    warn!("ACCEPTED BLOCK {:?}", new_block);
+    warn!("[{}] ACCEPTED BLOCK {:?}", db.config.name, new_block);
 
     // Scope the read guards
     {
@@ -648,7 +648,7 @@ pub async fn propose_transaction(
     token: String,
     db: Db,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    warn!("New transaction proposal: {:?}", &new_transaction);
+    warn!("[{}] New transaction proposal: {:?}", db.config.name, &new_transaction);
 
     let users_store = db.users.read();
 
@@ -815,7 +815,7 @@ pub async fn propose_transaction(
         ));
     }
 
-    warn!("ACCEPTED TRANSACTION {:?}", new_transaction);
+    warn!("[{}] ACCEPTED TRANSACTION {:?}", db.config.name, new_transaction);
 
     let mut transactions = db.pending_transactions.write();
 
