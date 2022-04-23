@@ -10,6 +10,7 @@
 //! with their public keys, `metu_ids` and gradecoin balances.
 use crate::block::{Block, Fingerprint, Id, Transaction};
 use crate::student::{MetuId, User, UserAtRest};
+use crate::config::Config;
 use log::debug;
 use parking_lot::RwLock;
 use std::{collections::HashMap, fs, io, path::PathBuf, sync::Arc};
@@ -21,6 +22,7 @@ pub struct Db {
     pub blockchain: Arc<RwLock<Block>>,
     pub pending_transactions: Arc<RwLock<HashMap<Id, Transaction>>>,
     pub users: Arc<RwLock<HashMap<Fingerprint, User>>>,
+    pub config: Config,
     preapproved_users: Vec<MetuId>,
 }
 
@@ -44,6 +46,14 @@ impl Db {
             blockchain: Arc::new(RwLock::new(Block::default())),
             pending_transactions: Arc::new(RwLock::new(HashMap::new())),
             users: Arc::new(RwLock::new(users)),
+            config: Config {
+                block_transaction_count: 4,
+                register_bonus: 100,
+                block_reward: 4,
+                tx_upper_limit: 4,
+                tx_lower_limit: 1,
+                tx_traffic_reward: 1,
+            },
             preapproved_users,
         }
     }
