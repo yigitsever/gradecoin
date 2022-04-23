@@ -7,12 +7,16 @@ use warp::{Filter, filters::BoxedFilter, Rejection, Reply};
 
 /// Every route combined for a single network
 pub fn network(db: Db) -> BoxedFilter<(impl Reply,)> {
-    transaction_list(db.clone())
-        .or(register_user(db.clone()))
-        .or(auth_transaction_propose(db.clone()))
-        .or(auth_block_propose(db.clone()))
-        .or(list_users(db.clone()))
-        .or(block_list(db))
+    let url_prefix = db.config.url_prefix.clone();
+    warp::path(url_prefix)
+        .and(
+            transaction_list(db.clone())
+            .or(register_user(db.clone()))
+            .or(auth_transaction_propose(db.clone()))
+            .or(auth_block_propose(db.clone()))
+            .or(list_users(db.clone()))
+            .or(block_list(db))
+        )
         .boxed()
 }
 
