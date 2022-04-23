@@ -122,8 +122,9 @@ fn read_block_name(config_name: &str) -> io::Result<Vec<PathBuf>> {
 }
 
 fn parse_block(path: &str) -> u64 {
+    let start_pos = path.rfind("/").unwrap() + 1;
     let end_pos = path.find(".block").unwrap();
-    let block_str = path[9..end_pos].to_string();
+    let block_str = path[start_pos..end_pos].to_string();
     let block_u64: u64 = block_str.parse().unwrap();
     block_u64
 }
