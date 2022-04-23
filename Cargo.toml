@@ -1,7 +1,7 @@
 [package]
 name = "gradecoin"
 version = "0.2.0"
-authors = ["Yigit Sever <yigit@ceng.metu.edu.tr>"]
+authors = ["Yigit Sever <yigit@ceng.metu.edu.tr>", "İlker Işık (necrashter) <iiilker99@gmail.com>"]
 edition = "2018"
 include = ["src/**/*", "README.md"]
 
