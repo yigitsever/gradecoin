@@ -914,7 +914,7 @@ fn authorize_proposer(jwt_token: &str, user_pem: &str) -> Result<TokenData<Claim
 }
 
 fn calculate_transaction_id(source: &str, target: &str) -> String {
-    let long_fingerprint = format!("{}{}", source, target);
+    let long_fingerprint = format!("{}{}{}", source, target, Utc::now());
     let id = format!("{:x}", Sha256::digest(long_fingerprint.as_bytes()));
     id
 }
