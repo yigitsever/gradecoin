@@ -3,20 +3,17 @@
 use crate::custom_filters;
 use crate::handlers;
 use crate::Db;
-use warp::{Filter, Rejection, Reply};
+use warp::{Filter, filters::BoxedFilter, Rejection, Reply};
 
-/// Every route combined
-pub fn application(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
-    // gradecoin-site (zola) outputs a public/, we serve it here
-    let static_route = warp::any().and(warp::fs::dir("public"));
-
+/// Every route combined for a single network
+pub fn network(db: Db) -> BoxedFilter<(impl Reply,)> {
     transaction_list(db.clone())
         .or(register_user(db.clone()))
         .or(auth_transaction_propose(db.clone()))
         .or(auth_block_propose(db.clone()))
         .or(list_users(db.clone()))
         .or(block_list(db))
-        .or(static_route)
+        .boxed()
 }
 
 /// GET /user warp route

@@ -36,20 +36,37 @@ use db::Db;
 use lazy_static::lazy_static;
 use std::fs;
 use crate::config::Config;
+use warp::{Filter};
+use log::{error};
 
 #[tokio::main]
 async fn main() {
     log4rs::init_file("log.conf.yml", log4rs::config::Deserializers::default()).unwrap();
 
-    let config = match Config::read("config.yaml") {
-        Some(c) => c,
+    let configs = vec!["config.yaml"];
+
+    let combined_routes = configs.into_iter()
+        .filter_map(|filename| {
+            match Config::read(filename) {
+                Some(config) => Some(routes::network(Db::new(config))),
+                None => None,
+            }
+        })
+        .reduce(|routes, route| routes.or(route).unify().boxed());
+
+    let routes = match combined_routes {
+        Some(r) => r,
         None => {
-            println!("Could not read config file, exiting.");
+            // Exit the program if there's no successfully loaded config file.
+            error!("Failed to load any config files!");
             return;
         },
     };
 
-    let api = routes::application(Db::new(config));
+    // gradecoin-site (zola) outputs a public/, we serve it here
+    let static_route = warp::any().and(warp::fs::dir("public"));
+
+    let api = routes.or(static_route);
 
     // Start the server
     let point = ([127, 0, 0, 1], 8080);
