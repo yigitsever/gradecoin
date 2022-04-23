@@ -30,25 +30,32 @@ impl Db {
     pub fn new(config: Config) -> Self {
         fs::create_dir_all(format!("blocks/{}", config.name)).unwrap();
         fs::create_dir_all(format!("users/{}", config.name)).unwrap();
-        let mut db = Db::default();
-        if let Some(block_path) = last_block_content(&config.name) {
-            db.populate_with_last_block(block_path);
-        }
 
-        if let Ok(users_path) = read_users(&config.name) {
-            db.populate_with_users(users_path);
-        }
-
+        // Load bots
         let users: HashMap<Fingerprint, User> = get_friendly_users();
+
+        // Read the list of users who can register
         let preapproved_users = read_approved_users();
 
-        Db {
+        let mut db = Db {
             blockchain: Arc::new(RwLock::new(Block::default())),
             pending_transactions: Arc::new(RwLock::new(HashMap::new())),
             users: Arc::new(RwLock::new(users)),
             config,
             preapproved_users,
+        };
+
+        // Read blocks
+        if let Some(block_path) = last_block_content(&db.config.name) {
+            db.populate_with_last_block(block_path);
         }
+
+        // Read users
+        if let Ok(users_path) = read_users(&db.config.name) {
+            db.populate_with_users(users_path);
+        }
+
+        return db;
     }
 
     fn populate_with_last_block(&mut self, path: String) {
