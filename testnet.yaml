@@ -20,3 +20,17 @@ tx_upper_limit: 5
 tx_lower_limit: 1
 # Transaction traffic reward
 tx_traffic_reward: 1
+# The bots in the network
+# Fingerprint: botconfig
+bots:
+  StockFish:
+    starting_balance: 64
+  AlphaZero:
+    starting_balance: 128
+  HAL9000:
+    starting_balance: 256
+  Skynet:
+    starting_balance: 512
+  # I'm not responsible for any memetic hazards caused by this
+  RokosBasilisk:
+    starting_balance: 42
