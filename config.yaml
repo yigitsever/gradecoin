@@ -1,0 +1,11 @@
+# Valid blocks should have this many transactions
+block_transaction_count: 4
+# Bonus awarded after registration
+register_bonus: 20
+# Coinbase reward
+block_reward: 2
+# Transaction limits
+tx_upper_limit: 4
+tx_lower_limit: 1
+# Transaction traffic reward
+tx_traffic_reward: 1
