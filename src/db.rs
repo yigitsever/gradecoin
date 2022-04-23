@@ -9,7 +9,7 @@
 //! [`Db::users`] is the in memory representation of the users,
 //! with their public keys, `metu_ids` and gradecoin balances.
 use crate::block::{Block, Fingerprint, Id, Transaction};
-use crate::config::Config;
+use crate::config::{BotConfig, Config};
 use crate::student::{MetuId, User, UserAtRest};
 use log::info;
 use parking_lot::RwLock;
@@ -30,7 +30,7 @@ impl Db {
         fs::create_dir_all(format!("users/{}", config.name)).unwrap();
 
         // Load bots
-        let users: HashMap<Fingerprint, User> = get_friendly_users();
+        let users: HashMap<Fingerprint, User> = get_bots(&config.bots);
 
         // Load the list of users who can register
         let preapproved_users = read_approved_users(&config.preapproved_users);
@@ -138,49 +138,21 @@ fn read_users(config_name: &str) -> io::Result<Vec<PathBuf>> {
     Ok(entries)
 }
 
-fn get_friendly_users() -> HashMap<Fingerprint, User> {
-    let mut users: HashMap<Fingerprint, User> = HashMap::new();
+/// Build bots from the given set of bot configurations.
+fn get_bots(bot_configs: &HashMap<Fingerprint, BotConfig>) -> HashMap<Fingerprint, User> {
+    let mut index = 0;
 
-    users.insert(
-        "cde48537ca2c28084ff560826d0e6388b7c57a51497a6cb56f397289e52ff41b".to_owned(),
-        User {
-            user_id: MetuId::new("friend_1".to_owned(), "not_used".to_owned()),
-            public_key: "not_used".to_owned(),
-            balance: 70,
-            is_bot: true,
-        },
-    );
-
-    users.insert(
-        "a1a38b5bae5866d7d998a9834229ec2f9db7a4fc8fb6f58b1115a96a446875ff".to_owned(),
-        User {
-            user_id: MetuId::new("friend_2".to_owned(), "not_used".to_owned()),
-            public_key: "not_used".to_owned(),
-            balance: 20,
-            is_bot: true,
-        },
-    );
-
-    users.insert(
-        "4e048fd2a62f1307866086e803e9be43f78a702d5df10831fbf434e7663ae0e7".to_owned(),
-        User {
-            user_id: MetuId::new("friend_4".to_owned(), "not_used".to_owned()),
-            public_key: "not_used".to_owned(),
-            balance: 120,
-            is_bot: true,
-        },
-    );
-
-    users.insert(
-        "60e77101e76950a9b1830fa107fd2f8fc545255b3e0f14b6a7797cf9ee005f07".to_owned(),
-        User {
-            user_id: MetuId::new("friend_4".to_owned(), "not_used".to_owned()),
-            public_key: "not_used".to_owned(),
-            balance: 40,
-            is_bot: true,
-        },
-    );
-    users
+    bot_configs.iter()
+        .map(|(fingerprint, config)| {
+            index += 1;
+            (fingerprint.to_string(), User {
+                user_id: MetuId::new(format!("friend_{}", index), "not_used".to_owned()),
+                public_key: "not_used".to_owned(),
+                balance: config.starting_balance,
+                is_bot: true,
+            })
+        })
+        .collect()
 }
 
 fn read_approved_users(filename: &str) -> Vec<MetuId> {
