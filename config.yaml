@@ -1,3 +1,8 @@
+# The name of the network
+name: mainnet
+# URL Prefix for this network
+# For example, url_prefix is "example", register at "gradecoin.xyz/example/register"
+url_prefix: ""
 # Valid blocks should have this many transactions
 block_transaction_count: 4
 # Bonus awarded after registration
