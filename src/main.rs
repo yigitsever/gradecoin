@@ -29,6 +29,7 @@ mod handlers;
 mod routes;
 mod block;
 mod student;
+mod config;
 
 pub use block::{Fingerprint, Id};
 use db::Db;
