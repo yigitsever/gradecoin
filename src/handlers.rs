@@ -742,8 +742,7 @@ pub async fn propose_transaction(
         ));
     }
 
-    let transaction_id = calculate_transaction_id(&new_transaction.source, &new_transaction.target);
-
+    // Is this a duplicate transaction
     {
         let transactions = db.pending_transactions.read();
         debug!(
@@ -751,19 +750,22 @@ pub async fn propose_transaction(
             new_transaction.source, new_transaction.target,
         );
 
-        if transactions.contains_key(&transaction_id) {
-            debug!(
-                "this source/target combination {} already has a pending transaction",
-                transaction_id
-            );
-
-            return Ok(warp::reply::with_status(
-                warp::reply::json(&UserFeedback {
-                    res: ResponseType::Error,
-                    message: "This user already has another pending transaction".to_owned(),
-                }),
-                StatusCode::BAD_REQUEST,
-            ));
+        for tx in transactions.values() {
+            if tx.source == new_transaction.source && tx.target == new_transaction.target {
+                debug!(
+                    "There is already a transaction from {} to {}",
+                    new_transaction.source, new_transaction.target
+                );
+                return Ok(warp::reply::with_status(
+                    warp::reply::json(&UserFeedback {
+                        res: ResponseType::Error,
+                        message:
+                            "This user already has another pending transaction with this recipient"
+                                .to_owned(),
+                    }),
+                    StatusCode::BAD_REQUEST,
+                ));
+            }
         }
     }
 
@@ -841,6 +843,7 @@ pub async fn propose_transaction(
 
     let mut transactions = db.pending_transactions.write();
 
+    let transaction_id = calculate_transaction_id(&new_transaction.source, &new_transaction.target);
     transactions.insert(transaction_id, new_transaction);
 
     Ok(warp::reply::with_status(
