@@ -19,6 +19,7 @@ pub fn network(db: Db) -> BoxedFilter<(impl Reply,)> {
     };
     root.and(
         transaction_list(db.clone())
+        .or(get_config_route(db.clone()))
         .or(register_user(db.clone()))
         .or(auth_transaction_propose(db.clone()))
         .or(auth_block_propose(db.clone()))
@@ -26,6 +27,14 @@ pub fn network(db: Db) -> BoxedFilter<(impl Reply,)> {
         .or(block_list(db))
         )
         .boxed()
+}
+
+/// GET /config warp route
+pub fn get_config_route(db: Db) -> impl Filter<Extract = impl Reply, Error = Rejection> + Clone {
+    warp::path!("config")
+        .and(warp::get())
+        .and(custom_filters::with_db(db))
+        .and_then(handlers::get_config)
 }
 
 /// GET /user warp route

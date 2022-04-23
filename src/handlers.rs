@@ -352,6 +352,12 @@ pub async fn authenticate_user(
     Ok(warp::reply::with_status(res_json, StatusCode::CREATED))
 }
 
+/// GET /config
+/// Returns the configuration settings of this network in JSON.
+pub async fn get_config(db: Db) -> Result<impl warp::Reply, Infallible> {
+    Ok(reply::with_status(reply::json(&db.config), StatusCode::OK))
+}
+
 /// GET /transaction
 /// Returns JSON array of transactions
 pub async fn list_transactions(db: Db) -> Result<impl warp::Reply, Infallible> {
