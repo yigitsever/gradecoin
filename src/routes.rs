@@ -4,10 +4,12 @@ use crate::custom_filters;
 use crate::handlers;
 use crate::Db;
 use warp::{Filter, filters::BoxedFilter, Rejection, Reply};
+use log::{info};
 
 /// Every route combined for a single network
 pub fn network(db: Db) -> BoxedFilter<(impl Reply,)> {
     let url_prefix = db.config.url_prefix.clone();
+    info!("{} will be served at endpoint /{}", db.config.name, url_prefix);
     let root = if url_prefix.is_empty() {
         // warp::path does not like empty url_prefix
         // We need to handle this case separately
