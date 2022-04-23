@@ -20,3 +20,14 @@ tx_upper_limit: 4
 tx_lower_limit: 1
 # Transaction traffic reward
 tx_traffic_reward: 1
+# The bots in the network
+# Fingerprint: botconfig
+bots:
+  cde48537ca2c28084ff560826d0e6388b7c57a51497a6cb56f397289e52ff41b:
+    starting_balance: 70
+  a1a38b5bae5866d7d998a9834229ec2f9db7a4fc8fb6f58b1115a96a446875ff:
+    starting_balance: 20
+  4e048fd2a62f1307866086e803e9be43f78a702d5df10831fbf434e7663ae0e7:
+    starting_balance: 120
+  60e77101e76950a9b1830fa107fd2f8fc545255b3e0f14b6a7797cf9ee005f07:
+    starting_balance: 40
