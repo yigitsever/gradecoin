@@ -7,28 +7,50 @@ use log::{error, info};
 /// Configuration for a single network
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Config {
-    // Name of the network
+    /// Name of the network
     pub name: String,
-    // URL prefix for this network, can be empty
+
+    /// URL prefix for this network, can be empty
+    ///
+    /// For example, if url_prefix is `example`, register at
+    /// `gradecoin.xyz/example/register`
     pub url_prefix: String,
-    // CSV file that contains the list of users who can register
+
+    /// CSV file that contains the list of users who can register
+    ///
+    /// Format of CSV file:
+    /// ```
+    /// User ID, Password
+    /// e123456,register_password
+    /// e123456,register_password
+    /// ```
+    /// First line is ignored.
     pub preapproved_users: String,
-    // Valid blocks should have this many transactions
+
+    /// Valid blocks should have this many transactions
     pub block_transaction_count: u8,
-    // How many zero hexadecimal characters should a correct hash start with?
+    
+    /// How many zero hexadecimal characters should a correct hash start with?
     pub hash_zeros: u8,
-    // Inital registration bonus
+
+    /// Inital registration bonus
     pub register_bonus: u16,
-    // Coinbase reward
+
+    /// Coinbase reward
     pub block_reward: u16,
-    // Transaction amount limit
+
+    /// Transaction amount upper limit
     pub tx_upper_limit: u16,
+
+    /// Transaction amount lower limit
     pub tx_lower_limit: u16,
-    // Transaction traffic reward
+
+    /// Transaction traffic reward
     pub tx_traffic_reward: u16,
 }
 
 impl Config {
+    /// Read the configuration from a given `.yaml` file.
     pub fn read(filename: &str) -> Option<Self> {
         let file = match std::fs::File::open(filename) {
             Ok(f) => f,
