@@ -8,6 +8,7 @@ use std::collections::HashMap;
 
 /// Configuration struct for a single bot
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[allow(clippy::module_name_repetitions)]
 pub struct BotConfig {
     /// The initial balance of this bot.
     pub starting_balance: u16,
