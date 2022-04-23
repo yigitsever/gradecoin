@@ -1,8 +1,8 @@
 # Gradecoin
 
-This is designed to sit behind nginx reverse proxy so running at 127.0.0.1:8080 or not using https is not a problem.
+Gradecoin is a undergraduate level cryptography simulation/game that masquerades as a cryptocurrency.
 
-It's currently live over at https://gradecoin.xyz.
+The project is live at https://gradecoin.xyz.
 
 ```sh
 # Test the project
@@ -40,6 +40,7 @@ $ cargo run
 ```
 
 The server should be up on `localhost:8080`.
+We recommend using Nginx to reverse proxy Gradecoin so it can be served as HTTPS.
 
 The default config file is `config.yaml`.
 You can specify another config file with:
@@ -61,12 +62,3 @@ You can clear the database for all networks by running:
 $ rm -rf blocks users
 ```
 Or you can delete the database for a particular network by removing `blocks/network_name` and `users/network_name`.
-
-# References
-- https://github.com/blurbyte/restful-rust
-- https://github.com/zupzup/warp-postgres-example
-- https://blog.logrocket.com/create-an-async-crud-web-service-in-rust-with-warp/
-
-# How to be a good server
-- https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
-- https://tools.ietf.org/html/rfc7231
