@@ -1,8 +1,19 @@
 //! # Configuration
 //!
 //! This module holds the data structures for network configuration.
+use crate::block::Fingerprint;
 use log::{error, info};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+
+
+/// Configuration struct for a single bot
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct BotConfig {
+    /// The initial balance of this bot.
+    pub starting_balance: u16,
+}
+
 
 /// Configuration for a single network
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -47,6 +58,10 @@ pub struct Config {
 
     /// Transaction traffic reward
     pub tx_traffic_reward: u16,
+
+    /// The configuration of the bots in this network.
+    /// Maps bot fingerprints to their configurations.
+    pub bots: HashMap<Fingerprint, BotConfig>,
 }
 
 impl Config {
