@@ -3,6 +3,10 @@ name: mainnet
 # URL Prefix for this network
 # For example, url_prefix is "example", register at "gradecoin.xyz/example/register"
 url_prefix: ""
+# List of users who can register
+# CSV file: userID,password
+# First line is ignored
+preapproved_users: "students.csv"
 # Valid blocks should have this many transactions
 block_transaction_count: 4
 # Bonus awarded after registration
