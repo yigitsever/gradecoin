@@ -524,6 +524,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_test",
+ "serde_yaml",
  "sha2",
  "tokio",
  "warp",
