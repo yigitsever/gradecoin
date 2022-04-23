@@ -524,14 +524,19 @@ pub async fn propose_block(
         return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
     }
 
-    // Are the 6 leftmost characters (=24 bits) zero?
-    let should_zero = i32::from(hashvalue[0]) + i32::from(hashvalue[1]) + i32::from(hashvalue[2]);
+    // Are the n leftmost characters zero?
+    let hash_correct = hash_string.chars()
+        .take(db.config.hash_zeros.into())
+        .all(|x| x == '0');
 
-    if should_zero != 0 {
-        debug!("the hash does not have 6 rightmost zero bits");
+    if !hash_correct {
+        debug!("The hash does not have {} leftmost zero characters", db.config.hash_zeros);
         let res_json = warp::reply::json(&GradeCoinResponse {
             res: ResponseType::Error,
-            message: "Given block hash is larger than target value".to_owned(),
+            message: format!(
+                "Given block hash does not start with {} zero hexadecimal characters",
+                db.config.hash_zeros
+                ),
         });
 
         return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));

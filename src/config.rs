@@ -15,6 +15,8 @@ pub struct Config {
     pub preapproved_users: String,
     // Valid blocks should have this many transactions
     pub block_transaction_count: u8,
+    // How many zero hexadecimal characters should a correct hash start with?
+    pub hash_zeros: u8,
     // Inital registration bonus
     pub register_bonus: u16,
     // Coinbase reward

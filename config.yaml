@@ -9,6 +9,8 @@ url_prefix: ""
 preapproved_users: "students.csv"
 # Valid blocks should have this many transactions
 block_transaction_count: 4
+# How many zero hexadecimal characters should a correct hash start with?
+hash_zeros: 6
 # Bonus awarded after registration
 register_bonus: 20
 # Coinbase reward
