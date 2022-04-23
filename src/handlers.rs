@@ -93,6 +93,7 @@ lazy_static! {
 /// - We then verify the payload and calculate the User fingerprint
 /// - Finally, create the new [`User`] object, insert to users `HashMap` `<fingerprint, User>`
 ///
+#[allow(clippy::too_many_lines)] // temporary, should be refactored
 pub async fn authenticate_user(
     request: InitialAuthRequest,
     db: Db,
@@ -383,6 +384,7 @@ pub async fn list_transactions(db: Db) -> Result<impl warp::Reply, Infallible> {
 /// This is the analogue of `coinbase` in Bitcoin works
 ///
 /// The `coinbase` transaction also gets something for their efforts.
+#[allow(clippy::too_many_lines)] // temporary, should be refactored
 pub async fn propose_block(
     new_block: Block,
     token: String,
@@ -658,6 +660,7 @@ pub async fn propose_block(
 /// * `token` - An Authorization header value such as `Bearer aaa.bbb.ccc`
 /// * `db` - Global [`Db`] instance
 ///
+#[allow(clippy::too_many_lines)] // temporary, should be refactored
 pub async fn propose_transaction(
     new_transaction: Transaction,
     token: String,

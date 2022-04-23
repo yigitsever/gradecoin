@@ -44,6 +44,7 @@ impl Default for Block {
 
 /// For prototyping and letting serde handle everything json
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[allow(clippy::module_name_repetitions)]
 pub struct NakedBlock {
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub transaction_list: Vec<Fingerprint>,
