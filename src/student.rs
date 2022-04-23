@@ -26,7 +26,13 @@ pub struct User {
 
 impl fmt::Display for User {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.user_id)
+        write!(f, "{}", self.user_id.get_id())
+    }
+}
+
+impl fmt::Display for UserAtRest {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.user)
     }
 }
 

@@ -9,7 +9,6 @@
 //! Users are held in memory and they're also backed up to text files
 use chrono::{NaiveDate, NaiveDateTime};
 use serde::{Deserialize, Serialize};
-use std::{string::String, vec::Vec};
 
 pub type Fingerprint = String;
 pub type Id = String;

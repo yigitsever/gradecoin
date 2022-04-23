@@ -3,13 +3,16 @@
 use crate::custom_filters;
 use crate::handlers;
 use crate::Db;
-use warp::{Filter, filters::BoxedFilter, Rejection, Reply};
-use log::{info};
+use log::info;
+use warp::{filters::BoxedFilter, Filter, Rejection, Reply};
 
 /// Every route combined for a single network
 pub fn network(db: Db) -> BoxedFilter<(impl Reply,)> {
     let url_prefix = db.config.url_prefix.clone();
-    info!("{} will be served at endpoint /{}", db.config.name, url_prefix);
+    info!(
+        "{} will be served at endpoint /{}",
+        db.config.name, url_prefix
+    );
     let root = if url_prefix.is_empty() {
         // warp::path does not like empty url_prefix
         // We need to handle this case separately
@@ -19,14 +22,14 @@ pub fn network(db: Db) -> BoxedFilter<(impl Reply,)> {
     };
     root.and(
         transaction_list(db.clone())
-        .or(get_config_route(db.clone()))
-        .or(register_user(db.clone()))
-        .or(auth_transaction_propose(db.clone()))
-        .or(auth_block_propose(db.clone()))
-        .or(list_users(db.clone()))
-        .or(block_list(db))
-        )
-        .boxed()
+            .or(get_config_route(db.clone()))
+            .or(register_user(db.clone()))
+            .or(auth_transaction_propose(db.clone()))
+            .or(auth_block_propose(db.clone()))
+            .or(list_users(db.clone()))
+            .or(block_list(db)),
+    )
+    .boxed()
 }
 
 /// GET /config warp route

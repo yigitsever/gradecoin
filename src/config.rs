@@ -1,8 +1,8 @@
 //! # Configuration
 //!
 //! This module holds the data structures for network configuration.
-use serde::{Deserialize, Serialize};
 use log::{error, info};
+use serde::{Deserialize, Serialize};
 
 /// Configuration for a single network
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -29,7 +29,7 @@ pub struct Config {
 
     /// Valid blocks should have this many transactions
     pub block_transaction_count: u8,
-    
+
     /// How many zero hexadecimal characters should a correct hash start with?
     pub hash_zeros: u8,
 
@@ -58,15 +58,15 @@ impl Config {
                 error!("Cannot read config file: {}", filename);
                 error!("Error: {:?}", e);
                 return None;
-            },
+            }
         };
-        let config : Config = match serde_yaml::from_reader(file) {
+        let config: Config = match serde_yaml::from_reader(file) {
             Ok(c) => c,
             Err(e) => {
                 error!("Cannot parse config file: {}", filename);
                 error!("Error: {:?}", e);
                 return None;
-            },
+            }
         };
         // File closes automatically when it goes out of scope.
         info!("Config file read successfully: {}", filename);

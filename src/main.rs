@@ -46,21 +46,21 @@
 #![warn(clippy::all, clippy::pedantic)]
 #![allow(clippy::unused_async)]
 
+mod block;
+mod config;
 mod custom_filters;
 mod db;
 mod handlers;
 mod routes;
-mod block;
 mod student;
-mod config;
 
+use crate::config::Config;
 pub use block::{Fingerprint, Id};
 use db::Db;
 use lazy_static::lazy_static;
+use log::error;
 use std::fs;
-use crate::config::Config;
-use warp::{Filter};
-use log::{error};
+use warp::Filter;
 
 #[tokio::main]
 async fn main() {
@@ -73,13 +73,11 @@ async fn main() {
         args.push("config.yaml".to_string());
     }
 
-    let combined_routes = args.into_iter()
+    let combined_routes = args
+        .into_iter()
         .skip(1) // Skip the program name
         .filter_map(|filename| {
-            match Config::read(&filename) {
-                Some(config) => Some(routes::network(Db::new(config))),
-                None => None,
-            }
+            Config::read(&filename).map(|config| routes::network(Db::new(config)))
         })
         .reduce(|routes, route| routes.or(route).unify().boxed());
 
@@ -89,7 +87,7 @@ async fn main() {
             // Exit the program if there's no successfully loaded config file.
             error!("Failed to load any config files!");
             return;
-        },
+        }
     };
 
     // gradecoin-site (zola) outputs a public/, we serve it here

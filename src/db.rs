@@ -9,9 +9,9 @@
 //! [`Db::users`] is the in memory representation of the users,
 //! with their public keys, `metu_ids` and gradecoin balances.
 use crate::block::{Block, Fingerprint, Id, Transaction};
-use crate::student::{MetuId, User, UserAtRest};
 use crate::config::Config;
-use log::debug;
+use crate::student::{MetuId, User, UserAtRest};
+use log::info;
 use parking_lot::RwLock;
 use std::{collections::HashMap, fs, io, path::PathBuf, sync::Arc};
 
@@ -32,7 +32,7 @@ impl Db {
         // Load bots
         let users: HashMap<Fingerprint, User> = get_friendly_users();
 
-        // Read the list of users who can register
+        // Load the list of users who can register
         let preapproved_users = read_approved_users(&config.preapproved_users);
 
         let mut db = Db {
@@ -43,21 +43,21 @@ impl Db {
             preapproved_users,
         };
 
-        // Read blocks
+        // Load the latest block, continue from where we left off
         if let Some(block_path) = last_block_content(&db.config.name) {
             db.populate_with_last_block(block_path);
         }
 
-        // Read users
+        // Load the users that had registered themselves
         if let Ok(users_path) = read_users(&db.config.name) {
             db.populate_with_users(users_path);
         }
 
-        return db;
+        db
     }
 
     fn populate_with_last_block(&mut self, path: String) {
-        debug!("Populating db with the latest block {}", path);
+        info!("Populating db with the latest block {}", path);
         let file = fs::read(path).unwrap();
         let json = std::str::from_utf8(&file).unwrap();
         let block: Block = serde_json::from_str(json).unwrap();
@@ -71,7 +71,7 @@ impl Db {
                     String::from_utf8(file_content).expect("we have written a malformed user file");
                 let user_at_rest: UserAtRest = serde_json::from_str(&json).unwrap();
 
-                debug!("Populating db with user: {:?}", user_at_rest);
+                info!("Populating db with user: {:?}", user_at_rest);
                 self.users
                     .write()
                     .insert(user_at_rest.fingerprint, user_at_rest.user);
@@ -122,7 +122,7 @@ fn read_block_name(config_name: &str) -> io::Result<Vec<PathBuf>> {
 }
 
 fn parse_block(path: &str) -> u64 {
-    let start_pos = path.rfind("/").unwrap() + 1;
+    let start_pos = path.rfind('/').unwrap() + 1;
     let end_pos = path.find(".block").unwrap();
     let block_str = path[start_pos..end_pos].to_string();
     let block_u64: u64 = block_str.parse().unwrap();

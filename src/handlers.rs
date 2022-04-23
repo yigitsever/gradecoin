@@ -30,7 +30,7 @@ use crate::PRIVATE_KEY;
 type Aes128Cbc = Cbc<Aes128, Pkcs7>;
 
 #[derive(Serialize, Debug)]
-struct GradeCoinResponse {
+struct UserFeedback {
     res: ResponseType,
     message: String,
 }
@@ -97,7 +97,7 @@ pub async fn authenticate_user(
     request: InitialAuthRequest,
     db: Db,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    debug!("POST /register, authenticate_user() is handling");
+    debug!("[{}] New user registration attempt", db.config.name);
 
     // In essence PEM files are just base64 encoded versions of the DER encoded data.
     // ~tls.mbed.org
@@ -113,7 +113,7 @@ pub async fn authenticate_user(
                 &request.key, err
             );
 
-            let res_json = warp::reply::json(&GradeCoinResponse {
+            let res_json = warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: format!(
                     "\"key\" field of initial auth request was not base64 encoded: {}, {}",
@@ -134,7 +134,7 @@ pub async fn authenticate_user(
                 err, &key_ciphertext
             );
 
-            let res_json = warp::reply::json(&GradeCoinResponse {
+            let res_json = warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: "Failed to decrypt the 'key_ciphertext' field of the auth request"
                     .to_owned(),
@@ -153,7 +153,7 @@ pub async fn authenticate_user(
                 &request.iv, err
             );
 
-            let res_json = warp::reply::json(&GradeCoinResponse {
+            let res_json = warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: format!(
                     "\"iv\" field of initial auth request was not base64 encoded: {}, {}",
@@ -174,11 +174,11 @@ pub async fn authenticate_user(
                 &temp_key, &request.iv, err
             );
 
-            let res_json = warp::reply::json(&GradeCoinResponse {
+            let res_json = warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: format!(
-                    "Could not create a cipher from given 'temp_key': {:?} and 'IV': {}",
-                    &temp_key, &request.iv
+                    "Could not create a cipher from given 'temp_key': {:?} and 'IV': {}, {}",
+                    &temp_key, &request.iv, err
                 ),
             });
 
@@ -195,7 +195,7 @@ pub async fn authenticate_user(
                 &request.c, err
             );
 
-            let res_json = warp::reply::json(&GradeCoinResponse {
+            let res_json = warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: format!(
                     "\"c\" field of initial auth request was not base64 encoded: {}, {}",
@@ -218,7 +218,7 @@ pub async fn authenticate_user(
                 &buf, err
             );
 
-            let res_json = warp::reply::json(&GradeCoinResponse {
+            let res_json = warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: "Failed to decrypt the 'c' field of the auth request, 'iv' and 'k_temp' were valid so far though"
                     .to_owned(),
@@ -237,7 +237,7 @@ pub async fn authenticate_user(
                 &auth_plaintext, err
             );
 
-            let res_json = warp::reply::json(&GradeCoinResponse {
+            let res_json = warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: "P_AR couldn't get converted to UTF-8, please check your encoding"
                     .to_owned(),
@@ -256,7 +256,7 @@ pub async fn authenticate_user(
                 &utf8_auth_plaintext, err
             );
 
-            let res_json = warp::reply::json(&GradeCoinResponse {
+            let res_json = warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: "The P_AR JSON did not serialize correctly, did it include all 3 fields 'student_id', 'passwd' and 'public_key'?".to_owned(),
             });
@@ -273,7 +273,7 @@ pub async fn authenticate_user(
             "Someone tried to auth with invalid credentials: {} {}",
             &request.student_id, &request.passwd
         );
-        let res_json = warp::reply::json(&GradeCoinResponse {
+        let res_json = warp::reply::json(&UserFeedback {
             res: ResponseType::Error,
             message:
                 "The credentials given ('student_id', 'passwd') cannot hold a Gradecoin account"
@@ -289,7 +289,8 @@ pub async fn authenticate_user(
 
         for (_, user) in userlist.iter() {
             if user.user_id == privileged_student_id {
-                let res_json = warp::reply::json(&GradeCoinResponse {
+                debug!("{} attempted to authenticate again", user.user_id);
+                let res_json = warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message:
                     "This user is already authenticated, do you think this is a mistake? Contact me"
@@ -302,7 +303,7 @@ pub async fn authenticate_user(
 
     // We're using this as the validator instead of anything reasonable
     if DecodingKey::from_rsa_pem(request.public_key.as_bytes()).is_err() {
-        let res_json = warp::reply::json(&GradeCoinResponse {
+        let res_json = warp::reply::json(&UserFeedback {
             res: ResponseType::Error,
             message: "The RSA 'public_key' in 'P_AR' is not in valid PEM format".to_owned(),
         });
@@ -319,7 +320,7 @@ pub async fn authenticate_user(
         is_bot: false,
     };
 
-    debug!("NEW USER: {:?}", &new_user);
+    warn!("A new user has authenticated: {}", &new_user.user_id);
 
     // save the user to disk
     let user_at_rest_json = serde_json::to_string(&UserAtRest {
@@ -335,13 +336,14 @@ pub async fn authenticate_user(
 
     fs::write(
         format!("users/{}/{}.guy", db.config.name, new_user.user_id),
-        user_at_rest_json
-    ).unwrap();
+        user_at_rest_json,
+    )
+    .unwrap();
 
     let mut userlist = db.users.write();
     userlist.insert(fingerprint.clone(), new_user);
 
-    let res_json = warp::reply::json(&GradeCoinResponse {
+    let res_json = warp::reply::json(&UserFeedback {
         res: ResponseType::Success,
         message: format!(
             "You have authenticated to use Gradecoin with identifier {}",
@@ -396,7 +398,7 @@ pub async fn propose_block(
             new_block.transaction_list.len(),
             block_transaction_count
         );
-        let res_json = warp::reply::json(&GradeCoinResponse {
+        let res_json = warp::reply::json(&UserFeedback {
             res: ResponseType::Error,
             message: format!(
                 "There should be at least {} transactions in the block",
@@ -420,7 +422,7 @@ pub async fn propose_block(
                 new_block.transaction_list[0]
             );
 
-            let res_json = warp::reply::json(&GradeCoinResponse {
+            let res_json = warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: "First transaction in the block is not found in the system".to_owned(),
             });
@@ -439,7 +441,7 @@ pub async fn propose_block(
             new_block.transaction_list[0]
         );
 
-        let res_json = warp::reply::json(&GradeCoinResponse {
+        let res_json = warp::reply::json(&UserFeedback {
             res: ResponseType::Error,
             message: "User with that public key signature is not found in the database".to_owned(),
         });
@@ -455,7 +457,7 @@ pub async fn propose_block(
         Err(below) => {
             debug!("Something went wrong with the JWT {:?}", below);
 
-            let res_json = warp::reply::json(&GradeCoinResponse {
+            let res_json = warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: below,
             });
@@ -470,7 +472,7 @@ pub async fn propose_block(
             "The Hash of the block {:?} did not match the hash given in jwt {:?}",
             new_block.hash, token_payload.claims.tha
         );
-        let res_json = warp::reply::json(&GradeCoinResponse {
+        let res_json = warp::reply::json(&UserFeedback {
             res: ResponseType::Error,
             message: "The hash of the block did not match the hash given in JWT tha field"
                 .to_owned(),
@@ -481,7 +483,7 @@ pub async fn propose_block(
 
     if !has_unique_elements(&new_block.transaction_list) {
         debug!("Block contains duplicate transactions!");
-        let res_json = warp::reply::json(&GradeCoinResponse {
+        let res_json = warp::reply::json(&UserFeedback {
             res: ResponseType::Error,
             message: "Block cannot contain duplicate transactions".to_owned(),
         });
@@ -492,7 +494,7 @@ pub async fn propose_block(
     // Are transactions in the block valid?
     for transaction_hash in &new_block.transaction_list {
         if !pending_transactions.contains_key(transaction_hash) {
-            let res_json = warp::reply::json(&GradeCoinResponse {
+            let res_json = warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: "Block contains an unknown transaction".to_owned(),
             });
@@ -516,7 +518,7 @@ pub async fn propose_block(
     // Does the hash claimed in block match with the actual hash?
     if hash_string != new_block.hash {
         debug!("request was not telling the truth, hash values do not match");
-        let res_json = warp::reply::json(&GradeCoinResponse {
+        let res_json = warp::reply::json(&UserFeedback {
             res: ResponseType::Error,
             message: "Given hash value does not match the actual block hash".to_owned(),
         });
@@ -525,18 +527,22 @@ pub async fn propose_block(
     }
 
     // Are the n leftmost characters zero?
-    let hash_correct = hash_string.chars()
+    let hash_correct = hash_string
+        .chars()
         .take(db.config.hash_zeros.into())
         .all(|x| x == '0');
 
     if !hash_correct {
-        debug!("The hash does not have {} leftmost zero characters", db.config.hash_zeros);
-        let res_json = warp::reply::json(&GradeCoinResponse {
+        debug!(
+            "The hash does not have {} leftmost zero characters",
+            db.config.hash_zeros
+        );
+        let res_json = warp::reply::json(&UserFeedback {
             res: ResponseType::Error,
             message: format!(
                 "Given block hash does not start with {} zero hexadecimal characters",
                 db.config.hash_zeros
-                ),
+            ),
         });
 
         return Ok(warp::reply::with_status(res_json, StatusCode::BAD_REQUEST));
@@ -553,10 +559,15 @@ pub async fn propose_block(
         // Reward the block proposer
         // All unwrap calls here are guaranteed to succeed because they are already checked above
         // See: internal_user_fingerprint, internal_user
-        let coinbase = pending_transactions.get(&new_block.transaction_list[0]).unwrap();
+        let coinbase = pending_transactions
+            .get(&new_block.transaction_list[0])
+            .unwrap();
         let mut coinbase_user = users_store.get_mut(&coinbase.source).unwrap();
         coinbase_user.balance += db.config.block_reward;
-        debug!("{} block reward went to {:?} for mining the block", db.config.block_reward, coinbase_user);
+        debug!(
+            "{} block reward went to {} for mining the block",
+            db.config.block_reward, coinbase_user.user_id
+        );
 
         let mut holding: HashMap<String, Transaction> = HashMap::new();
 
@@ -615,7 +626,11 @@ pub async fn propose_block(
     let block_json = serde_json::to_string(&new_block).unwrap();
 
     fs::write(
-        format!("blocks/{}/{}.block", db.config.name, new_block.timestamp.timestamp()),
+        format!(
+            "blocks/{}/{}.block",
+            db.config.name,
+            new_block.timestamp.timestamp()
+        ),
         block_json,
     )
     .unwrap();
@@ -626,7 +641,7 @@ pub async fn propose_block(
     }
 
     Ok(warp::reply::with_status(
-        warp::reply::json(&GradeCoinResponse {
+        warp::reply::json(&UserFeedback {
             res: ResponseType::Success,
             message: "Block accepted, coinbase reward awarded".to_owned(),
         }),
@@ -648,7 +663,10 @@ pub async fn propose_transaction(
     token: String,
     db: Db,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    warn!("[{}] New transaction proposal: {:?}", db.config.name, &new_transaction);
+    warn!(
+        "[{}] New transaction proposal: {:?}",
+        db.config.name, &new_transaction
+    );
 
     let users_store = db.users.read();
 
@@ -662,7 +680,7 @@ pub async fn propose_transaction(
         );
 
         return Ok(warp::reply::with_status(
-            warp::reply::json(&GradeCoinResponse {
+            warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: "User with the given public key signature is not authorized".to_owned(),
             }),
@@ -674,7 +692,7 @@ pub async fn propose_transaction(
         debug!("Someone tried to send as the bot");
 
         return Ok(warp::reply::with_status(
-            warp::reply::json(&GradeCoinResponse {
+            warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: "Don's send transactions on behalf of bots".to_owned(),
             }),
@@ -693,7 +711,7 @@ pub async fn propose_transaction(
         Err(below) => {
             debug!("JWT Error: {:?}", below);
             return Ok(warp::reply::with_status(
-                warp::reply::json(&GradeCoinResponse {
+                warp::reply::json(&UserFeedback {
                     res: ResponseType::Error,
                     message: below,
                 }),
@@ -710,7 +728,7 @@ pub async fn propose_transaction(
         );
 
         return Ok(warp::reply::with_status(
-            warp::reply::json(&GradeCoinResponse {
+            warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: format!(
                     "Target of the transaction {} is not found in the system",
@@ -723,8 +741,6 @@ pub async fn propose_transaction(
 
     let transaction_id = calculate_transaction_id(&new_transaction.source, &new_transaction.target);
 
-    // OLD: Does this user have a pending transaction?
-    // NEW: Is this source:target pair unqiue?
     {
         let transactions = db.pending_transactions.read();
         debug!(
@@ -739,7 +755,7 @@ pub async fn propose_transaction(
             );
 
             return Ok(warp::reply::with_status(
-                warp::reply::json(&GradeCoinResponse {
+                warp::reply::json(&UserFeedback {
                     res: ResponseType::Error,
                     message: "This user already has another pending transaction".to_owned(),
                 }),
@@ -752,7 +768,7 @@ pub async fn propose_transaction(
         debug!("transaction source and target are the same",);
 
         return Ok(warp::reply::with_status(
-            warp::reply::json(&GradeCoinResponse {
+            warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: "transaction to yourself, you had to try didn't you? :)".to_owned(),
             }),
@@ -769,7 +785,7 @@ pub async fn propose_transaction(
             tx_lower_limit, tx_upper_limit, new_transaction.amount
         );
         return Ok(warp::reply::with_status(
-            warp::reply::json(&GradeCoinResponse {
+            warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: format!(
                     "Transaction amount should be between {} and {}",
@@ -787,7 +803,7 @@ pub async fn propose_transaction(
             internal_user.balance, new_transaction.amount
         );
         return Ok(warp::reply::with_status(
-            warp::reply::json(&GradeCoinResponse {
+            warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: "User does not have enough balance in their account for this transaction"
                     .to_owned(),
@@ -806,7 +822,7 @@ pub async fn propose_transaction(
     let hashed_transaction = Md5::digest(serd_tx.as_bytes());
     if token_payload.claims.tha != format!("{:x}", hashed_transaction) {
         return Ok(warp::reply::with_status(
-            warp::reply::json(&GradeCoinResponse {
+            warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: "The hash of the transaction did not match the hash given in JWT"
                     .to_owned(),
@@ -815,14 +831,17 @@ pub async fn propose_transaction(
         ));
     }
 
-    warn!("[{}] ACCEPTED TRANSACTION {:?}", db.config.name, new_transaction);
+    warn!(
+        "[{}] ACCEPTED TRANSACTION {:?}",
+        db.config.name, new_transaction
+    );
 
     let mut transactions = db.pending_transactions.write();
 
     transactions.insert(transaction_id, new_transaction);
 
     Ok(warp::reply::with_status(
-        warp::reply::json(&GradeCoinResponse {
+        warp::reply::json(&UserFeedback {
             res: ResponseType::Success,
             message: "Transaction accepted".to_owned(),
         }),
@@ -835,8 +854,6 @@ pub async fn propose_transaction(
 /// Cannot fail
 /// Mostly around for debug purposes
 pub async fn list_blocks(db: Db) -> Result<impl warp::Reply, Infallible> {
-    debug!("GET /block, list_blocks() is handling");
-
     let block = db.blockchain.read();
 
     Ok(reply::with_status(reply::json(&*block), StatusCode::OK))
