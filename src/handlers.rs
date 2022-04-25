@@ -664,6 +664,104 @@ pub async fn propose_block(
     ))
 }
 
+async fn deduct_gas_fee(
+    new_transaction: &Transaction,
+    token: &str,
+    db: Db,
+) -> Option<warp::reply::WithStatus<warp::reply::Json>> {
+    let mut users_store = db.users.write();
+
+    // Is this transaction from an authorized source?
+    let mut internal_user: &mut User = if let Some(existing_user) =
+        users_store.get_mut(&new_transaction.source)
+    {
+        existing_user
+    } else {
+        debug!(
+            "User with public key signature {:?} is not found in the database",
+            new_transaction.source
+        );
+
+        return Some(warp::reply::with_status(
+            warp::reply::json(&UserFeedback {
+                res: ResponseType::Error,
+                message: "User with the given public key signature is not authorized".to_owned(),
+            }),
+            StatusCode::BAD_REQUEST,
+        ));
+    };
+
+    // This check is early on because bots don't have public keys, avoiding undefined behaviour
+    if internal_user.is_bot {
+        debug!("Someone tried to send as a bot");
+
+        return Some(warp::reply::with_status(
+            warp::reply::json(&UserFeedback {
+                res: ResponseType::Error,
+                message: "Don't send transactions on behalf of bots".to_owned(),
+            }),
+            StatusCode::BAD_REQUEST,
+        ));
+    }
+
+    // This public key was already written to the database, we can panic if it's not valid at
+    // *this* point
+    let proposer_public_key = &internal_user.public_key;
+
+    let token_payload = match authorize_proposer(token, proposer_public_key) {
+        Ok(data) => data,
+        Err(below) => {
+            debug!("JWT Error: {:?}", below);
+            return Some(warp::reply::with_status(
+                warp::reply::json(&UserFeedback {
+                    res: ResponseType::Error,
+                    message: below,
+                }),
+                StatusCode::BAD_REQUEST,
+            ));
+        }
+    };
+
+    // this transaction was already checked for correctness at custom_filters we can panic here if
+    // it has been changed since
+    let serd_tx = serde_json::to_string(&new_transaction).unwrap();
+
+    debug!("Taking the hash of {}", serd_tx);
+
+    let hashed_transaction = Md5::digest(serd_tx.as_bytes());
+
+    if token_payload.claims.tha != format!("{:x}", hashed_transaction) {
+        return Some(warp::reply::with_status(
+            warp::reply::json(&UserFeedback {
+                res: ResponseType::Error,
+                message: "The hash of the transaction did not match the hash given in JWT"
+                    .to_owned(),
+            }),
+            StatusCode::BAD_REQUEST,
+        ));
+    }
+
+    // At this point we have authorized the user
+    // Deduct gas fee to process the transaction further
+    if internal_user.balance < db.config.tx_gas_fee {
+        debug!(
+            "User does not have enough balance ({}) to pay for the gas fee",
+            internal_user.balance
+        );
+        return Some(warp::reply::with_status(
+            warp::reply::json(&UserFeedback {
+                res: ResponseType::Error,
+                message: "You cannot afford the gas fee for this transaction".to_owned(),
+            }),
+            StatusCode::BAD_REQUEST,
+        ));
+    }
+
+    internal_user.balance -= db.config.tx_gas_fee;
+
+    None
+}
+
 /// POST /transaction
 ///
 /// Handles the new transaction requests
@@ -684,9 +782,19 @@ pub async fn propose_transaction(
         db.config.name, &new_transaction
     );
 
+    if let Some(error) = deduct_gas_fee(&new_transaction, &token, db.clone()).await {
+        return Ok(error);
+    }
+
+    // Gas fee exists to discourage dumb bots
+    // Checks from this point on will be penalized as they already paid the gas fee but can still
+    // fail
+
     let users_store = db.users.read();
 
-    // Is this transaction from an authorized source?
+    // We _can_ get the internal user from deduct_gas_fee but that one is a mutable reference
+    // We only need an unmutable reference from here on out, so unless something better comes along
+    // this is how we get the second internal_user
     let internal_user = if let Some(existing_user) = users_store.get(&new_transaction.source) {
         existing_user
     } else {
@@ -702,38 +810,6 @@ pub async fn propose_transaction(
             }),
             StatusCode::BAD_REQUEST,
         ));
-    };
-
-    if internal_user.is_bot {
-        debug!("Someone tried to send as the bot");
-
-        return Ok(warp::reply::with_status(
-            warp::reply::json(&UserFeedback {
-                res: ResponseType::Error,
-                message: "Don's send transactions on behalf of bots".to_owned(),
-            }),
-            StatusCode::BAD_REQUEST,
-        ));
-    }
-
-    // `internal_user` is an authenticated student and not a bot, can propose
-
-    // This public key was already written to the database, we can panic if it's not valid at
-    // *this* point
-    let proposer_public_key = &internal_user.public_key;
-
-    let token_payload = match authorize_proposer(&token, proposer_public_key) {
-        Ok(data) => data,
-        Err(below) => {
-            debug!("JWT Error: {:?}", below);
-            return Ok(warp::reply::with_status(
-                warp::reply::json(&UserFeedback {
-                    res: ResponseType::Error,
-                    message: below,
-                }),
-                StatusCode::BAD_REQUEST,
-            ));
-        }
     };
 
     // is the target of the transaction in the system?
@@ -824,25 +900,6 @@ pub async fn propose_transaction(
             warp::reply::json(&UserFeedback {
                 res: ResponseType::Error,
                 message: "User does not have enough balance in their account for this transaction"
-                    .to_owned(),
-            }),
-            StatusCode::BAD_REQUEST,
-        ));
-    }
-
-    // this transaction was already checked for correctness at custom_filters, we can panic here if
-    // it has been changed since
-
-    let serd_tx = serde_json::to_string(&new_transaction).unwrap();
-
-    debug!("Taking the hash of {}", serd_tx);
-
-    let hashed_transaction = Md5::digest(serd_tx.as_bytes());
-    if token_payload.claims.tha != format!("{:x}", hashed_transaction) {
-        return Ok(warp::reply::with_status(
-            warp::reply::json(&UserFeedback {
-                res: ResponseType::Error,
-                message: "The hash of the transaction did not match the hash given in JWT"
                     .to_owned(),
             }),
             StatusCode::BAD_REQUEST,
