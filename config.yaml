@@ -19,7 +19,9 @@ block_reward: 2
 tx_upper_limit: 4
 tx_lower_limit: 1
 # Transaction traffic reward
-tx_traffic_reward: 1
+tx_traffic_reward: 2
+# Transaction gas fee
+tx_gas_fee: 2
 # The bots in the network
 # Fingerprint: botconfig
 bots:

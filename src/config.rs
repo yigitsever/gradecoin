@@ -49,6 +49,9 @@ pub struct Config {
     /// Coinbase reward
     pub block_reward: u16,
 
+    /// Transaction gas fee
+    pub tx_gas_fee: u16,
+
     /// Transaction amount upper limit
     pub tx_upper_limit: u16,
 
