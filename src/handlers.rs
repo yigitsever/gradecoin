@@ -335,11 +335,7 @@ pub async fn authenticate_user(
     })
     .unwrap();
 
-    fs::write(
-        format!("users/{}/{}.guy", db.config.name, new_user.user_id),
-        user_at_rest_json,
-    )
-    .unwrap();
+    write_guy_file(&db.config.name, &new_user.user_id, &user_at_rest_json);
 
     let mut userlist = db.users.write();
     userlist.insert(fingerprint.clone(), new_user);
@@ -621,34 +617,30 @@ pub async fn propose_block(
         }
 
         // just update everyone's .guy file
-        for (fp, guy) in users_store.iter() {
-            if !guy.is_bot {
+        for (fp, user) in users_store.iter() {
+            if !user.is_bot {
                 let user_at_rest_json = serde_json::to_string(&UserAtRest {
                     fingerprint: fp.clone(),
                     user: User {
-                        user_id: guy.user_id.clone(),
-                        public_key: guy.public_key.clone(),
-                        balance: guy.balance,
+                        user_id: user.user_id.clone(),
+                        public_key: user.public_key.clone(),
+                        balance: user.balance,
                         is_bot: false,
                     },
                 })
                 .unwrap();
-                fs::write(format!("users/{}.guy", guy.user_id), user_at_rest_json).unwrap();
+                write_guy_file(&db.config.name, &user.user_id, &user_at_rest_json);
             }
         }
     }
 
     let block_json = serde_json::to_string(&new_block).unwrap();
 
-    fs::write(
-        format!(
-            "blocks/{}/{}.block",
-            db.config.name,
-            new_block.timestamp.timestamp()
-        ),
-        block_json,
-    )
-    .unwrap();
+    write_block(
+        &db.config.name,
+        new_block.timestamp.timestamp(),
+        &block_json,
+    );
 
     {
         let mut blockchain = db.blockchain.write();
@@ -928,11 +920,29 @@ pub async fn propose_transaction(
 /// GET /block
 /// Returns the last block's JSON
 /// Cannot fail
-/// Mostly around for debug purposes
 pub async fn list_blocks(db: Db) -> Result<impl warp::Reply, Infallible> {
     let block = db.blockchain.read();
 
     Ok(reply::with_status(reply::json(&*block), StatusCode::OK))
+}
+
+/// GET /user
+/// Returns an HTML file with the current standing of users
+pub async fn user_list_handler(db: Db) -> Result<impl warp::Reply, warp::Rejection> {
+    let users = db.users.read();
+    let mut sane_users = Vec::new();
+
+    for (fingerprint, user) in users.iter() {
+        sane_users.push(DisplayUsers {
+            fingerprint: fingerprint.clone(),
+            balance: user.balance,
+            is_bot: user.is_bot,
+        });
+    }
+
+    let template = UserTemplate { users: &sane_users };
+    let res = template.render().unwrap();
+    Ok(warp::reply::html(res))
 }
 
 /// Handles the JWT Authorization
@@ -986,6 +996,18 @@ fn authorize_proposer(jwt_token: &str, user_pem: &str) -> Result<TokenData<Claim
     Ok(token_payload)
 }
 
+fn write_guy_file(network_name: &str, guy: &MetuId, content: &str) {
+    fs::write(format!("users/{}/{}.guy", network_name, guy), content).unwrap();
+}
+
+fn write_block(network_name: &str, timestamp: i64, block: &str) {
+    fs::write(
+        format!("blocks/{}/{}.block", network_name, timestamp),
+        block,
+    )
+    .unwrap();
+}
+
 fn calculate_transaction_id(source: &str, target: &str) -> String {
     let long_fingerprint = format!("{}{}{}", source, target, Utc::now());
     let id = format!("{:x}", Sha256::digest(long_fingerprint.as_bytes()));
@@ -1002,23 +1024,6 @@ struct DisplayUsers {
     fingerprint: String,
     balance: u16,
     is_bot: bool,
-}
-
-pub async fn user_list_handler(db: Db) -> Result<impl warp::Reply, warp::Rejection> {
-    let users = db.users.read();
-    let mut sane_users = Vec::new();
-
-    for (fingerprint, user) in users.iter() {
-        sane_users.push(DisplayUsers {
-            fingerprint: fingerprint.clone(),
-            balance: user.balance,
-            is_bot: user.is_bot,
-        });
-    }
-
-    let template = UserTemplate { users: &sane_users };
-    let res = template.render().unwrap();
-    Ok(warp::reply::html(res))
 }
 
 fn has_unique_elements<T>(iter: T) -> bool
