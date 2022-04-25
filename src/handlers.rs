@@ -361,6 +361,19 @@ pub async fn get_config(db: Db) -> Result<impl warp::Reply, Infallible> {
     Ok(reply::with_status(reply::json(&db.config), StatusCode::OK))
 }
 
+/// GET /version
+/// Returns the current project version, as defined in Cargo.toml
+pub async fn get_version() -> Result<impl warp::Reply, Infallible> {
+    Ok(reply::with_status(
+        reply::html(format!(
+            "{} - version {}",
+            env!("CARGO_PKG_NAME"),
+            env!("CARGO_PKG_VERSION")
+        )),
+        StatusCode::OK,
+    ))
+}
+
 /// GET /transaction
 /// Returns JSON array of transactions
 pub async fn list_transactions(db: Db) -> Result<impl warp::Reply, Infallible> {
