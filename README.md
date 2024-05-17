@@ -6,9 +6,6 @@ Gradecoin is a undergraduate level cryptography simulation/game that masquerades
 The project is live at https://gradecoin.yigitsever.com.
 
 ```sh
-# Test the project
-$ cargo test
-
 # Read the documentation
 $ cargo doc --open
 ```
