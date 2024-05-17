@@ -3,7 +3,7 @@
 
 Gradecoin is a undergraduate level cryptography simulation/game that masquerades as a cryptocurrency.
 
-The project is live at https://gradecoin.xyz.
+The project is live at https://gradecoin.yigitsever.com.
 
 ```sh
 # Test the project
